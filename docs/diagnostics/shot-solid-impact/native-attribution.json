@@ -1,0 +1,711 @@
+{
+  "status": "B1 confirmed pre-existing; B2 not reproduced, attribution INCONCLUSIVE",
+  "measurement": "Atari800 PAL end-of-loop guest RAM; not complete-frame pixel/raster proof",
+  "runs": [
+    {
+      "name": "main",
+      "frames": 1800,
+      "dump": "build/shot-solid-impact/main-frames.bin",
+      "sha256": "35b480e49f5119b123bc1ca6695a688baec7b64bad45bc9ec00a1e53fcacc73e",
+      "solidOverlaps": 188,
+      "overlapExamples": [
+        {
+          "frame": 297,
+          "slot": 2,
+          "x": 126,
+          "y": 193,
+          "address": "0x82e3",
+          "backing": 62,
+          "visible": 30
+        },
+        {
+          "frame": 298,
+          "slot": 2,
+          "x": 126,
+          "y": 187,
+          "address": "0x82bb",
+          "backing": 62,
+          "visible": 32
+        },
+        {
+          "frame": 299,
+          "slot": 2,
+          "x": 126,
+          "y": 181,
+          "address": "0x826b",
+          "backing": 62,
+          "visible": 34
+        },
+        {
+          "frame": 300,
+          "slot": 2,
+          "x": 126,
+          "y": 175,
+          "address": "0x8243",
+          "backing": 62,
+          "visible": 36
+        },
+        {
+          "frame": 301,
+          "slot": 2,
+          "x": 126,
+          "y": 169,
+          "address": "0x8243",
+          "backing": 62,
+          "visible": 30
+        },
+        {
+          "frame": 302,
+          "slot": 2,
+          "x": 126,
+          "y": 163,
+          "address": "0x81f3",
+          "backing": 62,
+          "visible": 32
+        },
+        {
+          "frame": 303,
+          "slot": 2,
+          "x": 126,
+          "y": 157,
+          "address": "0x81cb",
+          "backing": 62,
+          "visible": 34
+        },
+        {
+          "frame": 304,
+          "slot": 2,
+          "x": 126,
+          "y": 151,
+          "address": "0x817b",
+          "backing": 59,
+          "visible": 36
+        },
+        {
+          "frame": 305,
+          "slot": 2,
+          "x": 126,
+          "y": 145,
+          "address": "0x817b",
+          "backing": 59,
+          "visible": 30
+        },
+        {
+          "frame": 306,
+          "slot": 2,
+          "x": 126,
+          "y": 139,
+          "address": "0x8153",
+          "backing": 59,
+          "visible": 32
+        },
+        {
+          "frame": 307,
+          "slot": 2,
+          "x": 126,
+          "y": 133,
+          "address": "0x853b",
+          "backing": 59,
+          "visible": 34
+        },
+        {
+          "frame": 308,
+          "slot": 2,
+          "x": 126,
+          "y": 127,
+          "address": "0x8513",
+          "backing": 59,
+          "visible": 36
+        }
+      ],
+      "renderedCellsNotContainingShot": [],
+      "capitalEarlyRetirements": [
+        {
+          "frame": 407,
+          "slot": 0,
+          "previousY": 133,
+          "lifecycle": 1,
+          "capitalState": 2
+        },
+        {
+          "frame": 407,
+          "slot": 1,
+          "previousY": 187,
+          "lifecycle": 1,
+          "capitalState": 2
+        },
+        {
+          "frame": 407,
+          "slot": 3,
+          "previousY": 61,
+          "lifecycle": 1,
+          "capitalState": 2
+        },
+        {
+          "frame": 917,
+          "slot": 0,
+          "previousY": 127,
+          "lifecycle": 1,
+          "capitalState": 2
+        },
+        {
+          "frame": 917,
+          "slot": 1,
+          "previousY": 181,
+          "lifecycle": 1,
+          "capitalState": 2
+        },
+        {
+          "frame": 917,
+          "slot": 3,
+          "previousY": 55,
+          "lifecycle": 1,
+          "capitalState": 2
+        }
+      ],
+      "topRetirements": 162
+    },
+    {
+      "name": "pre-capital",
+      "frames": 1800,
+      "dump": "build/shot-solid-impact/pre-capital-frames.bin",
+      "sha256": "f877691fb09bab060707288fdfaa555315279c9e7af9b97185be25361ead4f75",
+      "solidOverlaps": 188,
+      "overlapExamples": [
+        {
+          "frame": 297,
+          "slot": 2,
+          "x": 126,
+          "y": 193,
+          "address": "0x82e3",
+          "backing": 62,
+          "visible": 30
+        },
+        {
+          "frame": 298,
+          "slot": 2,
+          "x": 126,
+          "y": 187,
+          "address": "0x82bb",
+          "backing": 62,
+          "visible": 32
+        },
+        {
+          "frame": 299,
+          "slot": 2,
+          "x": 126,
+          "y": 181,
+          "address": "0x826b",
+          "backing": 62,
+          "visible": 34
+        },
+        {
+          "frame": 300,
+          "slot": 2,
+          "x": 126,
+          "y": 175,
+          "address": "0x8243",
+          "backing": 62,
+          "visible": 36
+        },
+        {
+          "frame": 301,
+          "slot": 2,
+          "x": 126,
+          "y": 169,
+          "address": "0x8243",
+          "backing": 62,
+          "visible": 30
+        },
+        {
+          "frame": 302,
+          "slot": 2,
+          "x": 126,
+          "y": 163,
+          "address": "0x81f3",
+          "backing": 62,
+          "visible": 32
+        },
+        {
+          "frame": 303,
+          "slot": 2,
+          "x": 126,
+          "y": 157,
+          "address": "0x81cb",
+          "backing": 62,
+          "visible": 34
+        },
+        {
+          "frame": 304,
+          "slot": 2,
+          "x": 126,
+          "y": 151,
+          "address": "0x817b",
+          "backing": 59,
+          "visible": 36
+        },
+        {
+          "frame": 305,
+          "slot": 2,
+          "x": 126,
+          "y": 145,
+          "address": "0x817b",
+          "backing": 59,
+          "visible": 30
+        },
+        {
+          "frame": 306,
+          "slot": 2,
+          "x": 126,
+          "y": 139,
+          "address": "0x8153",
+          "backing": 59,
+          "visible": 32
+        },
+        {
+          "frame": 307,
+          "slot": 2,
+          "x": 126,
+          "y": 133,
+          "address": "0x853b",
+          "backing": 59,
+          "visible": 34
+        },
+        {
+          "frame": 308,
+          "slot": 2,
+          "x": 126,
+          "y": 127,
+          "address": "0x8513",
+          "backing": 59,
+          "visible": 36
+        }
+      ],
+      "renderedCellsNotContainingShot": [],
+      "capitalEarlyRetirements": [
+        {
+          "frame": 407,
+          "slot": 0,
+          "previousY": 133,
+          "lifecycle": 1,
+          "capitalState": 2
+        },
+        {
+          "frame": 407,
+          "slot": 1,
+          "previousY": 187,
+          "lifecycle": 1,
+          "capitalState": 2
+        },
+        {
+          "frame": 407,
+          "slot": 3,
+          "previousY": 61,
+          "lifecycle": 1,
+          "capitalState": 2
+        },
+        {
+          "frame": 917,
+          "slot": 0,
+          "previousY": 127,
+          "lifecycle": 1,
+          "capitalState": 2
+        },
+        {
+          "frame": 917,
+          "slot": 1,
+          "previousY": 181,
+          "lifecycle": 1,
+          "capitalState": 2
+        },
+        {
+          "frame": 917,
+          "slot": 3,
+          "previousY": 55,
+          "lifecycle": 1,
+          "capitalState": 2
+        }
+      ],
+      "topRetirements": 162
+    },
+    {
+      "name": "main-medium",
+      "frames": 1800,
+      "dump": "build/shot-solid-impact/main-medium-frames.bin",
+      "sha256": "9e24f69380a8cfb5db50e20d4d495e3679cd5632a171f0bfe6d0ac0925976a9c",
+      "solidOverlaps": 246,
+      "overlapExamples": [
+        {
+          "frame": 266,
+          "slot": 3,
+          "x": 128,
+          "y": 199,
+          "address": "0x82bc",
+          "backing": 63,
+          "visible": 18
+        },
+        {
+          "frame": 267,
+          "slot": 3,
+          "x": 128,
+          "y": 193,
+          "address": "0x82bc",
+          "backing": 63,
+          "visible": 12
+        },
+        {
+          "frame": 268,
+          "slot": 3,
+          "x": 128,
+          "y": 187,
+          "address": "0x826c",
+          "backing": 63,
+          "visible": 14
+        },
+        {
+          "frame": 269,
+          "slot": 3,
+          "x": 128,
+          "y": 181,
+          "address": "0x8244",
+          "backing": 63,
+          "visible": 16
+        },
+        {
+          "frame": 270,
+          "slot": 3,
+          "x": 128,
+          "y": 175,
+          "address": "0x821c",
+          "backing": 63,
+          "visible": 18
+        },
+        {
+          "frame": 271,
+          "slot": 3,
+          "x": 128,
+          "y": 169,
+          "address": "0x81f4",
+          "backing": 63,
+          "visible": 12
+        },
+        {
+          "frame": 272,
+          "slot": 3,
+          "x": 128,
+          "y": 163,
+          "address": "0x81cc",
+          "backing": 63,
+          "visible": 14
+        },
+        {
+          "frame": 273,
+          "slot": 3,
+          "x": 128,
+          "y": 157,
+          "address": "0x817c",
+          "backing": 65,
+          "visible": 16
+        },
+        {
+          "frame": 274,
+          "slot": 3,
+          "x": 128,
+          "y": 151,
+          "address": "0x8154",
+          "backing": 65,
+          "visible": 18
+        },
+        {
+          "frame": 275,
+          "slot": 3,
+          "x": 128,
+          "y": 145,
+          "address": "0x8564",
+          "backing": 65,
+          "visible": 12
+        },
+        {
+          "frame": 276,
+          "slot": 3,
+          "x": 128,
+          "y": 139,
+          "address": "0x853c",
+          "backing": 65,
+          "visible": 14
+        },
+        {
+          "frame": 277,
+          "slot": 3,
+          "x": 128,
+          "y": 133,
+          "address": "0x84ec",
+          "backing": 65,
+          "visible": 16
+        }
+      ],
+      "renderedCellsNotContainingShot": [],
+      "capitalEarlyRetirements": [
+        {
+          "frame": 375,
+          "slot": 0,
+          "previousY": 91,
+          "lifecycle": 1,
+          "capitalState": 2
+        },
+        {
+          "frame": 375,
+          "slot": 1,
+          "previousY": 145,
+          "lifecycle": 1,
+          "capitalState": 2
+        },
+        {
+          "frame": 375,
+          "slot": 2,
+          "previousY": 199,
+          "lifecycle": 1,
+          "capitalState": 2
+        },
+        {
+          "frame": 871,
+          "slot": 0,
+          "previousY": 211,
+          "lifecycle": 1,
+          "capitalState": 3
+        },
+        {
+          "frame": 871,
+          "slot": 1,
+          "previousY": 31,
+          "lifecycle": 1,
+          "capitalState": 3
+        },
+        {
+          "frame": 871,
+          "slot": 2,
+          "previousY": 85,
+          "lifecycle": 1,
+          "capitalState": 3
+        },
+        {
+          "frame": 871,
+          "slot": 3,
+          "previousY": 139,
+          "lifecycle": 1,
+          "capitalState": 3
+        }
+      ],
+      "topRetirements": 162
+    }
+  ],
+  "comparison": {
+    "projectileState": {
+      "mismatchedFrames": []
+    },
+    "screenAndCharset": {
+      "mismatchedFrames": []
+    },
+    "ringAndRowPointers": {
+      "mismatchedFrames": []
+    }
+  },
+  "besideIslandSlot1": [
+    {
+      "frame": 291,
+      "active": 1,
+      "x": 108,
+      "y": 175,
+      "backing": 0
+    },
+    {
+      "frame": 292,
+      "active": 1,
+      "x": 108,
+      "y": 169,
+      "backing": 0
+    },
+    {
+      "frame": 293,
+      "active": 1,
+      "x": 108,
+      "y": 163,
+      "backing": 0
+    },
+    {
+      "frame": 294,
+      "active": 1,
+      "x": 108,
+      "y": 157,
+      "backing": 0
+    },
+    {
+      "frame": 295,
+      "active": 1,
+      "x": 108,
+      "y": 151,
+      "backing": 0
+    },
+    {
+      "frame": 296,
+      "active": 1,
+      "x": 108,
+      "y": 145,
+      "backing": 0
+    },
+    {
+      "frame": 297,
+      "active": 1,
+      "x": 108,
+      "y": 139,
+      "backing": 0
+    },
+    {
+      "frame": 298,
+      "active": 1,
+      "x": 108,
+      "y": 133,
+      "backing": 0
+    },
+    {
+      "frame": 299,
+      "active": 1,
+      "x": 108,
+      "y": 127,
+      "backing": 0
+    },
+    {
+      "frame": 300,
+      "active": 1,
+      "x": 108,
+      "y": 121,
+      "backing": 0
+    },
+    {
+      "frame": 301,
+      "active": 1,
+      "x": 108,
+      "y": 115,
+      "backing": 0
+    },
+    {
+      "frame": 302,
+      "active": 1,
+      "x": 108,
+      "y": 109,
+      "backing": 0
+    },
+    {
+      "frame": 303,
+      "active": 1,
+      "x": 108,
+      "y": 103,
+      "backing": 0
+    },
+    {
+      "frame": 304,
+      "active": 1,
+      "x": 108,
+      "y": 97,
+      "backing": 0
+    },
+    {
+      "frame": 305,
+      "active": 1,
+      "x": 108,
+      "y": 91,
+      "backing": 0
+    },
+    {
+      "frame": 306,
+      "active": 1,
+      "x": 108,
+      "y": 85,
+      "backing": 0
+    },
+    {
+      "frame": 307,
+      "active": 1,
+      "x": 108,
+      "y": 79,
+      "backing": 0
+    },
+    {
+      "frame": 308,
+      "active": 1,
+      "x": 108,
+      "y": 73,
+      "backing": 0
+    },
+    {
+      "frame": 309,
+      "active": 1,
+      "x": 108,
+      "y": 67,
+      "backing": 0
+    },
+    {
+      "frame": 310,
+      "active": 1,
+      "x": 108,
+      "y": 61,
+      "backing": 0
+    },
+    {
+      "frame": 311,
+      "active": 1,
+      "x": 108,
+      "y": 55,
+      "backing": 0
+    },
+    {
+      "frame": 312,
+      "active": 1,
+      "x": 108,
+      "y": 49,
+      "backing": 0
+    },
+    {
+      "frame": 313,
+      "active": 1,
+      "x": 108,
+      "y": 43,
+      "backing": 0
+    },
+    {
+      "frame": 314,
+      "active": 1,
+      "x": 108,
+      "y": 37,
+      "backing": 0
+    },
+    {
+      "frame": 315,
+      "active": 1,
+      "x": 108,
+      "y": 31,
+      "backing": 0
+    },
+    {
+      "frame": 316,
+      "active": 1,
+      "x": 108,
+      "y": 25,
+      "backing": 0
+    },
+    {
+      "frame": 317,
+      "active": 1,
+      "x": 108,
+      "y": 19,
+      "backing": 0
+    },
+    {
+      "frame": 318,
+      "active": 0,
+      "x": 108,
+      "y": 19,
+      "backing": 0
+    }
+  ]
+}

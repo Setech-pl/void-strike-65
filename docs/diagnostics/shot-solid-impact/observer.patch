@@ -1,0 +1,15 @@
+--- a/scripts/atari800-wall-trace.h
++++ b/scripts/atari800-wall-trace.h
+@@ -9372,6 +9372,12 @@
+ 		dftrace_current.end_host_frame = (unsigned) Atari800_nframes;
+ 		dftrace_current.end_y = ANTIC_ypos;
+ 		dftrace_current.end_x = ANTIC_XPOS;
++        if (getenv("VS65_SHOT_DUMP") != NULL && dftrace_count < 1800u) {
++            static FILE *shot_dump;
++            if (shot_dump == NULL) shot_dump = fopen(getenv("VS65_SHOT_DUMP"), "wb");
++            if (shot_dump == NULL) exit(2);
++            fwrite(MEMORY_mem, 1, 65536, shot_dump); fflush(shot_dump);
++        }
+ 		dftrace_frames[dftrace_count++] = dftrace_current;
+ 		dftrace_active = 0;
+ 	}

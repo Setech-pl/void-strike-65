@@ -1,0 +1,2 @@
+{"event":"window","host":921,"end_host":1496,"first_row":1,"scene":"hud-music","forced":1,"repeat":0}
+{"event":"injection","row":30,"host":949,"pc":24350,"start":33784228,"deadline":33791651,"pad_end":33791657,"end":33794711,"jmps":2680,"cpu_cycles":8040,"extra_cpu_cycles":1500,"wall_cycles":10483,"restored":true}

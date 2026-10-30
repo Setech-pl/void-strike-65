@@ -1,0 +1,29 @@
+{
+  "id": "capital-repeat-forced",
+  "scene": "capital",
+  "mode": "repeat",
+  "forced": true,
+  "baseline": "a0660986a4c45d54ed7022d7fd0edd2206f17703",
+  "atr": "build/l2-capital-960/void-strike-65.atr",
+  "video": {
+    "path": "build/phase-resync/cases/capital-repeat-forced/recording.mp4",
+    "sha256": "8e896dd073bee762046fd16b7b5d7d7a0bb7c35bf6d4a1436d3a54a3b13bb358",
+    "width": 384,
+    "height": 240,
+    "fps": 49.8607597,
+    "physicalFrames": 575
+  },
+  "pcm": {
+    "sha256": "78f894a78a68bc3dc4ab32a5853b425f6a30ce36a749f3d1c8209b742dba8b46",
+    "samples": 508566
+  },
+  "audioLossless": {
+    "path": "build/phase-resync/cases/capital-repeat-forced/audio.flac",
+    "sha256": "8fb26b35d4c66f5d1bbb9bfb7161a54df2765d18ee6d1faba82bd58632cee523",
+    "sampleRate": 44100,
+    "channels": 1
+  },
+  "guestBytesAdded": 0,
+  "guestBytesTemporarilyPatched": 3,
+  "atrSha256": "05b3be00a584e92f2e0e20f3cc38c92dc8ca4a954c0a0047d01b44668e25ecbd"
+}

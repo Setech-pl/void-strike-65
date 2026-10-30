@@ -1,0 +1,29 @@
+{
+  "id": "boss-repeat-forced",
+  "scene": "boss",
+  "mode": "repeat",
+  "forced": true,
+  "baseline": "a0660986a4c45d54ed7022d7fd0edd2206f17703",
+  "atr": "build/level-1-s4/void-strike-65.atr",
+  "video": {
+    "path": "build/phase-resync/cases/boss-repeat-forced/recording.mp4",
+    "sha256": "89e0f03949e0054441ebec2845f4236f23a5a70da70494dbe447c3366c682bd7",
+    "width": 384,
+    "height": 240,
+    "fps": 49.8607597,
+    "physicalFrames": 575
+  },
+  "pcm": {
+    "sha256": "3c7d64186ac8c630c545ba621a794f2a28d728918f1dae885b6e59011702611c",
+    "samples": 508567
+  },
+  "audioLossless": {
+    "path": "build/phase-resync/cases/boss-repeat-forced/audio.flac",
+    "sha256": "3b1cf533b528e44925e7ae718b2e5ad7d2961e088f0fad3be588723e4e80c843",
+    "sampleRate": 44100,
+    "channels": 1
+  },
+  "guestBytesAdded": 0,
+  "guestBytesTemporarilyPatched": 3,
+  "atrSha256": "9d96e5512ac5f8d3b4fb64fb5663491c56edeb831af73b3d3bea7cb6090223ab"
+}

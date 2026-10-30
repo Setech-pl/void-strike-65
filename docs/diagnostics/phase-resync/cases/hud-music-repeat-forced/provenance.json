@@ -1,0 +1,29 @@
+{
+  "id": "hud-music-repeat-forced",
+  "scene": "hud-music",
+  "mode": "repeat",
+  "forced": true,
+  "baseline": "a0660986a4c45d54ed7022d7fd0edd2206f17703",
+  "atr": "dist/void-strike-65.atr",
+  "video": {
+    "path": "build/phase-resync/cases/hud-music-repeat-forced/recording.mp4",
+    "sha256": "34249f317418b33516af04aa6e4bb34e66af21be5d0364e5b4a41388c45ae1e5",
+    "width": 384,
+    "height": 240,
+    "fps": 49.8607597,
+    "physicalFrames": 575
+  },
+  "pcm": {
+    "sha256": "91abc15f11ada10b818465c044fed85aea5e7db2c76fc5d81599b3937cef96cd",
+    "samples": 508566
+  },
+  "audioLossless": {
+    "path": "build/phase-resync/cases/hud-music-repeat-forced/audio.flac",
+    "sha256": "221fb011ccd043b3b929b27efe9de577fd4698262597c15a55822c1e69252443",
+    "sampleRate": 44100,
+    "channels": 1
+  },
+  "guestBytesAdded": 0,
+  "guestBytesTemporarilyPatched": 3,
+  "atrSha256": "a125ec10f134ba9e9b8525a56b7c56f0d178095826b92235af989243b2676ac1"
+}

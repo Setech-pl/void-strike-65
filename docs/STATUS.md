@@ -1,6 +1,6 @@
 # VOID STRIKE 65 — CURRENT STATUS
 
-Last update: 2026-10-30 (shot solid impact play build; owner commit and smoke pending)
+Last update: 2026-10-30 (phase resync — partial OWNER-SMOKE CANDIDATE)
 
 What is true now. Rules: [reguly-projektu.txt](reguly-projektu.txt). Roadmap:
 [plan-realizacji.md](plan-realizacji.md). Source-of-truth order:
@@ -19,6 +19,35 @@ the values below.
 ---
 
 ## Checkpoint
+
+### Loop-phase resync — partial OWNER-SMOKE CANDIDATE
+
+Branch `codex/phase-resync`, main baseline `a066098`; reference spike `a378dc2`.
+Fighter-path token drain removes persistent SPACE/boss phase slip in all 84
+forced injections. Every next admitted loop is synchronized, at miss-start+2
+physical frames (one skipped frame). Capital retains its token and cadence.
+All four no-injection controls have identical logical snapshots and 575/575
+pixel-identical rasters each versus main.
+
+**The one-mixed-raster-per-miss goal is NOT universally met.** Single/repeated
+mixed totals: SPACE 1/21, capital 2/41, boss 3/31, HUD/music 0/17 (20 repeats).
+This is the cheap partial recovery only; no coherent-publication redesign.
+Owner smoke and acceptance are pending. [Report and recovery counts](diagnostics/phase-resync/report.md).
+
+The 23-byte tail reuses unused boot-publication padding; no segment/old-label
+movement or RAM/residency growth. Added instruction cycles 22 fighter/boss,
+14 capital preserve normal polling phases. Packed content +22 B, sectors+0.
+Normal build/byte gates PASS. Quick Spread NORMAL 30,465 and capital-960 NORMAL
+31,153 cycles; worst 31,153, hard margin 1,415. Full npm test audited
+**A139/B0/C0** after two stale packed-size pins and one concurrent-media race
+were self-resolved, with focused rerun proof. Raw totals, exact tuples and
+[the five added baseline failures' origins](diagnostics/phase-resync/failure-growth.md)
+are retained; none of those five was fixed. Legacy release/unit debt remains.
+
+Play ATRs: `build/play/phase-resync/campaign.atr` and `capital-480.atr`;
+[SHA-256s and audit](diagnostics/phase-resync/audit.md). NEXT TASK: owner
+review/smoke of this explicitly partial recovery. No automatic broader fix.
+
 
 ### Shot solid impact — uncommitted play build; owner commit and smoke pending
 

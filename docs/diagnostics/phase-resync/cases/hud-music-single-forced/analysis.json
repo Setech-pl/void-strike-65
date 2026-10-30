@@ -1,0 +1,142 @@
+{
+  "id": "hud-music-single-forced",
+  "scene": "hud-music",
+  "mode": "single",
+  "forced": true,
+  "window": {
+    "event": "window",
+    "host": 921,
+    "end_host": 1496,
+    "first_row": 1,
+    "scene": "hud-music",
+    "forced": 1,
+    "repeat": 0
+  },
+  "injections": [
+    {
+      "event": "injection",
+      "row": 30,
+      "host": 949,
+      "pc": 24350,
+      "start": 33784228,
+      "deadline": 33791651,
+      "pad_end": 33791657,
+      "end": 33794711,
+      "jmps": 2680,
+      "cpu_cycles": 8040,
+      "extra_cpu_cycles": 1500,
+      "wall_cycles": 10483,
+      "restored": true
+    }
+  ],
+  "physicalFrames": 575,
+  "sampledRows": 574,
+  "peakWall": 39492,
+  "missedFrames": 1,
+  "extraVbi": 0,
+  "dliViolations": 0,
+  "startScanlines": [
+    17,
+    18,
+    230
+  ],
+  "baselinePhaseShiftedRows": 0,
+  "staleL2": 0,
+  "worldHullMismatches": 0,
+  "audioCalls": [
+    1
+  ],
+  "audioIntervalCycles": [
+    31149,
+    60689
+  ],
+  "audioIntervalMs": [
+    17.564094782770443,
+    34.22091714891507
+  ],
+  "logicFieldChanges": {},
+  "firstLogicDifference": null,
+  "logicalSnapshotChanges": 0,
+  "firstSnapshotChange": null,
+  "raster": {
+    "differentPhysicalRasters": 545,
+    "first": {
+      "videoFrame": 30,
+      "pixels": 176,
+      "bbox": [
+        122,
+        9,
+        267,
+        224
+      ]
+    },
+    "maximumDifferentPixels": 78048,
+    "unmatchedControlRasters": 0,
+    "unmatchedPhysicalFrames": [],
+    "firstUnmatched": null,
+    "exactMatchLagHistogram": {
+      "0": 30,
+      "1": 545
+    }
+  },
+  "audit": {
+    "session": "hud-music-single-forced",
+    "frames": 580,
+    "fence_bound_frames": 571,
+    "normal_start_scanline": {
+      "fighter": 17,
+      "capital": 230
+    },
+    "distinct_miss_events": 0,
+    "miss_events": [],
+    "overrun_rows": 0,
+    "fence_model_disagreements": 0,
+    "shifted_phase_rows": 0,
+    "worst_pre_wait_cycles": 22002,
+    "worst_pre_wait_frame": 275,
+    "worst_fence_margin_cycles": 3298,
+    "worst_fence_margin_frame": 275,
+    "maximum_wall_cycles": 39492,
+    "rows_over_target": 1,
+    "rows_over_hard_gate": 1,
+    "unreliable_counters": {
+      "missed_frames": 1,
+      "extra_vbi_boundaries": 0,
+      "dli_sequence_violations": 0
+    },
+    "fence_caught": true,
+    "gate_failures": [
+      "DMA-on maximum 39492 > 32568"
+    ],
+    "passed": false
+  },
+  "provenance": {
+    "id": "hud-music-single-forced",
+    "scene": "hud-music",
+    "mode": "single",
+    "forced": true,
+    "baseline": "a0660986a4c45d54ed7022d7fd0edd2206f17703",
+    "atr": "dist/void-strike-65.atr",
+    "video": {
+      "path": "build/phase-resync/cases/hud-music-single-forced/recording.mp4",
+      "sha256": "ffd7ceaf7ffc03fbee6c8afb2bf8c4d4c80919cde44480bb2b9ff6586c347192",
+      "width": 384,
+      "height": 240,
+      "fps": 49.8607597,
+      "physicalFrames": 575
+    },
+    "pcm": {
+      "sha256": "2b50869acf435f2251240649d310771762350a84e5ff728abe9f3dcbbeb1b755",
+      "samples": 508566
+    },
+    "audioLossless": {
+      "path": "build/phase-resync/cases/hud-music-single-forced/audio.flac",
+      "sha256": "d45fe7272294fbea2b0cb7220d5868dd5f32d3d040b39f9a36948d2173bed203",
+      "sampleRate": 44100,
+      "channels": 1
+    },
+    "guestBytesAdded": 0,
+    "guestBytesTemporarilyPatched": 3,
+    "atrSha256": "a125ec10f134ba9e9b8525a56b7c56f0d178095826b92235af989243b2676ac1"
+  }
+}

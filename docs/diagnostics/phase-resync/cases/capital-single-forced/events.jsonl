@@ -1,0 +1,2 @@
+{"event":"window","host":1120,"end_host":1695,"first_row":200,"scene":"capital","forced":1,"repeat":0}
+{"event":"injection","row":225,"host":1145,"pc":24347,"start":40730597,"deadline":40751685,"pad_end":40751685,"end":40754305,"jmps":3931,"cpu_cycles":11793,"extra_cpu_cycles":1500,"wall_cycles":23708,"restored":true}

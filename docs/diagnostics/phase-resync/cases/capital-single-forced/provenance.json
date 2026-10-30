@@ -1,0 +1,29 @@
+{
+  "id": "capital-single-forced",
+  "scene": "capital",
+  "mode": "single",
+  "forced": true,
+  "baseline": "a0660986a4c45d54ed7022d7fd0edd2206f17703",
+  "atr": "build/l2-capital-960/void-strike-65.atr",
+  "video": {
+    "path": "build/phase-resync/cases/capital-single-forced/recording.mp4",
+    "sha256": "3da70b16e29a601fde48e74d18c66d40f85ee3a8a2e40638e01df15bc650b5e6",
+    "width": 384,
+    "height": 240,
+    "fps": 49.8607597,
+    "physicalFrames": 575
+  },
+  "pcm": {
+    "sha256": "89d70e12ae9b7380783422fbccc58bd64c8b2f66314ab470e5e0444b94097ece",
+    "samples": 508566
+  },
+  "audioLossless": {
+    "path": "build/phase-resync/cases/capital-single-forced/audio.flac",
+    "sha256": "c84ee6431ade5c4c27021d85bcb27efee8fc01d26be32f602f322028e614509b",
+    "sampleRate": 44100,
+    "channels": 1
+  },
+  "guestBytesAdded": 0,
+  "guestBytesTemporarilyPatched": 3,
+  "atrSha256": "05b3be00a584e92f2e0e20f3cc38c92dc8ca4a954c0a0047d01b44668e25ecbd"
+}

@@ -1,0 +1,14 @@
+{
+  "checks": "PASS",
+  "atrSHA256": "40688a25a87ce374fe3e7cb59488b34588efe768c36218fc75d5b8b4f666c8e4",
+  "captures": 6,
+  "metrics": {
+    "assaultBits": 56,
+    "armourBits": 72,
+    "bomberBits": 72,
+    "assaultToArmourChangedBits": 32,
+    "armourFirstHitRemovedBits": 7,
+    "bomberHp2RemovedBits": 4,
+    "bomberHp1RemovedBits": 7
+  }
+}

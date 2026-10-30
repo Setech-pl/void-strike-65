@@ -1,6 +1,6 @@
 # VOID STRIKE 65 — CURRENT STATUS
 
-Last update: 2026-10-30 (M3-H session 2 checkpoint6 complete; final owner smoke pending)
+Last update: 2026-10-30 (M3-H checkpoint6 visual audit; owner review pending)
 
 What is true now. Rules: [reguly-projektu.txt](reguly-projektu.txt). Roadmap:
 [plan-realizacji.md](plan-realizacji.md). Source-of-truth order:
@@ -27,6 +27,13 @@ Owner passed checkpoint2 (`f33fcdc`) on 2026-10-30. Checkpoints3 `0e4160d`,
 The owner-approved resident C notification resolves the departure gap without
 moving H12/H13 from checked content home. [Play ATRs, hashes, smoke checklist
 and complete audit](diagnostics/m3h-session2/checkpoint-6-final.md).
+
+Owner reported no visible armour/holes/Bomber colour change in the Heavy-sector
+smoke; no acceptance is recorded. The [exact-ATR visual audit](diagnostics/m3h-session2/checkpoint-6-visual/report.md)
+confirms all three active at default MEDIUM using native screenshots and real
+collision hits, without guest-state injection or game changes. Armour appeared
+at52.46s in the successful replay; the shortcut can cut before armour appears
+on a slower route. Comparisons and pixel/luminance counts await owner review.
 
 Final window **2,290 B (+222 for session)**,28 B below the250-B ceiling.
 The recovery adds32 B only in the window; arena830, Director324, L2 1,290,
@@ -55,10 +62,11 @@ zero misses,extra VBI,DLI/shift/stale-L2 events;boss entry325. A1000-frame Heavy
 fixture peaks30,841,zero PMG mismatches;it seeds only departure flags,then real
 collision hits publish both damage stages. Linked armour/Bomber E/M/H cover
 both slots,death/retirement,clipping,holds,dodge and invalid-home read traps.
-No native armoured admission or release readiness is claimed.
+The later exact-ATR visual audit proves native armoured admission and first-hit
+publication; release readiness is not claimed.
 
 Main remains71a38a8;branch stays on owner-cut7fe9040 with no merge/rebase/push.
-**NEXT TASK: owner smoke after checkpoint6; STOP.** Final acceptance belongs to
+**NEXT TASK: owner review of checkpoint6 visual audit; STOP.** Final acceptance belongs to
 owner;no new roadmap item or release work starts automatically.
 
 ### Loop-phase resync — partial OWNER-SMOKE CANDIDATE

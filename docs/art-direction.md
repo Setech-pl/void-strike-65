@@ -183,7 +183,11 @@ pixels while preserving the established hull silhouette and backing behavior.
 ## Enemy visual roles
 
 - **Heavy Raider** — monochrome PMG body on `P1`/`P2`, double-width, one hostile
-  colour, no second overlaid colour layer.
+  colour, no second overlaid colour layer. The M3-H armoured profile uses
+  broader plated wings and hostile `$46`; assault keeps its original crescent
+  and `$44`. Both use the same 14-row frame, collision bounds and PMG slots.
+  Source: `enemy-roster.json` → `heavyLooks.armouredRaider`, or a level's
+  `payload.heavyLook`; `node scripts/heavy-look-preview.mjs` rebuilds the sheet.
 - **Light Wingman** — small 2x1 character enemy in the gameplay charset, glyphs
   120-121, installed at runtime in colour 3 with the hostile bit. It allocates
   no PMG player.

@@ -1382,5 +1382,14 @@
     "existing_entries_reference": "phase_resync_unit_debt_2026_10_30.entries",
     "new_entries": [],
     "note": "Planning-only task: source-identity current-main comparison A139/B0/C0, 1484 PASS/139 FAIL of 1623. All 139 tuples match existing debt exactly by file, test, first assertion and message; no new, moved or cleared tuple. Canonical release failures and unit registry remain unchanged."
+  },
+  "m3h_session2_unit_debt_2026_10_30": {
+    "baseline": "7fe9040",
+    "comparedMain": "71a38a847ab1d3702b77b292d6873159ecf4c2ff",
+    "comparison": "docs/diagnostics/m3h-session2/checkpoint-2-tests-ab.json",
+    "classification": "pre-existing-unclassified",
+    "count": 137,
+    "existing_entries_reference": "phase_resync_unit_debt_2026_10_30.entries (excluding repaired hardware-audio/hardware-boot fixture cases)",
+    "note": "A137/B0/C0 matched by file, name, first assertion and first message. Raw task140 failures: one accepted payload-art SHA correction plus two private SIO-emulator setup repairs pass focused. No new gameplay regression; canonical release predicates and unit registry unchanged."
   }
 }

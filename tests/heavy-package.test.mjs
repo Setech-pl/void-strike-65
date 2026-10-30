@@ -32,7 +32,8 @@ function expected(m,slot) {
   const p=new Uint8Array(256),v=m.memory;
   if(!v[L('ENEMY_MEMBER_STATE')+slot])return p;
   const shape=v[L('ENEMY_ARCHETYPE')],y=v[L('ENEMY_Y')+slot];
-  for(let i=0;i<v[L('enemy_frame_heights')+shape];i++)if(y+i>=16&&y+i<240)p[y+i]=v[L('enemy_body_data')+shape*16+i];
+  const body=v[L('_heavy_armoured')]?0xaba2:L('enemy_body_data')+shape*16;
+  for(let i=0;i<v[L('enemy_frame_heights')+shape];i++)if(y+i>=16&&y+i<240)p[y+i]=v[body+i];
   return p;
 }
 test('M3-H assault: opposite descent parity, unchanged pursuit, exact planes and bounded standing cost',()=>{

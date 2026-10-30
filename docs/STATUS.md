@@ -1,6 +1,6 @@
 # VOID STRIKE 65 — CURRENT STATUS
 
-Last update: 2026-10-30 (M3-H session 2 plan accepted; checkpoints 1–2 authorized)
+Last update: 2026-10-30 (M3-H session 2 checkpoints 1–2; owner smoke pending)
 
 What is true now. Rules: [reguly-projektu.txt](reguly-projektu.txt). Roadmap:
 [plan-realizacji.md](plan-realizacji.md). Source-of-truth order:
@@ -20,36 +20,35 @@ the values below.
 
 ## Checkpoint
 
-### M3-H session 2 — accepted plan; implementation authorized
+### M3-H session 2 — checkpoints 1–2, OWNER-SMOKE CANDIDATE
 
-Checkpoint1 implemented and verified: default body-base/height/member cache,
-8-B render metadata, unchanged art. Window+44 B; body copy−8 cycles; reset+129
-cycles (component report-only). Normal build PASS; focused44/1 shared;
-quick Spread30,465 /capital-96031,153. [Checkpoint1 audit](diagnostics/m3h-session2/checkpoint-1.md).
-No owner-smoke pause until checkpoint2; no gameplay acceptance claim.
+Owner accepted the plan and amendments on 2026-10-30. Checkpoint 1 `5041ccb`
+installs/reset the body cache; checkpoint 2 adds the payload-driven plated
+armoured look and C colour selection. Assault/Bomber source art and existing
+combat/movement policies stay unchanged. [Smoke ATRs, hashes and audit](diagnostics/m3h-session2/checkpoint-2.md).
 
-Planning only on owner-created `codex/m3h-session2`, current main `7fe9040`.
-[Rebased plan](plans/m3h-session2.md) covers H10–H14/H16, the armoured Raider
-look and generated damage holes, with explicit state/placement/CPU budgets and
-separate smoke checkpoints. No gameplay, renderer, loader or asset source is
-changed. Fresh usable window slack is 743 B, arena 5 B, Director high 321 B,
-L2 246 nonreserved B, checked content home 1,308 B. Quick Spread NORMAL peaks
-at 30,465 cycles, capital-960 NORMAL at 31,153; hard margin 1,415 cycles.
-Normal build gates pass. Full tests: 1,484 PASS/139 shared FAIL, **A139/B0/C0**
-on runtime/test inputs identical to main; all first assertions/messages match
-the existing debt. Focused 27 PASS/1 shared FAIL. Legacy release reconciliation
-remains nonzero; no release readiness claim.
+Measured window 2,153 B (**+85**, target ≤250); render state +8 B; total added used
+RAM 93 B within existing reservations. Arena 827, Director 324, L2 1,290 and
+content 612/1,920 B unchanged. Content record 15 sectors; added checked-load
+fixture cost 0 CPU cycles/0 reads. All 11 DFMC sector counts unchanged.
+Body copy −8 cycles, stationary cost 0; reset +159/+187 cycles report-only.
 
-Owner review 2026-10-30 accepts the plan with **H14 choice B** (nonrotate-only,
-at most three frames), **H12/H13 in checked content home**, and a resident
-validity/phase guard that drops invalid requests without stale reads. Session
-window growth target ≤250 B; report content use/sectors and added level-load
-time. If lifetime or entry cost fails, STOP with numbers before any window
-fallback. Bomber ramp 4/6/8/8/8 hue C is authorized for final owner smoke.
-Commit/verify each checkpoint in order; owner smoke pauses after 2 and 6.
-[Planning audit](diagnostics/m3h-session2-plan/audit.md). NEXT TASK: implement
-checkpoints 1–2, then pause for owner smoke. Plan acceptance is not gameplay
-smoke acceptance.
+Normal gated build PASS. Final focused 127/11 exact shared; both level 2 look
+fixtures 5/5; repaired SIO/audio 7/7. One full suite raw 1488/140; audited 1491/137
+with one accepted art pin and two SIO setup corrections. Against advanced main
+`71a38a8`: **A137/B0/C0**. Quick Spread 30,465 /capital-960 31,153; hard margin 1,415,
+zero misses/VBI/DLI anomalies. Release evidence/debt remains pending.
+
+The branch stays based on owner-cut `7fe9040`; main advanced concurrently with
+Spine B3 and is not merged/rebased here. Owner integration is needed before
+fast-forward merge. New armoured rendering has linked NMOS variant coverage;
+extra bounded native level 2 replays did not reach an armoured admission.
+
+**NEXT TASK: owner smoke after checkpoint 2; STOP before 3.** H12/H13 remain
+assigned to checked content home with a resident validity/phase guard; H14
+choice B stays nonrotate-only, ≤3 frames. Bomber ramp 4/6/8/8/8 hue C is authorized
+for the later final smoke. None of checkpoints 3–6 is implemented yet. No owner
+smoke acceptance, merge, push or release is claimed.
 
 ### Loop-phase resync — partial OWNER-SMOKE CANDIDATE
 
@@ -103,7 +102,7 @@ explosion or music-row advance. No shot-cap or other recovery was needed.
 
 **Native16/16; home28/28; boot7/7 PASS**, frontend1390<=1402. Overall peak
 31,444 (56 target cycles spare), capital30,152, composed30,777<=31,200;
-zero native misses/VBI/DLI/shift/stale events, boss entry325<=350. All45 boss
+zero native misses/VBI/DLI/shift/stale events, boss entry 325<=350. All45 boss
 stress summaries equal main, lost-target maximum8473. Every linked segment
 start/size is unchanged: window2068 (+0), arena827/832 (+0), Director net0.
 Packed initial content12843 (+18 B), transport211 sectors unchanged. Maximum
@@ -8078,7 +8077,7 @@ in `STARFIELD`.
 
 | | reserved |
 | --- | ---: |
-| `STARFIELD` free run tail | **348 B raw** |
+| `STARFIELD` free run tail | **348 B raw ** |
 | margin to the 1,804 B correction gate | **103 B packed** |
 | margin to the 1,825 B hard gate | 124 B |
 | staging stream margins A / B | 16 / 203 B |

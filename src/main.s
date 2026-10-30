@@ -1146,12 +1146,13 @@ M3H_DAMAGED_BODY_BUFFER_END:
 M3H_BODY_INDEX:       .res 2
 M3H_DAMAGE_STAGE:     .res 2
 M3H_DAMAGE_RETRY:     .res 1
-M3H_DAMAGE_COPY_VALID:.res 1
+M3H_BODY_FLAGS:       .res 1       ; bit5 latched armoured look; bit0 copy valid
 M3H_DAMAGE_SCRATCH:   .res 2
 M3H_RENDER_STATE_END:
 .assert M3H_DAMAGED_BODY_BUFFER = $549E, lderror, "M3-H damaged-body buffer moved"
 .assert M3H_DAMAGED_BODY_BUFFER_END = $54BE, lderror, "M3-H damaged-body buffer grew"
 .assert M3H_BODY_INDEX = HEAVY_BODY_INDEX, lderror, "M3-H body-index ABI moved"
+.assert M3H_BODY_FLAGS = HEAVY_BODY_FLAGS, lderror, "M3-H body-flags ABI moved"
 .assert M3H_RENDER_STATE_END <= $54E4, lderror, "M3-H render state reaches STARFIELD"
 .assert MUSIC_VOICE_STATE_END <= __STARFIELD_RUN__, lderror, "menu music voice state overruns the PairShot RAM area"
 

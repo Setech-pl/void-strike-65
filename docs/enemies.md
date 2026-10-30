@@ -16,8 +16,8 @@ There are two classes of enemy:
 
 Difficulty is chosen in the menu as **ROOKIE**, **PILOT** or **ACE**. Where a
 number below has three values, they are for those three in that order. An
-enemy takes the same number of hits on every difficulty; difficulty changes
-how often it fires.
+enemy keeps the listed durability unless a profile gives three values;
+difficulty also changes how often it fires.
 
 <img src="media/badges/coming-soon.svg" height="16" alt="COMING SOON">
 marks what is built but not in v0.3.0. It arrives with the campaign.
@@ -44,6 +44,11 @@ respawn.
 <img src="media/enemies/raider.png" width="480" alt="The Raider: a dark red swept-wing fighter, enlarged from a frame of the game">
 
 The standard enemy fighter, flying as a pair.
+
+Level 2 also uses an armoured profile: broader plated wings, a brighter hostile
+hull, 2 /2 /3 hits to kill, an authored firing stop and a sideways dodge after
+a surviving hit. Assault Raiders keep their original silhouette and one-hit
+health. Both profiles share the Raider's weapons, score and renderer.
 
 - **Hits to kill:** 1. **Points:** 10.
 - **Weapon:** the pair shares one gun rhythm. It fires five pulse shots 15

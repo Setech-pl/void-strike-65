@@ -193,6 +193,15 @@ future content-home damage publisher installs it. A new formation always
 reinstalls a whole body. Fixed cross-link operand/data bindings have linker
 assertions at their actual main-link instructions and tables.
 
+The admission-only C helper selects the armoured profile's payload colour;
+ASM installs its body pointer and indices without copying a body at admission.
+Render flags at `$54C3` latch appearance in bit5 independently of the runway
+cutoff's movement flag; bit0 is reserved for the lazy damage-copy validity.
+The native plane observer derives expected rows from this appearance and the
+payload, not from the cached draw operand. No damage publisher is enabled at
+checkpoint2; H12/H13 must use checked content home with the owner-required
+validity/phase guard in later checkpoints.
+
 ## Calling convention and ABI
 
 `src/hybrid/c-asm-abi.s` is the stable boundary. ASM calls coarse C routines at

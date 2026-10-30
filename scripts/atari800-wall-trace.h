@@ -906,6 +906,8 @@ static unsigned dftrace_enemy_pmg_last_writer[2][256];
 static unsigned dftrace_enemy_archetype;
 static unsigned dftrace_enemy_body_data;
 static unsigned dftrace_enemy_frame_heights;
+static unsigned dftrace_heavy_look_flags;
+static unsigned dftrace_heavy_look_body;
 static unsigned dftrace_character_last_writer[65536];
 static unsigned dftrace_character_last_writer_x[65536];
 static const char *dftrace_first_writer_output;
@@ -5374,6 +5376,10 @@ static void dftrace_snapshot_enemy_pmg_mismatch(DFTraceFrame *frame, int accumul
 	unsigned archetype = MEMORY_mem[dftrace_enemy_archetype];
 	unsigned height = MEMORY_mem[(dftrace_enemy_frame_heights + archetype) & 0xffffu];
 	unsigned body = (dftrace_enemy_body_data + archetype * 16u) & 0xffffu;
+	/* H11: intended profile/payload, independently of SMOD/cache correctness. */
+	if (archetype == 0u && dftrace_heavy_look_flags != 0u && dftrace_heavy_look_body != 0u &&
+		(MEMORY_mem[dftrace_heavy_look_flags] & 0x20u) != 0u)
+		body = dftrace_heavy_look_body;
 	/* M6: in the boss sector, once drawn, P1 holds the lance's reticle. */
 	unsigned reticle = dftrace_lance_y != 0u && dftrace_lance_live && dftrace_boss_active()
 		? MEMORY_mem[dftrace_lance_y] : 0u;
@@ -8166,6 +8172,8 @@ static void dftrace_init(void)
 	DFTRACE_ADDRESS(dftrace_enemy_archetype, "DFTRACE_ENEMY_ARCHETYPE");
 	DFTRACE_ADDRESS(dftrace_enemy_body_data, "DFTRACE_ENEMY_BODY_DATA");
 	DFTRACE_ADDRESS(dftrace_enemy_frame_heights, "DFTRACE_ENEMY_FRAME_HEIGHTS");
+	DFTRACE_ADDRESS(dftrace_heavy_look_flags, "DFTRACE_HEAVY_LOOK_FLAGS");
+	DFTRACE_ADDRESS(dftrace_heavy_look_body, "DFTRACE_HEAVY_LOOK_BODY");
 	DFTRACE_ADDRESS(dftrace_director_state, "DFTRACE_DIRECTOR_STATE");
 	DFTRACE_ADDRESS(dftrace_muzzle_screen_hi, "DFTRACE_MUZZLE_SCREEN_HI");
 	DFTRACE_ADDRESS(dftrace_muzzle_screen_lo, "DFTRACE_MUZZLE_SCREEN_LO");

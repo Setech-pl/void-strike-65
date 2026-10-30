@@ -180,7 +180,7 @@ Ranges are inclusive. Rows overlap where bytes change owner between phases; over
 | `$5318-$5D1A` | 2,563 B | transient | ENTITY_CODE packed source after its backward staging copy | `boot` | manifest `entityEffects` |
 | `$5400-$54C5` | 198 B | segment | `PROJECTILES` — PairShot pool, burst controllers, fighter explosions, Raider records, menu music voice state, M3-H damaged-body reservation | `resident` | build/void-strike-65.map |
 | `$549E-$54BD` | 32 B | reserved | M3-H 32-B damaged-body buffer; admission invalidates its lazy copy | `resident` | src/main.s `M3H_DAMAGED_BODY_BUFFER` |
-| `$54BE-$54C5` | 8 B | state | M3-H render metadata: body indices, stages, retry, copy-valid and scratch; initialized at admission | `resident` | src/main.s `M3H_BODY_INDEX` |
+| `$54BE-$54C5` | 8 B | state | M3-H render metadata: body indices, stages, retry, profile/copy flags and scratch; initialized at admission | `resident` | src/main.s `M3H_BODY_INDEX` |
 | `$54C6-$54E3` | 30 B | reserved | free tail of `PROJECTILE_RAM` | `resident` | cfg/atari-boot.cfg |
 | `$54E4-$5A77` | 1,428 B | segment | `STARFIELD` — relocated STARFIELD segment (see contents) | `resident` | build/void-strike-65.map |
 | `$5A78-$5E0A` | 915 B | reserved | free tail of `STARFIELD_RAM` | `resident` | cfg/atari-boot.cfg |
@@ -280,8 +280,9 @@ Ranges are inclusive. Rows overlap where bytes change owner between phases; over
 | `$B401-$B47A` | 122 B | segment | `HYBRID_C_WINDOW_FLOW` — the Director's sector-flow verdicts (feat/sector-flow), placed after the boss entry so the Light C keeps its addresses | `resident` | build/encounter-director.map |
 | `$B47B-$B56E` | 244 B | segment | `HYBRID_C_WINDOW_HEAVY` — M3-H appended C: H9 admission and wave metadata | `resident` | build/encounter-director.map |
 | `$B56F-$B5A9` | 59 B | segment | `HYBRID_C_WINDOW_HEAVY_RODATA` — M3-H H9 presentation/health tables and A2 profile-field table | `resident` | build/encounter-director.map |
-| `$B5AA-$B63F` | 150 B | segment | `HYBRID_ASM_HEAVY_WINDOW` — M3-H appended armoured Raider executor, explicit kernel ABI | `resident` | build/encounter-director.map |
-| `$B640-$B8FF` | 704 B | reserved | free tail of `HYBRID_C_WINDOW_RAM` | `resident` | cfg/encounter-director.cfg |
+| `$B5AA-$B65C` | 179 B | segment | `HYBRID_ASM_HEAVY_WINDOW` — M3-H appended armoured Raider executor, explicit kernel ABI | `resident` | build/encounter-director.map |
+| `$B65D-$B668` | 12 B | segment | `HYBRID_C_WINDOW_LOOK` — M3-H admission-only Heavy look colour policy | `resident` | build/encounter-director.map |
+| `$B669-$B8FF` | 663 B | reserved | free tail of `HYBRID_C_WINDOW_RAM` | `resident` | cfg/encounter-director.cfg |
 | `$B900-$BBFF` | 768 B | slot | the VOID LANCE run (M6, decision BD 6): the window's unclaimed tail from $BBFF down, read at every boss entry after slot E, the boss sector only; run `boss-lance` (6 sectors, 712-717); the build fails when the window's record reaches it | `overlay` | manifest `boss.lance`, scripts/lance-layout.mjs |
 | `$B900-$BBEF` | 752 B | segment | `LANCE_CODE` — the VOID LANCE (M6): the tick (the meter, the readiness indicator - the ship green, its charge ramp - and its cue, the target under the ship, the reticle on P1 while a lance is ready - the crosshair over a target, the hollow mark over none - the charge's axis rule (journal §BL 4), the torpedo's flight - the hull on P1, the exhaust on P2, both homing - and its discharge on channel 3, the kill through boss_hit or the miss that keeps the lance, journal §BL 5) and its C policy (src/c/lance.c); read at every boss entry after slot E into the window's unclaimed tail from $BBFF down, the boss sector only | `overlay` | build/boss.map |
 | `$BBF0-$BBF4` | 5 B | segment | `LANCE_BSS` — the VOID LANCE's C state (the meter, the charge, the gesture, the target bit), inside the run: read as zeros at every boss entry - the meter resets (the rest of its state: LANCE_ZP) | `overlay` | build/boss.map |
@@ -340,7 +341,7 @@ Bytes a cfg area reserves past its own segments, up to the next byte another row
 | `$9EB9-$9FF9` | 321 B | `DIRECTOR_RAM` (encounter-director.cfg) | `DIRECTOR_C_RODATA`, `DIRECTOR_C_CODE` |
 | `$A5E8-$A5FF` | 24 B | `SECTOR_READER_RAM` (sector-reader.cfg) | `SECTOR_READER` |
 | `$A808-$A87F` | 120 B | `GAMEPLAY_MUSIC_RAM` (gameplay-music.cfg (rewritten by build.mjs)) | `GAMEPLAY_MUSIC` |
-| `$B640-$B8FF` | 704 B | `HYBRID_C_WINDOW_RAM` (encounter-director.cfg) | `HYBRID_C_WINDOW`, `HYBRID_ASM_WINDOW`, `HYBRID_C_WINDOW_FLOW`, `HYBRID_C_WINDOW_HEAVY`, `HYBRID_C_WINDOW_HEAVY_RODATA`, `HYBRID_ASM_HEAVY_WINDOW` |
+| `$B669-$B8FF` | 663 B | `HYBRID_C_WINDOW_RAM` (encounter-director.cfg) | `HYBRID_C_WINDOW`, `HYBRID_ASM_WINDOW`, `HYBRID_C_WINDOW_FLOW`, `HYBRID_C_WINDOW_HEAVY`, `HYBRID_C_WINDOW_HEAVY_RODATA`, `HYBRID_ASM_HEAVY_WINDOW`, `HYBRID_C_WINDOW_LOOK` |
 | `$BC15-$BC19` | 5 B | `READER_BSS_RAM` (sector-reader.cfg) | `READER_BSS` |
 
 ### Overlapping cfg areas
@@ -482,7 +483,7 @@ ld65 does not report overlaps between separate memory areas or separate links. E
 | `$5318-$5D1A` | `boot` | ENTITY_CODE packed source after its backward staging copy |
 | `$5400-$54C5` | `resident` | `PROJECTILES` — PairShot pool, burst controllers, fighter explosions, Raider records, menu music voice state, M3-H damaged-body reservation |
 | `$549E-$54BD` | `resident` | M3-H 32-B damaged-body buffer; admission invalidates its lazy copy |
-| `$54BE-$54C5` | `resident` | M3-H render metadata: body indices, stages, retry, copy-valid and scratch; initialized at admission |
+| `$54BE-$54C5` | `resident` | M3-H render metadata: body indices, stages, retry, profile/copy flags and scratch; initialized at admission |
 | `$54C6-$54E3` | `resident` | free tail of `PROJECTILE_RAM` |
 | `$54E4-$5A77` | `resident` | `STARFIELD` — relocated STARFIELD segment (see contents) |
 | `$5A78-$5E0A` | `resident` | free tail of `STARFIELD_RAM` |

@@ -1768,4 +1768,15 @@ uint8_t cc2_heavy_tick(void)
     if (heavy_departure != 0u) { ++heavy_member_y; return 0u; }
     return enemy_c_heavy_tick_original();
 }
+
+/* Admission-only visual profile policy. Kept after existing hot window code;
+ * ASM consumes the selected profile and performs operand/PMG publication. */
+#pragma code-name (push, "HYBRID_C_WINDOW_LOOK")
+void enemy_c_heavy_look_colour(void)
+{
+    if (heavy_armoured != 0u) {
+        heavy_hull_colour = U8_AT(LEVEL_HEAVY_LOOK_COLOUR_ADDRESS);
+    }
+}
+#pragma code-name (pop)
 #pragma code-name (pop)

@@ -149,7 +149,8 @@ z tabelą wyników.
 Raider śledzi Twoją kolumnę w każdej klatce, choć w pionie porusza się co
 drugą. Niektóre formacje korzystają z opancerzonej odmiany: zatrzymują się na
 stałej wysokości, by strzelać, i robią unik w bok po trafieniu, które przeżyją.
-Obecnie mają taką samą sylwetkę jak pozostałe Raidery.
+Opancerzone Raidery mają szersze, osłonięte płytami skrzydła i jaśniejszy kolor
+wrogiego kadłuba. Na poziomie 2 występują obok szturmowych Raiderów o dawnej sylwetce.
 
 Kadłub Bombera ciemnieje w miarę obrywania, więc po kolorze poznasz, ile mu
 zostało. Rozjaśnia się, gdy Bomber hamuje, by celować, i ciemnieje po powrocie

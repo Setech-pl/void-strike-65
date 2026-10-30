@@ -16,8 +16,8 @@ Przeciwnicy dzielą się na dwie klasy:
 
 Poziom trudności wybierasz w menu: **ROOKIE**, **PILOT** albo **ACE**. Tam,
 gdzie liczba niżej ma trzy wartości, dotyczą one tych trzech poziomów w tej
-kolejności. Przeciwnik wytrzymuje tyle samo trafień na każdym poziomie
-trudności; trudność zmienia to, jak często strzela.
+kolejności. Przeciwnik zachowuje podaną wytrzymałość, chyba że opis odmiany
+podaje trzy wartości; trudność zmienia też to, jak często strzela.
 
 <img src="media/badges/wkrotce.svg" height="16" alt="WKRÓTCE"> oznacza to, co
 jest już zbudowane, ale nie weszło do v0.3.0. Przyjdzie razem z kampanią.
@@ -44,6 +44,12 @@ migasz po odrodzeniu.
 <img src="media/enemies/raider.png" width="480" alt="Raider: ciemnoczerwony myśliwiec o skośnych skrzydłach, powiększony z klatki gry">
 
 Podstawowy wrogi myśliwiec, latający parą.
+
+Na poziomie 2 pojawia się też opancerzona odmiana: szersze skrzydła osłonięte
+płytami, jaśniejszy kolor wrogiego kadłuba, 2 /2 /3 trafienia do zniszczenia,
+zaplanowany postój strzelecki i unik w bok po trafieniu, które przeżyje.
+Szturmowe Raidery zachowują dawną sylwetkę i giną od jednego trafienia.
+Obie odmiany mają tę samą broń, punktację i sposób rysowania.
 
 - **Trafień do zniszczenia:** 1. **Punkty:** 10.
 - **Broń:** para ma wspólny rytm strzałów. Wystrzeliwuje pięć impulsów co 15

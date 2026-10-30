@@ -1603,7 +1603,8 @@ async function buildHybridDirectorModule(fighterWeaponsInclude, levelDefInclude,
   const windowFlowBytes = parsedLabels.get("__HYBRID_C_WINDOW_FLOW_SIZE__");
   const heavyWindowBytes = (parsedLabels.get("__HYBRID_C_WINDOW_HEAVY_SIZE__") ?? 0) +
     (parsedLabels.get("__HYBRID_C_WINDOW_HEAVY_RODATA_SIZE__") ?? 0) +
-    (parsedLabels.get("__HYBRID_ASM_HEAVY_WINDOW_SIZE__") ?? 0);
+    (parsedLabels.get("__HYBRID_ASM_HEAVY_WINDOW_SIZE__") ?? 0) +
+    (parsedLabels.get("__HYBRID_C_WINDOW_LOOK_SIZE__") ?? 0);
   const basicWindowBytes = [windowAsmBytes, windowCodeBytes, windowRodataBytes, windowFlowBytes]
     .every(Number.isInteger)
     ? windowAsmBytes + windowCodeBytes + windowRodataBytes + windowFlowBytes + heavyWindowBytes : undefined;
@@ -1827,6 +1828,7 @@ function renderDirectorAbiInclude(labelBytes, lightKernelAddress, pauseFrontendM
     ["HEAVY_ABI_Y", "heavy_abi_y"],
     ["HEAVY_ABI_PLAYER_X", "heavy_abi_player_x"],
     ["HEAVY_BODY_INDEX", "heavy_body_index"],
+    ["HEAVY_BODY_FLAGS", "heavy_body_flags"],
     ["HEAVY_BODY_HEIGHT_OPERAND", "heavy_body_height_operand"],
     ["HEAVY_BODY_BASE_OPERAND", "heavy_body_base_operand"],
     ["HEAVY_ABI_SHAPE", "heavy_abi_shape"],
@@ -5480,7 +5482,7 @@ async function build() {
         guard: "HYBRID_C_WINDOW_GUARD $BC1A-$BC1F, reserved with no segment, plus the ld65 " +
           "assert \"HYBRID_C_WINDOW reaches the sector reader BSS at $BC00\"",
         contents: basicWindowSegment === null ? null
-          : "Director: HYBRID_ASM_WINDOW + HYBRID_C_WINDOW + HYBRID_C_WINDOW_RODATA + HYBRID_C_WINDOW_FLOW + HYBRID_C_WINDOW_HEAVY + HYBRID_C_WINDOW_HEAVY_RODATA + HYBRID_ASM_HEAVY_WINDOW",
+          : "Director: HYBRID_ASM_WINDOW + HYBRID_C_WINDOW + HYBRID_C_WINDOW_RODATA + HYBRID_C_WINDOW_FLOW + HYBRID_C_WINDOW_HEAVY + HYBRID_C_WINDOW_HEAVY_RODATA + HYBRID_ASM_HEAVY_WINDOW + HYBRID_C_WINDOW_LOOK",
         transport: basicWindowRecord === null ? null : {
           record: "own DFMC record, LZ, stagingId extension",
           finalDestination: basicWindowRecord.finalDestination,

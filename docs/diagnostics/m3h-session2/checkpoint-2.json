@@ -1,0 +1,354 @@
+{
+  "baseline": "7fe9040",
+  "advancedMain": "71a38a847ab1d3702b77b292d6873159ecf4c2ff",
+  "window": {
+    "before": 2068,
+    "after": 2153,
+    "delta": 85,
+    "targetGrowth": 250,
+    "remainingGrowth": 165,
+    "usableFree": 658
+  },
+  "newStateBytes": 8,
+  "totalAdditionalUsedRam": 93,
+  "arena": 827,
+  "content": {
+    "address": 4480,
+    "endExclusive": 6400,
+    "capacityBytes": 1920,
+    "usedBytes": 612,
+    "runIndex": 12,
+    "validAddress": 34483,
+    "phase": "checked fighter/capital content; disarmed before boss"
+  },
+  "contentRecord": {
+    "index": 12,
+    "name": "content-module",
+    "startSector": 265,
+    "sectors": 15,
+    "destination": 4480,
+    "bytes": 1920,
+    "sha256": "6bd931557fbb94668ce3b6dc33e148dd373b7a4db859551fdc499394a52525da",
+    "file": "content-module.bin"
+  },
+  "initialContent": 12865,
+  "transport": 211,
+  "records": [
+    {
+      "startSector": 102,
+      "sectorCount": 44,
+      "packedLength": 5592,
+      "rawLength": 6653,
+      "finalDestination": 24080,
+      "crc16": 18633,
+      "type": 1,
+      "stagingId": 1,
+      "destination": 33024
+    },
+    {
+      "startSector": 146,
+      "sectorCount": 10,
+      "packedLength": 1182,
+      "rawLength": 1182,
+      "finalDestination": 35968,
+      "crc16": 33138,
+      "type": 0,
+      "stagingId": 2,
+      "destination": 33024
+    },
+    {
+      "startSector": 156,
+      "sectorCount": 1,
+      "packedLength": 105,
+      "rawLength": 106,
+      "finalDestination": 32792,
+      "crc16": 30405,
+      "type": 1,
+      "stagingId": 2,
+      "destination": 33024
+    },
+    {
+      "startSector": 157,
+      "sectorCount": 4,
+      "packedLength": 441,
+      "rawLength": 498,
+      "finalDestination": 39744,
+      "crc16": 62429,
+      "type": 1,
+      "stagingId": 2,
+      "destination": 33024
+    },
+    {
+      "startSector": 161,
+      "sectorCount": 6,
+      "packedLength": 746,
+      "rawLength": 746,
+      "finalDestination": 30736,
+      "crc16": 56441,
+      "type": 0,
+      "stagingId": 2,
+      "destination": 33024
+    },
+    {
+      "startSector": 167,
+      "sectorCount": 1,
+      "packedLength": 23,
+      "rawLength": 21,
+      "finalDestination": 40286,
+      "crc16": 65153,
+      "type": 1,
+      "stagingId": 2,
+      "destination": 33024
+    },
+    {
+      "startSector": 168,
+      "sectorCount": 6,
+      "packedLength": 727,
+      "rawLength": 827,
+      "finalDestination": 31696,
+      "crc16": 61442,
+      "type": 1,
+      "stagingId": 2,
+      "destination": 33024
+    },
+    {
+      "startSector": 174,
+      "sectorCount": 14,
+      "packedLength": 1762,
+      "rawLength": 2153,
+      "finalDestination": 44544,
+      "crc16": 20963,
+      "type": 1,
+      "stagingId": 2,
+      "destination": 33024
+    },
+    {
+      "startSector": 188,
+      "sectorCount": 9,
+      "packedLength": 1032,
+      "rawLength": 1196,
+      "finalDestination": 13891,
+      "crc16": 29296,
+      "type": 1,
+      "stagingId": 2,
+      "destination": 33024
+    },
+    {
+      "startSector": 197,
+      "sectorCount": 12,
+      "packedLength": 1512,
+      "rawLength": 1512,
+      "finalDestination": 40960,
+      "crc16": 41436,
+      "type": 0,
+      "stagingId": 2,
+      "destination": 33024
+    },
+    {
+      "startSector": 209,
+      "sectorCount": 3,
+      "packedLength": 289,
+      "rawLength": 324,
+      "finalDestination": 40309,
+      "crc16": 44867,
+      "type": 1,
+      "stagingId": 2,
+      "destination": 33024
+    }
+  ],
+  "quick": [
+    {
+      "id": "campaign-1-spread-capital",
+      "difficulty": 1,
+      "brake": false,
+      "dir": "build/frame-peak-fixed-campaign",
+      "campaign": true,
+      "spread": true,
+      "code": 0,
+      "passed": true,
+      "gateFailures": [],
+      "frames": 1800,
+      "capitalFrames": 1192,
+      "spaceFrames": 608,
+      "bossFrames": 0,
+      "peak": 30465,
+      "capitalPeak": 29547,
+      "capitalWithoutAudio": 28966,
+      "composedCapital": 30153,
+      "spacePeak": 30465,
+      "bossPeak": null,
+      "targetOverruns": 0,
+      "fence": 2185,
+      "misses": 0,
+      "extraVbi": 0,
+      "dliErrors": 0,
+      "shifted": 0,
+      "staleL2": 0,
+      "bossEntryFrames": null,
+      "coincidenceFrames": 0,
+      "artifact": "8d2ba90a9e2447698aad03c65f1be3ce03cf1cfda4ebd966148c23be87897da5",
+      "stateFileSha256": "6dae41379c21ac9d183b5e8f873d28a426e4c102ebec60eb1562568c73a19367",
+      "traceSha256": "a03e0f1b4389a6c23389abce7688ad9c20cab8210400d252c5bc2896d9c8a422"
+    },
+    {
+      "id": "l2-960-1-flight",
+      "length": 960,
+      "difficulty": 1,
+      "brake": false,
+      "dir": "build/frame-peak-fixed-960",
+      "code": 0,
+      "passed": true,
+      "gateFailures": [],
+      "frames": 3967,
+      "capitalFrames": 2273,
+      "spaceFrames": 1575,
+      "bossFrames": 119,
+      "peak": 31153,
+      "capitalPeak": 29171,
+      "capitalWithoutAudio": 28352,
+      "composedCapital": 29539,
+      "spacePeak": 31153,
+      "bossPeak": 28738,
+      "targetOverruns": 0,
+      "fence": 6417,
+      "misses": 0,
+      "extraVbi": 0,
+      "dliErrors": 0,
+      "shifted": 0,
+      "staleL2": 0,
+      "bossEntryFrames": 325,
+      "coincidenceFrames": 0,
+      "artifact": "93a81cf5496bda9b5d3406b5708c7f59e6621a8c759c38da36ca6f278eef1f39",
+      "stateFileSha256": "c13317e0019d9e28ef5cc897a55cf705c86c2bcb9af9cf87d1b25edb6f5b16fd",
+      "traceSha256": "949f54c67ed5f5572335998d6378d6ca1a72724868367760cec913d0b37b20c0"
+    }
+  ],
+  "play": {
+    "campaign": {
+      "path": "build/play/m3h-session2/checkpoint-2/campaign.atr",
+      "bytes": 133136,
+      "sha256": "8d2ba90a9e2447698aad03c65f1be3ce03cf1cfda4ebd966148c23be87897da5"
+    },
+    "level-2": {
+      "path": "build/play/m3h-session2/checkpoint-2/level-2.atr",
+      "bytes": 133136,
+      "sha256": "d2b06a8b2c0db948b272afbdc78a50f9aad0dd6cdc8b2c602c7c969a01cca9fb"
+    },
+    "heavy-sector": {
+      "path": "build/play/m3h-session2/checkpoint-2/heavy-sector.atr",
+      "bytes": 133136,
+      "sha256": "0ca4466233ef9246398e2e912e62403e0fbfd35e0054694bd3963b40b77ce297"
+    },
+    "capital-960": {
+      "path": "build/play/m3h-session2/checkpoint-2/capital-960.atr",
+      "bytes": 133136,
+      "sha256": "93a81cf5496bda9b5d3406b5708c7f59e6621a8c759c38da36ca6f278eef1f39"
+    }
+  },
+  "load": {
+    "main": {
+      "measurement": "MEASURED linked NMOS checked content-load fixture; synthetic drive, not physical host frames",
+      "end": "armed",
+      "cpuCycles": 313556,
+      "driveFixtureFrames": 90,
+      "readSectors": [
+        265,
+        266,
+        267,
+        268,
+        269,
+        270,
+        271,
+        272,
+        273,
+        274,
+        275,
+        276,
+        277,
+        278,
+        279
+      ],
+      "contentUsed": 612,
+      "contentRun": {
+        "index": 12,
+        "name": "content-module",
+        "startSector": 265,
+        "sectors": 15,
+        "destination": 4480,
+        "bytes": 1920,
+        "sha256": "6bd931557fbb94668ce3b6dc33e148dd373b7a4db859551fdc499394a52525da",
+        "file": "content-module.bin"
+      }
+    },
+    "task": {
+      "measurement": "MEASURED linked NMOS checked content-load fixture; synthetic drive, not physical host frames",
+      "end": "armed",
+      "cpuCycles": 313556,
+      "driveFixtureFrames": 90,
+      "readSectors": [
+        265,
+        266,
+        267,
+        268,
+        269,
+        270,
+        271,
+        272,
+        273,
+        274,
+        275,
+        276,
+        277,
+        278,
+        279
+      ],
+      "contentUsed": 612,
+      "contentRun": {
+        "index": 12,
+        "name": "content-module",
+        "startSector": 265,
+        "sectors": 15,
+        "destination": 4480,
+        "bytes": 1920,
+        "sha256": "6bd931557fbb94668ce3b6dc33e148dd373b7a4db859551fdc499394a52525da",
+        "file": "content-module.bin"
+      }
+    },
+    "addedCpuCycles": 0,
+    "addedSectorReads": 0
+  },
+  "extraNative": [
+    {
+      "id": "m3h-looks-hunt",
+      "acceptance": {
+        "measured_frames": 2400,
+        "maximum_wall_cycles": 30766,
+        "wall_ceiling": 32568,
+        "physical_headroom": 4802,
+        "missed_frames": 0,
+        "extra_vbi_boundaries": 0,
+        "physical_overruns": 0,
+        "deadline_overruns": 0,
+        "dli_ordering_errors": 0,
+        "passed": true
+      },
+      "coverageNote": "No HP2 Raider admission observed in these bounded input replays; no native armoured-subject claim. New-armour plane/cycle/lifetime coverage comes from linked NMOS tests on all three difficulties and both level2 variants."
+    },
+    {
+      "id": "m3h-looks-spread",
+      "acceptance": {
+        "measured_frames": 1800,
+        "maximum_wall_cycles": 30501,
+        "wall_ceiling": 32568,
+        "physical_headroom": 5067,
+        "missed_frames": 0,
+        "extra_vbi_boundaries": 0,
+        "physical_overruns": 0,
+        "deadline_overruns": 0,
+        "dli_ordering_errors": 0,
+        "passed": true
+      },
+      "coverageNote": "No HP2 Raider admission observed in these bounded input replays; no native armoured-subject claim. New-armour plane/cycle/lifetime coverage comes from linked NMOS tests on all three difficulties and both level2 variants."
+    }
+  ]
+}

@@ -1,0 +1,25 @@
+{
+  "taskCache": "/Users/marcinkrzetowski/Projects/dark-fighter-m3h-s2/.cache/m3h-session2",
+  "globalTaskCache": "/Users/marcinkrzetowski/Projects/cache/m3h-session2",
+  "globalTaskCacheUsed": false,
+  "initialWorktreeCache": "0B",
+  "before": {
+    "task": "217M\t/Users/marcinkrzetowski/Projects/dark-fighter-m3h-s2/.cache/m3h-session2",
+    "worktreeCache": "217M\t/Users/marcinkrzetowski/Projects/dark-fighter-m3h-s2/.cache",
+    "disk": "Filesystem      Size    Used   Avail Capacity iused ifree %iused  Mounted on\n/dev/disk3s5   926Gi   508Gi   391Gi    57%    5.4M  4.1G    0%   /System/Volumes/Data"
+  },
+  "retainedAtrDirectory": "/Users/marcinkrzetowski/Projects/dark-fighter-m3h-s2/build/play/m3h-session2",
+  "retainedAtrCount": 6,
+  "retainedAtrBytes": 798816,
+  "after": {
+    "task": "704K\t.cache/m3h-session2",
+    "worktreeCache": "704K\t.cache",
+    "disk": "Filesystem      Size    Used   Avail Capacity iused ifree %iused  Mounted on\n/dev/disk3s5   926Gi   492Gi   408Gi    55%    5.3M  4.3G    0%   /System/Volumes/Data"
+  },
+  "retainedEvidenceBytes": 658314,
+  "note": "Only own task directories cleaned. Cache retains JSON results, final comparison PNG and test/build/native logs. Six requested checkpoint1/2 play ATRs remain under build/play as explicit owner deliverables; no disposable smoke packages/emulator/build/node_modules copies remain. No large-evidence exception needed.",
+  "activeTaskProcesses": [],
+  "portsOpenedByTask": 0,
+  "otherUserProcessesUntouched": true,
+  "rebuildNote": "The task-installed node_modules and disposable build/emulator copies were removed. Rebuild begins with npm ci. Requested final play ATRs remain under build/play/m3h-session2; no executable server/emulator was left running."
+}

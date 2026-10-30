@@ -142,7 +142,8 @@ disk. The same is true of the score table.
 Raiders keep tracking your column every frame while their vertical movement
 runs on alternate frames. Some formations use the armoured profile: they
 pause at a fixed height to fire and dodge sideways when they survive a hit.
-They currently share the Raider silhouette.
+Armoured Raiders have broader plated wings and a brighter hostile hull colour.
+Level 2 mixes them with the original assault silhouette.
 
 The Bomber's hull darkens as it takes damage, so the colour tells you how much
 of it is left. It brightens when braking to aim and dims when its sweep

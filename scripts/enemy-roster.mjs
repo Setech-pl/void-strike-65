@@ -242,6 +242,27 @@ export function loadEnemyRosterDefinition(filePath) {
   };
 }
 
+// Heavy looks are data profiles, never another archetype or PMG allocation.
+// The existing Raider renderer/collision frame is 14 rows; two storage rows
+// are zero padding so every source still has a 16-byte stride.
+export function compileHeavyLook(look) {
+  invariant(look && typeof look === "object" && !Array.isArray(look),
+    "heavy look must be an object with rows and colour");
+  const rows = bytesFromRows(look.rows, 14, "heavy look");
+  invariant(rows[13] === 0, "heavy look must keep the cleared tail row");
+  invariant(rows.some(Boolean), "heavy look draws no pixel");
+  const colour = typeof look.colour === "string" && /^\$[0-9a-f]{2}$/i.test(look.colour)
+    ? Number.parseInt(look.colour.slice(1), 16) : look.colour;
+  invariant(Number.isInteger(colour) && colour >= 0x44 && colour <= 0x48 && (colour & 1) === 0,
+    "heavy look colour must be hostile red $44, $46 or $48");
+  return Buffer.from([...rows, 0, 0, colour]);
+}
+
+export function defaultArmouredRaiderLook() {
+  const file = new URL("../assets/graphics/enemy-roster.json", import.meta.url);
+  return JSON.parse(fs.readFileSync(file, "utf8")).heavyLooks.armouredRaider;
+}
+
 export function compileEnemyRoster(definition, rootDirectory) {
   invariant(definition?.formatVersion === 1, "Unsupported enemy-roster formatVersion");
   const runtime = definition.runtime;
@@ -330,10 +351,12 @@ export function compileEnemyRoster(definition, rootDirectory) {
     implemented[0].releaseEnabled,
   "Only INTERCEPTOR may enter normal release waves in pass 1");
 
+  const armouredRaiderLook = compileHeavyLook(definition.heavyLooks.armouredRaider);
   const bodyBytes = Uint8Array.from(implemented.flatMap(({ bodyBytes }) => [...bodyBytes]));
   const accentBytes = Uint8Array.from(implemented.flatMap(({ accentValues }) => [...accentValues]));
   return {
     definition,
+    armouredRaiderLook,
     runtime,
     inventory,
     implemented,

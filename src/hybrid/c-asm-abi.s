@@ -724,16 +724,20 @@ heavy_armoured_tick:
 ; M3-H H10/H11. Main asserts every fixed binding at the actual instruction or
 ; BSS allocation. No interrupt reads these operands or enters the body copy.
 heavy_body_index = $54BE
+heavy_body_flags = heavy_body_index+5
 heavy_body_height_operand = $63A1
 heavy_body_base_operand = $63B9
 heavy_abi_shape = $4ECB
 heavy_abi_body_data = $7765
 heavy_abi_frame_heights = $774A
 .export heavy_body_index, heavy_body_height_operand, heavy_body_base_operand
+.export heavy_body_flags
 .export heavy_abi_shape, heavy_abi_body_data, heavy_abi_frame_heights
 .export heavy_look_spawn, heavy_look_install
+.import _enemy_c_heavy_look_colour
 heavy_look_spawn:
     jsr _enemy_c_spawn_raiders
+    jsr _enemy_c_heavy_look_colour
 heavy_look_install:
     lda #0
     ldx #7
@@ -755,6 +759,17 @@ heavy_look_install:
     asl
     sta heavy_body_index
     sta heavy_body_index+1
+    lda _heavy_armoured
+    sta heavy_body_flags           ; appearance survives the runway's motion cutoff
+    beq @ready
+    lda #<LEVEL_PAYLOAD_HEAVY_LOOK
+    sta heavy_body_base_operand
+    lda #>LEVEL_PAYLOAD_HEAVY_LOOK
+    sta heavy_body_base_operand+1
+    lda #0
+    sta heavy_body_index
+    sta heavy_body_index+1
+@ready:
     rts
 
 .include "content-module.s"

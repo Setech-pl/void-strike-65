@@ -1,0 +1,90 @@
+{
+  "emulator": "Atari800 7.1.2 PAL/XL",
+  "guest_instrumentation_bytes": 0,
+  "diagnostic_allowances": {
+    "release_evidence": false,
+    "reuse_existing_traces": false,
+    "host_lives_top_up": "4",
+    "forced_booster_fixture": 4,
+    "l2_exit_fixture": null,
+    "terminal_state_seed": false,
+    "l2_variant_alias": false
+  },
+  "artifact_sha256": {
+    "void-strike-65-boot.bin": {
+      "path": "build/frame-peak-fixed-campaign/void-strike-65-boot.bin",
+      "bytes": 27008,
+      "sha256": "d5c4e28de61b2a963f7219f051d20b38682c07fca2f2a5819dcbca07a9d89395"
+    },
+    "void-strike-65.atr": {
+      "path": "build/frame-peak-fixed-campaign/void-strike-65.atr",
+      "bytes": 133136,
+      "sha256": "bf11d321eef2d35f1a87d8e83305104fe40beec8fd1fe87e3368a523f1b1d56c"
+    },
+    "void-strike-65-manifest.json": {
+      "path": "build/frame-peak-fixed-campaign/void-strike-65-manifest.json",
+      "bytes": 884233,
+      "sha256": "ad1262dd13d76279b54f621ffb1643dbeca941d8a79f8ce2a2bfd595b60a5e61"
+    }
+  },
+  "variant": "frame-peak-fixed-campaign",
+  "diagnostic_only": true,
+  "sessions": [
+    {
+      "id": "campaign-1-spread-capital",
+      "kind": "spread-capital",
+      "medium": "ATR",
+      "difficulty": 1,
+      "policy": "l2-spread-capital",
+      "fire_delay": 0,
+      "registered_host_fixture": {
+        "forced_booster": 4,
+        "timer_bytes": 255,
+        "held_lives": 4,
+        "hp_or_invulnerability_seed": false,
+        "projectile_state_seed": false
+      },
+      "spread_capital": {
+        "peak": 30465,
+        "targetMargin": 1035,
+        "hardMargin": 2103,
+        "capitalFrames": 918
+      },
+      "measured_frames": 1800,
+      "maximum_wall_cycles": 30465,
+      "deadline_overrun_frames": 0,
+      "missed_frames": 0,
+      "hull_map_draws": 545,
+      "hull_map_stale_draws": 0,
+      "hull_map_dirty_reads": 0,
+      "hull_map_rebuilds_after_boss": 0,
+      "level_summary": {
+        "start_summaries": [
+          {
+            "entry": 655,
+            "display": 657,
+            "loaded": 747,
+            "ready": 858,
+            "accept": 860,
+            "reads": 53,
+            "shown_frames": 203,
+            "best": "BEST                  --"
+          }
+        ]
+      }
+    }
+  ],
+  "acceptance": {
+    "measured_frames": 1800,
+    "maximum_wall_cycles": 30465,
+    "wall_ceiling": 32568,
+    "physical_headroom": 5103,
+    "missed_frames": 0,
+    "extra_vbi_boundaries": 0,
+    "physical_overruns": 0,
+    "deadline_overruns": 0,
+    "dli_ordering_errors": 0,
+    "passed": true
+  },
+  "passed": true
+}

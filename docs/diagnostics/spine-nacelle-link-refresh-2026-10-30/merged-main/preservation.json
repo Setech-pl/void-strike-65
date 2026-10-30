@@ -1,0 +1,22 @@
+{
+  "docs/STATUS.md": {
+    "mainTextPreservedInOrder": true,
+    "generatedBlockExempt": false
+  },
+  "docs/game-design.md": {
+    "mainTextPreservedInOrder": true,
+    "generatedBlockExempt": false
+  },
+  "docs/owner-decisions-2026-09-11.md": {
+    "mainTextPreservedInOrder": true,
+    "generatedBlockExempt": false
+  },
+  "docs/memory-map.md": {
+    "mainTextPreservedInOrder": true,
+    "generatedBlockExempt": true
+  },
+  "docs/recorded-gate-failures.json": {
+    "allMainKeysAndValuesPreserved": true,
+    "spineUnitDebtPreserved": true
+  }
+}

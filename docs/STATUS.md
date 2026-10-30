@@ -161,6 +161,36 @@ mounted for menu returns. Real hardware must confirm both Heavy planes.
 **NEXT TASK:** owner smoke of M3-H session 1. No automatic session 2,
 capital-content implementation, release, push or merge.
 
+### Siege Spine nacelle link B3 — OWNER-SMOKE CANDIDATE
+
+Continuation of `2c06453` on `codex/spine-nacelle-link`; main `7fe9040`
+(phase-resync) merged as `4d3c691`, without rebase. B3 art/production code
+unchanged. Owner approved regenerating the four Spine generated memory-map
+rows; main's hand-written text is preserved. Sole docs-ledger merge conflict
+retains both debt sets. No code/asset/script/test conflict occurred.
+
+Normal campaign/direct/960 builds pass computed gates; B3 focused 6/6 and
+memory-map 3/3 PASS. Full-suite audited diff **A137/B0/C0**; candidate 1,486/1,623 PASS, 137 shared
+recorded failures. Four transient main generated fixtures pass isolated rerun.
+Three quick native frame checks pass: Spread NORMAL 30,465, capital-960
+31,319, Siege Spine 30,369; worst 31,319, 1,249 below the hard gate. Zero
+misses/VBI/DLI anomalies. Entries: capital-960 325, Spine 344 <=350 host frames.
+Spine bot-completion clause is shared with fresh main (main peak 30,372):
+neither reaches the chain in its host-frame limit. It is recorded debt,
+not evidence of owner acceptance or completed bot fight.
+
+Against main: resident/range allocation delta 0; R3 F code +30 B (159 B
+free); meaningful charset +112 B, 122 codes (48 B free), disk +1 charset
+sector. Initial packed content 12,865 B, initial transport 211 sectors,
+ATR 133,136 B on both sources. Stale release evidence remains pending.
+
+Rebuilt play ATRs: `build/play/spine-nacelle-link/campaign.atr` and
+`spine-direct.atr`. [Current audit, full hashes, launch commands and owner
+smoke checklist](diagnostics/spine-nacelle-link-refresh-2026-10-30/report.md).
+**NEXT TASK: owner smoke, then owner's merge decision.** No release,
+merge into main, push, tag or next roadmap work. Not OWNER-ACCEPTED.
+
+
 ### L2 audit fixes — OWNER-ACCEPTED
 
 Owner smoke **PASS**, 2026-10-26, on the fixed L2 candidate built from

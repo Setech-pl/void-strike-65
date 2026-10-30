@@ -48,6 +48,35 @@
       { "from": 32, "to": 48, "generators": ["gen-r"] }
     ]
   },
+  "generatorLink": {
+    "_": "Owner revision B3 (§BX): destroyed gen-r pixels, gen-l mirrored. Existing PF2 pixel values: . background, G COLPF0, P COLPF1, B COLPF2. Compiled to glyphs and COPY looks; decorative only.",
+    "right": [
+      "PP..........",
+      "PGPPPPPPPPPP",
+      "PGGGGGGGGGGG",
+      "PGGPGGGPGGGP",
+      "PGBBBBBBBBBB",
+      "PGPPPPPPPPPP",
+      "PG........GP",
+      "PP........GP",
+      "..........GP",
+      "..........GP",
+      "..........GP",
+      "..........GP",
+      "..........GP",
+      "..........GP",
+      "..........GP",
+      "..........GP",
+      "......P.B.PP",
+      "....PGGP.GGP",
+      "PG.GGGPGGGGP",
+      "PPPPPPP.PPPP",
+      ".PGGPGGGGGP.",
+      ".PGGG.PGGGP.",
+      "..PPGGGGPP..",
+      "....PPPP...."
+    ]
+  },
   "nozzles": {
     "_": "The generators' vents beside each sphere (region 1's nozzle phases).",
     "left": [[10, 1], [10, 2], [10, 3]],

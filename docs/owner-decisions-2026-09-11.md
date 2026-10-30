@@ -4326,6 +4326,33 @@ brake/contact route — state-dependent, not L2 overhead (SPACE is −2 vs main)
 attribute the worst frame before M3-H adds per-frame work". This handoff
 records that item; it does not start the attribution work.
 
+## BX. Siege Spine engine-nacelle link — variant B (2026-10-26)
+
+Owner chose variant B: in a destroyed generator's 12×24 art-pixel slot,
+a three-row grey/violet/rust beam on rows 2–4, an outer violet mounting rail,
+and ragged wreck on rows 16–23. Right-side pattern is authored in
+`region-3/modules.json.generatorLink.right`; left is its exact horizontal mirror.
+Existing region-3 PF2 palette only. Decoration scrolls with the boss and changes
+no collision, field, lance, feedback, scoring or fight-length policy. The repo's
+existing per-generator field-half collapse remains authoritative.
+
+Implemented as R3 data and a small region-only queued publication helper,
+**OWNER-SMOKE CANDIDATE**, not accepted. F 353/512 B (159 free), charset
+952/1024 B; [plan and evidence](plans/spine-nacelle-link.md).
+Owner explicitly waived §BU.9 PID and one-session-per-folder checks for this
+task; branch stays isolated and other sessions' files remain protected.
+
+**Revision B3 — owner decision, 2026-10-26.** B3 replaces B's thin beam and
+invented wreck with the exact supplied 12×24 pattern: five-row outlined plate
+beam with period-four bolts and rust underside, two-pixel grey/violet rail,
+hull collar, and torn lower-third pod wreck based on the living generator.
+Left is an exact mirror; no new colours or gameplay changes. The earlier B
+resource figures above describe `73f7512`; current B3 uses 7 right + 7 mirror-only
+glyphs (112 B), charset **976/1024 B** (+24 B), and unchanged overlay F
+**353/512 B, 159 free**. Art-data replacement only; existing helper unchanged.
+Implemented, **OWNER-SMOKE CANDIDATE**, pending the owner's smoke.
+[B3 evidence](diagnostics/spine-nacelle-link-b3/result.json).
+
 §BX is already assigned on `codex/spine-nacelle-link` to the Siege Spine
 engine-nacelle link decision; that independent entry is not duplicated here.
 

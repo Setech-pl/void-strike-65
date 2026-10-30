@@ -1,0 +1,96 @@
+{
+  "measurement": "Instruction-cycle compositions from the mandatory full npm test, not an additional standalone stress run.",
+  "main": {
+    "7": {
+      "filling": 7889,
+      "install": 8077,
+      "quarter": 7992,
+      "draw": 8091,
+      "idle": 8102,
+      "charge": 8153,
+      "swap": 8191,
+      "fire": 8180,
+      "dry": 8132,
+      "waitEven": 8127,
+      "waitOdd": 8140,
+      "waitLock": 8175,
+      "flyFirst": 8097,
+      "fly": 7957,
+      "kill": 7957,
+      "lost": 8186,
+      "blast": 8007,
+      "blastEnd": 7944
+    },
+    "9": {
+      "filling": 8143,
+      "install": 8331,
+      "quarter": 8246,
+      "draw": 8345,
+      "idle": 8357,
+      "charge": 8408,
+      "swap": 8446,
+      "fire": 8435,
+      "dry": 8386,
+      "waitEven": 8381,
+      "waitOdd": 8394,
+      "waitLock": 8430,
+      "flyFirst": 8351,
+      "fly": 8211,
+      "kill": 8136,
+      "lost": 8440,
+      "blast": 8261,
+      "blastEnd": 8198
+    }
+  },
+  "candidate": {
+    "7": {
+      "filling": 7889,
+      "install": 8077,
+      "quarter": 7992,
+      "draw": 8091,
+      "idle": 8102,
+      "charge": 8153,
+      "swap": 8191,
+      "fire": 8180,
+      "dry": 8132,
+      "waitEven": 8127,
+      "waitOdd": 8140,
+      "waitLock": 8175,
+      "flyFirst": 8097,
+      "fly": 7957,
+      "kill": 7957,
+      "lost": 8186,
+      "blast": 8007,
+      "blastEnd": 7944
+    },
+    "9": {
+      "filling": 8143,
+      "install": 8331,
+      "quarter": 8246,
+      "draw": 8345,
+      "idle": 8357,
+      "charge": 8408,
+      "swap": 8446,
+      "fire": 8435,
+      "dry": 8386,
+      "waitEven": 8381,
+      "waitOdd": 8394,
+      "waitLock": 8430,
+      "flyFirst": 8351,
+      "fly": 8211,
+      "kill": 8159,
+      "lost": 8440,
+      "blast": 8261,
+      "blastEnd": 8198
+    }
+  },
+  "differences": [
+    {
+      "level": 9,
+      "mode": "kill",
+      "main": 8136,
+      "candidate": 8159,
+      "delta": 23
+    }
+  ]
+}

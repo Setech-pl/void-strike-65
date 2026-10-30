@@ -4192,6 +4192,9 @@ field_late:
     tax
     jsr boss_column_at                  ; the column as without the field (keeps X)
     ldx field_x
+.ifdef FIELD_GENERATOR_LINK
+    jsr field_link                     ; once per generator, through the existing draw queue
+.endif
     lda field_cursor,x
     cmp field_last,x
     beq @down
@@ -4221,6 +4224,23 @@ field_init:
     dex
     bpl @half
     rts
+
+.ifdef FIELD_GENERATOR_LINK
+; Only called by field_late after a collapse column, never a kill/heavy frame.
+; GONE is already queued; COPY follows it and uses normal flash/ring handling.
+; No new resident entry or callback: this code shares the existing F lifetime.
+field_link:
+    lda field_cursor,x
+    cmp field_link_start,x
+    bne @rts
+    lda field_gen_a,x
+    ldy field_link_look,x
+    ldx #BOSS_MODE_COPY
+    jsr boss_enqueue
+    ldx field_x
+@rts:
+    rts
+.endif
 
 FIELD_TABLES                            ; boss-field.inc: the halves, the phases
 

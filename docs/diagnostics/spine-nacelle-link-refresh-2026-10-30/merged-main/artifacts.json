@@ -1,0 +1,12 @@
+{
+  "campaign": {
+    "path": "build/play/spine-nacelle-link/campaign.atr",
+    "bytes": 133136,
+    "sha256": "bf11d321eef2d35f1a87d8e83305104fe40beec8fd1fe87e3368a523f1b1d56c"
+  },
+  "spine-direct": {
+    "path": "build/play/spine-nacelle-link/spine-direct.atr",
+    "bytes": 133136,
+    "sha256": "9f817d60dbe65e6cdb25f7a32f5217a1ac4720446b4e93f233bb94737fa6b451"
+  }
+}

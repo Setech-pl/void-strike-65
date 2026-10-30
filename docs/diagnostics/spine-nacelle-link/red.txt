@@ -1,0 +1,105 @@
+✖ the art rule: every damage stage of every region 3 module has colour-3 pixels (164.3465ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 0
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 461.731458
+
+✖ failing tests:
+
+test at tests/boss-region-3.test.mjs:87:1
+✖ the art rule: every damage stage of every region 3 module has colour-3 pixels (164.3465ms)
+  AssertionError [ERR_ASSERTION]: gen-r: destroyed slot must show variant B beam, rail and wreck
+  + actual - expected
+  
+    [
+      '............',
+  +   '............',
+  +   '............',
+  +   '............',
+  +   '............',
+  +   '............',
+  +   '............',
+  +   '............',
+  +   '............',
+  +   '............',
+  +   '............',
+  +   '............',
+  +   '............',
+  +   '............',
+  +   '............',
+  +   '............',
+  +   '............',
+  +   '............',
+  +   '............',
+  +   '............',
+  +   '............',
+  +   '............',
+  +   '............',
+  +   '............'
+  -   '...........P',
+  -   'GGGGGGGGGGGG',
+  -   'PPPPPPPPPPPP',
+  -   'BBBBBBBBBBBB',
+  -   '...........P',
+  -   '...........P',
+  -   '...........P',
+  -   '...........P',
+  -   '...........P',
+  -   '...........P',
+  -   '...........P',
+  -   '...........P',
+  -   '...........P',
+  -   '...........P',
+  -   '...........P',
+  -   '.........PPP',
+  -   '......P.PGGP',
+  -   '..P..PGPGGGP',
+  -   '.PGPPGGGGPGP',
+  -   'PGGGGGG.GGGP',
+  -   'PGGPGGGGGPGP',
+  -   'PPGGGGGGGGPP',
+  -   '.PPPPPPPPPP.'
+    ]
+  
+      at TestContext.<anonymous> (file:///Users/marcinkrzetowski/Projects/dark-fighter/tests/boss-region-3.test.mjs:135:16)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.start (node:internal/test_runner/test:1262:17)
+      at startSubtestAfterBootstrap (node:internal/test_runner/harness:387:17) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: [
+      '............', '............',
+      '............', '............',
+      '............', '............',
+      '............', '............',
+      '............', '............',
+      '............', '............',
+      '............', '............',
+      '............', '............',
+      '............', '............',
+      '............', '............',
+      '............', '............',
+      '............', '............'
+    ],
+    expected: [
+      '............', '...........P',
+      'GGGGGGGGGGGG', 'PPPPPPPPPPPP',
+      'BBBBBBBBBBBB', '...........P',
+      '...........P', '...........P',
+      '...........P', '...........P',
+      '...........P', '...........P',
+      '...........P', '...........P',
+      '...........P', '...........P',
+      '.........PPP', '......P.PGGP',
+      '..P..PGPGGGP', '.PGPPGGGGPGP',
+      'PGGGGGG.GGGP', 'PGGPGGGGGPGP',
+      'PPGGGGGGGGPP', '.PPPPPPPPPP.'
+    ],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }

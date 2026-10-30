@@ -1380,7 +1380,7 @@ export function compileBossRegion(draft, { themeImage = null, shotGlyphs = draft
   const nozzleBase = nozzlesInRun ? plainBase + plain.length : BOSS_MAX_CODES - 2;
   const shotCode = nozzlesInRun ? nozzleBase + 2 : plainBase + plain.length;
   const hostileShotCode = shotCode + BOSS_SHOT_CODES;
-  const codeCount = hostileShotCode + BOSS_HOSTILE_SHOT_CODES;
+  let codeCount = hostileShotCode + BOSS_HOSTILE_SHOT_CODES;
   if (codeCount > (nozzlesInRun ? BOSS_MAX_CODES : nozzleBase)) {
     fail(`the region needs ${codeCount} codes (${K} staged x 3, ${plain.length} plain, 2 nozzles, ` +
       `${BOSS_SHOT_CODES + BOSS_HOSTILE_SHOT_CODES} shots, ${BOSS_DIVIDER_CODES} divider); ` +
@@ -1416,7 +1416,7 @@ export function compileBossRegion(draft, { themeImage = null, shotGlyphs = draft
       }
     }
   }
-  const glyphs = new Uint8Array(codeCount * 8);
+  let glyphs = new Uint8Array(codeCount * 8);
   staged.forEach(({ glyphs: [intact, cracked, broken] }, i) => {
     glyphs.set(intact, (BOSS_FIRST_CODE + i) * 8);
     glyphs.set(cracked, (BOSS_FIRST_CODE + K + i) * 8);
@@ -1439,6 +1439,45 @@ export function compileBossRegion(draft, { themeImage = null, shotGlyphs = draft
       fail(`the hostile shot glyphs are ${BOSS_HOSTILE_SHOT_CODES} glyphs of 8 rows`);
     }
     hostileShotGlyphs.forEach((rows, i) => glyphs.set(rows, (hostileShotCode + i) * 8));
+  }
+
+  // Siege Spine variant B: append immutable glyphs without renumbering any
+  // live art, animation or shot code. These looks never enter collision data.
+  const generatorLinks = [];
+  if (layout.generatorLink !== undefined) {
+    const rows = layout.generatorLink.right;
+    if (field === null || !Array.isArray(rows) || rows.length !== 24 ||
+        rows.some((row) => typeof row !== "string" || !/^[.GPB]{12}$/.test(row))) {
+      fail("generatorLink requires a field and 12x24 .GPB pixels");
+    }
+    const bytes = [...glyphs];
+    const values = { ".": 0, G: 1, P: 2, B: 3 };
+    const shapes = new Map([["0,0,0,0,0,0,0,0", 0]]);
+    for (const name of ["gen-r", "gen-l"]) {
+      const moduleIndex = modules.findIndex((m) => m.name === name);
+      const module = modules[moduleIndex];
+      if (!module || module.width !== 3 || module.height !== 3 ||
+          !field.halves.some((h) => h.generators.length === 1 && h.generators[0] === name)) {
+        fail(`generatorLink ${name} must be a 3x3 sole field generator`);
+      }
+      const picture = name === "gen-r" ? rows : rows.map((row) => [...row].reverse().join(""));
+      const codes = [];
+      const before = bytes.length;
+      for (let y = 0; y < 24; y += 8) for (let x = 0; x < 12; x += 4) {
+        const shape = picture.slice(y, y + 8).map((row) => [...row.slice(x, x + 4)]
+          .reduce((byte, pixel) => (byte << 2) | values[pixel], 0));
+        const key = shape.join(",");
+        if (!shapes.has(key)) {
+          shapes.set(key, bytes.length / 8);
+          bytes.push(...shape);
+        }
+        codes.push(shapes.get(key));
+      }
+      generatorLinks.push({ name, module: moduleIndex, codes, glyphBytes: bytes.length - before });
+    }
+    codeCount = bytes.length / 8;
+    if (codeCount > BOSS_MAX_CODES) fail(`generatorLink needs ${codeCount} of ${BOSS_MAX_CODES} codes`);
+    glyphs = Uint8Array.from(bytes);
   }
 
   const bandRows = Array.from({ length: BOSS_BAND_ROWS }, (_, r) =>
@@ -1562,6 +1601,10 @@ export function compileBossRegion(draft, { themeImage = null, shotGlyphs = draft
   for (let c = 0; c < BOSS_BAND_COLUMNS; c += 2) {
     const nibble = (row) => (row === null ? 0 : row + 1);
     tail.push(nibble(hullStop[c]) | (nibble(hullStop[c + 1]) << 4));
+  }
+  for (const link of generatorLinks) {
+    link.lookOffset = tail.length;
+    tail.push(...link.codes);
   }
   // E4 (b): the charset alone fills the charset area; the look tail is the
   // region block's (slot F, S5-1).
@@ -1692,6 +1735,7 @@ export function compileBossRegion(draft, { themeImage = null, shotGlyphs = draft
     seeThrough: [...seeThrough].map((key) => [key % BOSS_BAND_COLUMNS, Math.floor(key / BOSS_BAND_COLUMNS)]),
     hullStop,
     glyphs,
+    generatorLinks,
     lookTail: Uint8Array.from(tail),
     lookTailAddress,
     charsetBytes,

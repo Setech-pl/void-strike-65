@@ -24,6 +24,7 @@ import { fileURLToPath } from "node:url";
 
 import { compileCapitalHulls, loadCapitalHullsDefinition, HULL_MAX_ROWS } from "./capital-hulls.mjs";
 import { hostileWeaponGlyphRows } from "./fighter-weapons.mjs";
+import {compileHeavyDamage} from "./heavy-damage.mjs";
 import { compileHeavyLook, defaultArmouredRaiderLook } from "./enemy-roster.mjs";
 
 const scriptDirectory = path.dirname(fileURLToPath(import.meta.url));
@@ -512,8 +513,9 @@ function compilePayload(source, context) {
   }
   compileSummary(source, context).copy(page, PAYLOAD_OFFSET.summary);
   try {
-    compileHeavyLook(Object.hasOwn(payload, "heavyLook") ? payload.heavyLook : defaultArmouredRaiderLook())
-      .copy(page, HEAVY_LOOK_OFFSET);
+    const look=compileHeavyLook(Object.hasOwn(payload, "heavyLook") ? payload.heavyLook : defaultArmouredRaiderLook());
+    compileHeavyDamage(undefined,look); // every generated hole must exist in an override too
+    look.copy(page, HEAVY_LOOK_OFFSET);
   } catch (error) {
     fail(context, "payload.heavyLook", error.message);
   }

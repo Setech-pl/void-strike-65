@@ -1,3 +1,4 @@
+import {compileHeavyDamage,renderHeavyDamageInclude} from "./heavy-damage.mjs";
 import crypto from "node:crypto";
 import {islandRecipeBytes, ISLAND_RECORD_BYTES, ISLAND_DESCRIPTORS_OFFSET,
   ISLAND_SPANS_OFFSET, ISLAND_LOOKUP_OFFSET} from "./l2-islands.mjs";
@@ -1416,7 +1417,7 @@ async function buildResidentModule({ sourcePath, configPath, stem, extraInputs =
 }
 
 async function buildHybridDirectorModule(fighterWeaponsInclude, levelDefInclude,
-  levelDefHeader, levelDebugStartSector, bossLayoutInclude) {
+  levelDefHeader, levelDebugStartSector, bossLayoutInclude, heavyDamageInclude) {
   const base = "/project/build/encounter-director";
   const cSource = fs.readFileSync(path.join(rootDirectory, "src", "c", "director.c"));
   const cHeader = fs.readFileSync(path.join(rootDirectory, "src", "c", "director.h"));
@@ -1540,6 +1541,7 @@ async function buildHybridDirectorModule(fighterWeaponsInclude, levelDefInclude,
   const abiAssembled = await runWasmTool(
     "ca65",
     { [`${base}-abi.s`]: abiSource,
+      "/project/build/heavy-damage.inc": heavyDamageInclude,
       "/project/build/content-module.s": fs.readFileSync(path.join(rootDirectory,"src/hybrid/content-module.s")),
       "/project/build/life-capsule-layout.inc": fs.readFileSync(path.join(rootDirectory, "src/hybrid/life-capsule-layout.inc")),
       "/project/build/fighter-weapons.inc": fighterWeaponsInclude,
@@ -2010,6 +2012,8 @@ async function build() {
   const paletteCandidate = paletteCandidateId
     ? enemyRosterAsset.runtime.colourPolicy.candidates.find(({ id }) => id === paletteCandidateId)
     : null;
+  const heavyDamageInclude = Buffer.from(renderHeavyDamageInclude(compileHeavyDamage(enemyRosterDefinition)));
+  writeFile(path.join(buildDirectory,"heavy-damage.inc"),heavyDamageInclude);
   const enemyRosterInclude = Buffer.from(renderEnemyRosterCa65Include(enemyRosterAsset));
   writeFile(path.join(buildDirectory, "enemy-roster.inc"), enemyRosterInclude);
   const fighterWeaponsDefinitionPath = path.join(
@@ -2176,7 +2180,7 @@ async function build() {
         },
       }
     : await buildHybridDirectorModule(fighterWeaponsInclude, levelDefInclude,
-      levelDefHeader, levelDebugId !== null, bossLayoutInclude);
+      levelDefHeader, levelDebugId !== null, bossLayoutInclude, heavyDamageInclude);
   if (process.argv.includes("--director-only")) {
     writeFile(path.join(buildDirectory, "encounter-director.map"), directorModule.map);
     writeFile(path.join(buildDirectory, "encounter-director.lbl"), directorModule.labels);

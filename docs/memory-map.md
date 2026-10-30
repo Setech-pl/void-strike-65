@@ -109,7 +109,7 @@ Ranges are inclusive. Rows overlap where bytes change owner between phases; over
 | `$1180` | 1 B | segment | `CONTENT_HEADER` — checked content entry header | `level` | build/encounter-director.map |
 | `$1181-$13DE` | 606 B | segment | `CONTENT_CODE` — phase-exclusive content C policy | `level` | build/encounter-director.map |
 | `$11EC-$194F` | 1,892 B | segment | `DEATH_CODE` — boss breakup: C decisions, character copies and PMG/DLI publication | `boss` `death` | build/boss-death.map |
-| `$13DF-$13E3` | 5 B | segment | `CONTENT_DATA` — checked content state, reset on level load | `level` | build/encounter-director.map |
+| `$13DF-$13FB` | 29 B | segment | `CONTENT_DATA` — checked content state, reset on level load | `level` | build/encounter-director.map |
 | `$14FC-$154C` | 81 B | segment | `BOSS_DEATH_PREP` — post-defeat takeover in the former chain/hold tail; no fight work, no new resident bytes | `overlay` | build/boss.map |
 | `$1500-$17FF` | 768 B | transient | boss banner picture's stored half, unpacked (12 B a line), mirrored into the screen | `boss-entry` | manifest `boss.banner` |
 | `$154E-$1557` | 10 B | segment | `BOSS_C_RODATA` — boss slot C: C read-only data | `overlay` | build/boss.map |
@@ -391,7 +391,7 @@ ld65 does not report overlaps between separate memory areas or separate links. E
 | `$1180` | `level` | `CONTENT_HEADER` — checked content entry header |
 | `$1181-$13DE` | `level` | `CONTENT_CODE` — phase-exclusive content C policy |
 | `$11EC-$194F` | `boss` `death` | `DEATH_CODE` — boss breakup: C decisions, character copies and PMG/DLI publication |
-| `$13DF-$13E3` | `level` | `CONTENT_DATA` — checked content state, reset on level load |
+| `$13DF-$13FB` | `level` | `CONTENT_DATA` — checked content state, reset on level load |
 | `$14FC-$154C` | `overlay` | `BOSS_DEATH_PREP` — post-defeat takeover in the former chain/hold tail; no fight work, no new resident bytes |
 | `$1500-$17FF` | `boss-entry` | boss banner picture's stored half, unpacked (12 B a line), mirrored into the screen |
 | `$154E-$1557` | `overlay` | `BOSS_C_RODATA` — boss slot C: C read-only data |

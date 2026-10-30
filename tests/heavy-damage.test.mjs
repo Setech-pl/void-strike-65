@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+import fs from 'node:fs';
 import {compileHeavyDamage,damageSource} from '../scripts/heavy-damage.mjs';
 import {machine,L,run} from '../scripts/measure-population-harness.mjs';
 
@@ -224,4 +225,100 @@ test('H14 idle pending entry remains byte-exact LDY/BNE/RTS with zero added cycl
   const m=formation(),v=m.memory,p=L('heavy_breakup_retry'),pending=L('_heavy_breakup_pending');
   assert.deepEqual([...v.slice(p,p+6)],[0xac,pending&255,pending>>8,0xd0,1,0x60]);
   v[pending]=0;assert.equal(call(m,'heavy_breakup_retry').cycles,12);
+});
+
+test('H14 resident notice covers surviving departure hits on both profiles, slots and difficulties',()=>{
+  const generated=compileHeavyDamage();
+  for(const shape of [0,2])for(const difficulty of [0,1,2])for(const slot of [0,1]) {
+    const m=formation(shape,{difficulty}),v=m.memory;
+    v[L('_heavy_departure')]=1;v[L('_heavy_armoured')]=0;v[L('_heavy_descent_mask')]=0;
+    v[L('ENEMY_Y')]=v[L('ENEMY_Y')+1]=72;
+    for(const s of [0,1])call(m,'draw_enemy_member',s,255);
+    const peer=slot^1,peerPlane=v.slice(0x3d00+peer*256,0x3e00+peer*256);
+    const initial=v[L('ENEMY_HP')+slot];
+    for(const hp of (initial>2?[2,1]:[1])) {
+      const motion=v.slice(L('ENEMY_X'),L('ENEMY_X')+12);
+      v[L('ENEMY_TARGET_SLOT')]=slot;
+      v[L('ENEMY_PENDING_DAMAGE')+slot]=v[L('ENEMY_HP')+slot]-hp;
+      call(m,'_enemy_c_apply_pending_damage');
+      assert.equal(m.cpu.a,0,'nonlethal ABI result');assert.equal(m.cpu.x,0,'cc65 result high byte');
+      assert.equal(v[L('ENEMY_HP')+slot],hp);
+      assert.equal(v[L('_heavy_breakup_pending')]&3,slot+1,'HP boundary queues despite disabled motion watches');
+      const y=v[L('ENEMY_Y')+slot];schedule(m);call(m,'heavy_breakup_retry');
+      assert.deepEqual(v.slice(0x3d00+slot*256,0x3e00+slot*256),plane(generated.stages[shape===2?1:0][3-hp],y));
+      assert.deepEqual(v.slice(0x3d00+peer*256,0x3e00+peer*256),peerPlane,'peer plane untouched');
+      assert.equal(v[L('_heavy_departure')],1);assert.equal(v[L('_heavy_armoured')],0);
+      assert.deepEqual(v.slice(L('ENEMY_X'),L('ENEMY_X')+12),motion,'notice/publication leave every movement field unchanged');
+    }
+
+  }
+});
+
+test('H14 notification preserves death bits and ordinary motion-watch timing',()=>{
+  for(const departure of [0,1])for(const slot of [0,1]) {
+    const m=formation(),v=m.memory;v[L('_heavy_departure')]=departure;
+    v[L('_heavy_breakup_pending')]=0x80;v[L('ENEMY_TARGET_SLOT')]=slot;
+    v[L('ENEMY_PENDING_DAMAGE')+slot]=1;call(m,'_enemy_c_apply_pending_damage');
+    assert.equal(v[L('_heavy_breakup_pending')],0x80|(departure?slot+1:0));
+    assert.equal(m.cpu.a,0);assert.equal(m.cpu.x,0);
+  }
+});
+
+test('H14 queued departure damage never draws a member killed or retired before publication',()=>{
+  for(const shape of [0,2])for(const slot of [0,1])for(const terminal of ['killed','retired']) {
+    const m=formation(shape),v=m.memory;
+    v[L('_heavy_departure')]=1;v[L('_heavy_armoured')]=0;v[L('_heavy_descent_mask')]=0;
+    v[L('ENEMY_Y')]=v[L('ENEMY_Y')+1]=72;
+    for(const s of [0,1])call(m,'draw_enemy_member',s,255);
+    v[L('ENEMY_TARGET_SLOT')]=slot;
+    v[L('ENEMY_PENDING_DAMAGE')+slot]=v[L('ENEMY_HP')+slot]-1;call(m,'_enemy_c_apply_pending_damage');
+    assert.equal(v[L('_heavy_breakup_pending')]&3,slot+1);
+    call(m,'erase_enemy_member',slot);
+    v[L('ENEMY_TARGET_SLOT')]=slot;
+    if(terminal==='killed') {
+      v[L('ENEMY_PENDING_DAMAGE')+slot]=1;call(m,'_enemy_c_apply_pending_damage');
+      assert.equal(m.cpu.a,1);assert.equal(v[L('ENEMY_HP')+slot],0);
+    } else call(m,'_enemy_c_retire_member');
+    // Keep a live peer event so this proves per-member filtering during a stamp.
+    const peer=slot^1;v[L('ENEMY_TARGET_SLOT')]=peer;
+    v[L('ENEMY_PENDING_DAMAGE')+peer]=v[L('ENEMY_HP')+peer]-1;call(m,'_enemy_c_apply_pending_damage');
+    const pixels=v.slice(0x3d00+slot*256,0x3e00+slot*256),oldRead=m.cpu.hooks.read,oldWrite=m.cpu.hooks.write;
+    let draws=0,writes=0;
+    m.cpu.hooks.read=(a,cpu)=>{if(a===L('draw_enemy_member')&&cpu.x===slot)draws++;return oldRead?.(a,cpu);};
+    m.cpu.hooks.write=(a,value)=>{if((a>=0x3d00+slot*256&&a<0x3e00+slot*256)||a===0xd013+slot)writes++;return oldWrite?.(a,value);};
+    schedule(m);call(m,'heavy_breakup_retry');
+    assert.equal(draws,0,terminal+' member entered draw');assert.equal(writes,0,terminal+' PMG/HPOS write');
+    assert.deepEqual(v.slice(0x3d00+slot*256,0x3e00+slot*256),pixels);
+    assert.equal(v[L('M3H_DAMAGE_STAGE')+slot],0);assert.equal(v[L('_heavy_breakup_pending')]&3,0);
+    assert.equal(v[L('M3H_DAMAGE_STAGE')+peer],2,'the live peer must still publish');
+    assert.deepEqual(v.slice(0x3d00+peer*256,0x3e00+peer*256),plane(compileHeavyDamage().stages[shape===2?1:0][2],72));
+  }
+});
+
+test('H14 recovery stays within the owner window budget and preserves full segment sizes',()=>{
+  const manifest=JSON.parse(fs.readFileSync('build/manifest.json'));
+  assert.ok(manifest.residentCapacity.basicWindow.usedBytes-2068<=250,'session window growth exceeds 250 B');
+  assert.ok(L('_enemy_c_heavy_departure_notice')>=0xae00&&L('_enemy_c_heavy_departure_notice')<0xae00+manifest.residentCapacity.basicWindow.usedBytes);
+  assert.equal(manifest.residentCapacity.arena.usedBytes,830);
+  assert.equal(manifest.directorRuntime.bytes,324);assert.equal(manifest.l2.usedBytes,1290);
+  assert.equal(manifest.contentModule.usedBytes,1029,'H12/H13 and existing home policy stay in place');
+  assert.equal(manifest.directorCodeRuntimes.find(r=>r.name==='extension').bytes,875);
+  assert.equal(L('_enemy_c_apply_pending_damage'),0x8d67);
+  assert.equal(L('_enemy_c_recycle')-L('_enemy_c_apply_pending_damage'),105,'later extension addresses moved');
+});
+
+test('H14 departure notice followed by an invalid home/phase drops before any home read or draw',()=>{
+  for(const [valid,phase] of [[0,6],[1,7]]) {
+    const m=formation(),v=m.memory;v[L('_heavy_departure')]=1;
+    v[L('ENEMY_TARGET_SLOT')]=0;v[L('ENEMY_PENDING_DAMAGE')]=1;
+    v[0x86b3]=valid;v[L('game_state')]=phase;v.fill(0xa5,0x1180,0x1900);
+    const oldRead=m.cpu.hooks.read,oldWrite=m.cpu.hooks.write;
+    m.cpu.hooks.read=(a,cpu)=>{assert.ok(a<0x1180||a>=0x1900,'stale home read');return oldRead?.(a,cpu);};
+    let writes=0;m.cpu.hooks.write=(a,value)=>{if(a>=0x3d00&&a<0x3f00)writes++;return oldWrite?.(a,value);};
+    call(m,'_enemy_c_apply_pending_damage');assert.equal(v[L('_heavy_breakup_pending')],0,'invalid lifetime drops the notice');
+    assert.equal(m.cpu.a,0);assert.equal(m.cpu.x,0);
+    v[L('_heavy_breakup_pending')]=1; // a request queued before disarm is dropped too
+    schedule(m);call(m,'heavy_breakup_retry');assert.equal(writes,0);
+    assert.equal(v[L('_heavy_breakup_pending')],0);
+  }
 });

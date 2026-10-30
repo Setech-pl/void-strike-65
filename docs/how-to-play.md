@@ -147,6 +147,7 @@ Level 2 mixes them with the original assault silhouette.
 Armoured Raiders and Bombers gain lasting holes at 2 and 1 HP. An armoured
 Raider starting with 2 HP jumps straight to the last damage look after a hit.
 Holes stay visible through flight, stops and dodges; hit boxes stay the same.
+A surviving hit can add holes during departure, too.
 
 The Bomber's green hull darkens at 2 and 1 HP and stays readable at 1 HP. It brightens when braking to aim and dims when its sweep
 resumes. A surviving hit makes it dodge sideways for six frames; its height

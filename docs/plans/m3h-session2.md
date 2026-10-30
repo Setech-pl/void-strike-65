@@ -261,7 +261,7 @@ starts without the next owner instruction.
 Plan deliverable CPU/RAM/residency delta: **0 /0 B /0 B**. Baseline play ATRs
 are for reproduction only, not a session-2 gameplay candidate. Validation,
 current quick peaks and the exact full-suite debt comparison are in
-[the audit](../diagnostics/m3h-session2-plan/audit.md). **NEXT TASK: finish checkpoint6 verification, then pause for owner smoke of the whole Heavy package.**
+[the audit](../diagnostics/m3h-session2-plan/audit.md). **NEXT TASK: owner smoke of the whole Heavy package after checkpoint6; STOP.**
 
 ## Implementation refinement after checkpoint2 acceptance
 
@@ -285,7 +285,7 @@ linked load fixture remains 313,556 cycles (added 0 cycles/reads). No release
 evidence is inferred from these checks. Final native quick peaks remain
 30,465/31,153; individual dual-event/component estimates are report-only.
 
-### Checkpoint6 hard stop — uncovered departure case
+### Checkpoint6 hard stop — historical, resolved by approved recovery A
 
 H14 is **INCOMPLETE / BLOCKED_EXTENSION_BYTES**, not silently dropped. Normal
 hit-watch paths pass the linked/native checks, but the pre-existing departure
@@ -295,7 +295,36 @@ with24 B free: **3 B short**, hard STOP. The failed attempt is reverted; no
 final-smoke candidate or completed final full-suite/A/B/C claim is made.
 [Exact bytes, source, measurements and two bounded recovery options](../diagnostics/m3h-session2/checkpoint-6-blocked.md).
 
-DEFER pending resumed authorization after the hard stop: completion of this
-post-cutoff notification and checkpoint6 validation/owner smoke. No requested
-Heavy feature is being declared complete through this deferral. H12/H13 home
-and the nonrotate-only rule remain fixed.
+The owner resumed with recovery A: the departure notification is implemented
+in the resident window, and final validation is complete. H12/H13 home and the
+nonrotate-only rule remain fixed. The old deferral is resolved; owner smoke
+is still pending.
+
+### Owner-approved recovery A — final placement
+
+The owner approved only a small resident C notification helper, with a hard
+**250-B total session window-growth ceiling** and no growth in arena, Director
+net or other full segments. No alternate placement is authorized automatically.
+The helper is32 B in `HYBRID_C_WINDOW_LOOK`; final window **2,290 B**, session
+**+222 B**,28 B below the owner's ceiling. Both nonlethal returns become tail
+calls, padded to the original105-B HP entry: the extension remains875 B and
+all later addresses stay fixed. Arena830, Director324, L2 1,290 and checked
+home1,029 B are unchanged from the blocked integration.
+
+The resident C helper checks validity/phase BEFORE reading the checked-home
+departure flag. Only a surviving departure hit queues a notice. C stage/claim
+policy and H12/H13 publication stay in the checked home. Killed or retired
+requests are pruned; ordinary departure movement is unchanged. Linked proofs
+cover both shapes, both slots and E/M/H, including skipped thresholds.
+
+Packing, not decoded code growth, increases record5 from746 to750 B and6 to7
+sectors. Record8 stays15 sectors (1,878 B packed). Total transport213 sectors;
+checked content remains15 sectors with0 added load cycles/reads. There is no
+H12/H13 window fallback. The only remaining pause is final owner smoke.
+
+Checkpoint6 final result: normal build and required quick routes PASS; short
+post-departure Heavy fixture PASS. Audited full-suite comparison **A137/B0/C0**
+after the approved packing-pin correction, with raw/focused evidence retained.
+No requested H10–H14/H16/look feature remains deferred. The earlier departure
+blocker and interrupted run are historical. [Final audit and play ATRs](../diagnostics/m3h-session2/checkpoint-6-final.md).
+**STOP for final owner smoke.**

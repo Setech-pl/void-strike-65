@@ -154,6 +154,7 @@ wrogiego kadłuba. Na poziomie 2 występują obok szturmowych Raiderów o dawnej
 Opancerzone Raidery i Bombery zyskują trwałe dziury przy 2 i 1 HP. Opancerzony
 Raider zaczynający z 2 HP po trafieniu przechodzi od razu do ostatniego wyglądu
 uszkodzeń. Dziury zostają podczas lotu, postoju i uniku; pole trafień się nie zmienia.
+Przeżyte trafienie może dodać dziury także podczas odlotu.
 
 Kadłub Bombera ciemnieje przy 2 i 1 HP, ale przy 1 HP pozostaje czytelny. Rozjaśnia się, gdy Bomber hamuje, by celować, i ciemnieje po powrocie
 do lotu. Po przeżytym trafieniu Bomber przez sześć klatek robi unik w bok,

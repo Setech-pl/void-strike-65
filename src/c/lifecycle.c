@@ -1096,6 +1096,21 @@ uint8_t enemy_c_retire_member(void)
     return ENEMY_LIVE_COUNT;
 }
 
+/* Owner-approved recovery A: the cutoff bypasses motion HP watches. This
+ * resident C decision queues only a visual notice on surviving departure hits.
+ * Tail calls replace existing nonlethal returns; no idle/row/frame polling. */
+extern uint8_t heavy_departure;
+#pragma code-name (push, "HYBRID_C_WINDOW_LOOK")
+uint8_t enemy_c_heavy_departure_notice(void)
+{
+    /* departure is checked-home data too: never inspect it after disarm. */
+    if (U8_AT(0x86B3u) != 0u && U8_AT(0x009Au) == 6u && heavy_departure != 0u) {
+        heavy_breakup_pending |= (uint8_t)(ENEMY_TARGET_SLOT + 1u);
+    }
+    return 0u;
+}
+#pragma code-name (pop)
+
 uint8_t enemy_c_apply_pending_damage(void)
 {
     if (ENEMY_TARGET_SLOT == 0u) {
@@ -1104,7 +1119,7 @@ uint8_t enemy_c_apply_pending_damage(void)
         }
         if (ENEMY_HP_0 > ENEMY_PENDING_DAMAGE_0) {
             ENEMY_HP_0 = (uint8_t)(ENEMY_HP_0 - ENEMY_PENDING_DAMAGE_0);
-            return 0u;
+            return enemy_c_heavy_departure_notice();
         }
         ENEMY_MEMBER_STATE_0 = ENEMY_INACTIVE;
         ENEMY_HP_0 = 0u;
@@ -1114,7 +1129,7 @@ uint8_t enemy_c_apply_pending_damage(void)
         }
         if (ENEMY_HP_1 > ENEMY_PENDING_DAMAGE_1) {
             ENEMY_HP_1 = (uint8_t)(ENEMY_HP_1 - ENEMY_PENDING_DAMAGE_1);
-            return 0u;
+            return enemy_c_heavy_departure_notice();
         }
         ENEMY_MEMBER_STATE_1 = ENEMY_INACTIVE;
         ENEMY_HP_1 = 0u;
@@ -1774,7 +1789,6 @@ uint8_t enemy_c_heavy_breakup_claim(void)
 }
 
 #pragma code-name (push, "CONTENT_CODE")
-extern uint8_t heavy_departure;
 uint8_t cc2_heavy_tick(void)
 {
     if (heavy_departure != 0u) { ++heavy_member_y; return 0u; }

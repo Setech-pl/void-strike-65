@@ -420,7 +420,7 @@ test("T13: only the Director's sector entry writes the star operand", () => {
   assert.ok(enter && /asm_publish_star_pixel\(/.test(enter[1]), "the call is in enter_sector");
 });
 
-test("T13: the byte rules - light_pair_for_record size-neutral, record 5 not grown, initial block under the STOP line", () => {
+test("T13: the byte rules - light_pair_for_record size-neutral, decoded record 5 unchanged, initial block under the STOP line", () => {
   const listing = fs.readFileSync(path.join(root, "build/encounter-director-lifecycle.lst"), "utf8");
   const span = (name) => {
     const open = new RegExp(`^([0-9A-F]{6})r 1\\s+\\.proc\\s+_${name}: near`, "m").exec(listing);
@@ -431,8 +431,11 @@ test("T13: the byte rules - light_pair_for_record size-neutral, record 5 not gro
   assert.equal(span("light_pair_for_record"), 124);
   const manifest = JSON.parse(fs.readFileSync(path.join(root, "build/manifest.json"), "utf8"));
   const extension = manifest.directorCodeRuntimes.find((runtime) => runtime.name === "extension");
-  assert.ok(extension.packedBytes <= 747, `record 5 is ${extension.packedBytes} B packed`);
-  assert.equal(extension.externalChunk.sectors, 6);
+  // Owner-approved M3-H recovery A: resident tail calls retain the 875-B
+  // decoded image; changed operands/padding add 4 packed B and one sector.
+  assert.equal(extension.bytes, 875, "resident recovery must not grow the decoded extension");
+  assert.ok(extension.packedBytes <= 750, `record 5 is ${extension.packedBytes} B packed`);
+  assert.equal(extension.externalChunk.sectors, 7);
   assert.ok(manifest.transportCapacity.initialBootContentBytes <= 13652);
   // L1 moves menu sources out of the initial block into a checked disk run.
   assert.equal(manifest.transportCapacity.initialBootSectors, 101);

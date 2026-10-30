@@ -1,6 +1,6 @@
 # VOID STRIKE 65 — CURRENT STATUS
 
-Last update: 2026-10-30 (M3-H checkpoints 3–5 committed; checkpoint6 blocked by 3-B extension overflow)
+Last update: 2026-10-30 (M3-H session 2 checkpoint6 complete; final owner smoke pending)
 
 What is true now. Rules: [reguly-projektu.txt](reguly-projektu.txt). Roadmap:
 [plan-realizacji.md](plan-realizacji.md). Source-of-truth order:
@@ -20,44 +20,46 @@ the values below.
 
 ## Checkpoint
 
-### M3-H session 2 — 1–2 OWNER-ACCEPTED; 3–5 candidate; 6 BLOCKED_EXTENSION_BYTES
+### M3-H session 2 — checkpoint6 OWNER-SMOKE CANDIDATE
 
-Owner smoke after checkpoint2 (`f33fcdc`) **PASS**, 2026-10-30. Checkpoints3
-`0e4160d` (readable Bomber ramp), 4 `d9dce3f` (generated variant-C tables),
-and 5 `2064aa8` (guarded controlled publisher) are committed candidates.
-Checkpoint6 has live nonrotate-only damage integration, but is **incomplete**;
-no final smoke acceptance or smoke-ready delivery is claimed.
+Owner passed checkpoint2 (`f33fcdc`) on 2026-10-30. Checkpoints3 `0e4160d`,
+4 `d9dce3f`, 5 `2064aa8` and completed checkpoint6 await final owner smoke.
+The owner-approved resident C notification resolves the departure gap without
+moving H12/H13 from checked content home. [Play ATRs, hashes, smoke checklist
+and complete audit](diagnostics/m3h-session2/checkpoint-6-final.md).
 
-A confirmed uncovered case: the existing departure cutoff bypasses the movement
-HP watches. A surviving hit AFTER that cutoff can leave a Heavy without its
-new holes. A departure-only C notification was attempted at the HP boundary;
-it grew the shared extension by27 B with24 free, causing **3-B overflow**.
-AGENTS byte gate requires STOP. The failed trial is reverted to the buildable
-integration; its source and exact gate are retained. No H12/H13 window fallback.
-[Blocker, bounded recovery options and verification](diagnostics/m3h-session2/checkpoint-6-blocked.md).
+Final window **2,290 B (+222 for session)**,28 B below the250-B ceiling.
+The recovery adds32 B only in the window; arena830, Director324, L2 1,290,
+content home1,029/1,920 and decoded extension875 B remain unchanged from the
+blocked integration. Session RAM use+656 B within existing reservations;
+metadata+8 B and existing32-B H16 reused. Record5 is750 B packed /7 sectors
+(+4 B /+1 sector for recovery),record8 stays15 sectors. Total213 sectors
+(+2 for session);fixed content15-sector load adds0 CPU cycles/reads.
 
-Restored integration: window **2,258 B (+190 session)**, arena830/832,
-Director324, L2 1,290; checked home **1,029/1,920 B**. H12 ASM187 +H13 tables24
-+new H14 C206 use that home. Metadata+8 B; pickup+6 B (1 free); existing32-B
-H16 buffer reused. Added used RAM624 B, no reservation growth. Record8 is15
-sectors (+1); checked content15 sectors with0 added linked load cycles/reads.
+Surviving departure hits notify C's existing damage-stage/claim policy even
+when motion watches are bypassed. The helper checks validity/phase before
+reading departure data. Dead/retired requests never draw, including when a
+live peer publishes. No movement, weapon, score or collision-bound change.
+Damage publication stays nonrotate-only, coalesced, bounded to≤3 frames after
+watch;admission restores intact art. Bomber base lumas4/6/8/8/8,hue C,candidate.
 
-Restored normal build PASS. Focused ordinary profiles60 PASS/0 FAIL (one
-review-only skip); actual level2 and Heavy variants17/17 each. Quick native
-Spread30,465 /capital-96031,153, hard margin1,415, no misses/raster anomalies;
-boss entry325. Natural Heavy2400-frame and seeded dual900-frame native captures
-peak30,841 with zero PMG mismatches. These bind the restored guest bytes; they
-are not a proof of the uncovered post-cutoff case. Armour has linked fixture
-coverage; no native armoured admission is claimed.
+Normal gated build PASS. Focused65 PASS/0 FAIL,one review-only skip;actual level2
+and Heavy variants22 PASS each plus final stronger departure cases2/2 each.
+One full suite raw1507 PASS/138 FAIL/1 SKIP of1646;after one accepted packing-pin
+correction passes focused: audited1508/137/1, **A137/B0/C0** against main71a38a8
+by file/name/first assertion/message. No second full run is claimed. Existing
+unit/release debt remains recorded;canonical release reconciliation is nonzero.
 
-The continuation's full suite was interrupted at the concrete uncovered case,
-so **no completed final npm-test/A/B/C result** is claimed. Checkpoint2's prior
-A137/B0/C0 remains historical. Main is71a38a8; this branch stays on owner-cut
-7fe9040 with no merge/rebase. Release evidence/debt remains pending.
+Final native Spread30,465 /capital-96031,153;hard margin1,415,target margin347;
+zero misses,extra VBI,DLI/shift/stale-L2 events;boss entry325. A1000-frame Heavy
+fixture peaks30,841,zero PMG mismatches;it seeds only departure flags,then real
+collision hits publish both damage stages. Linked armour/Bomber E/M/H cover
+both slots,death/retirement,clipping,holds,dodge and invalid-home read traps.
+No native armoured admission or release readiness is claimed.
 
-**NEXT TASK:** choose a bounded home for the post-cutoff notification, finish
-checkpoint6 and its final validation, then pause for owner smoke. Do not start
-a new roadmap item. The diagnostic ATRs are explicitly incomplete, not candidates.
+Main remains71a38a8;branch stays on owner-cut7fe9040 with no merge/rebase/push.
+**NEXT TASK: owner smoke after checkpoint6; STOP.** Final acceptance belongs to
+owner;no new roadmap item or release work starts automatically.
 
 ### Loop-phase resync — partial OWNER-SMOKE CANDIDATE
 

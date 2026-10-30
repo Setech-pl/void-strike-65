@@ -199,10 +199,14 @@ Render flags at `$54C3` latch appearance in bit5 independently of the runway
 cutoff's movement flag; bit0 records lazy damage-copy validity.
 The native plane observer derives expected rows from this appearance and the
 payload plus generated clear masks, not from the cached draw operand or RAM copy.
-Checkpoint2 is owner-accepted; checkpoints3–5 are candidates. Checkpoint6 is
-blocked: the departure cutoff bypasses the HP watches; its missing visual
-notification needs a new home after a3-B extension overflow. See
-[the blocker](diagnostics/m3h-session2/checkpoint-6-blocked.md). H12 ASM, H13
+Checkpoint2 is owner-accepted; checkpoints3–6 await final owner smoke.
+The owner approved recovery A after the departure-notification byte blocker:
+a resident C helper in `HYBRID_C_WINDOW_LOOK`, reached by tail calls from the
+two nonlethal HP branches. Its validity/phase checks precede the read of
+`heavy_departure`, which is checked-home data. A 105-byte pin preserves the
+existing damage entry and all later extension/ASM addresses (two bytes pad).
+No frame/row poll or movement policy changes; killed and retired members are
+pruned by the existing C stage decision and ASM executor before drawing. H12 ASM, H13
 24-byte tables and H14 C stage/claim policy live in checked home `$1180–$18FF`.
 The resident entry shares `cc2_valid` (valid `$86B3` and gameplay `$9A=6`)
 before entering any home instruction/data. Invalid requests clear safely.

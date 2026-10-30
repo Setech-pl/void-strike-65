@@ -1517,6 +1517,16 @@ async function buildHybridDirectorModule(fighterWeaponsInclude, levelDefInclude,
     lifecycleText=lifecycleText.slice(0,end)+".res 33-(*-heavy_claim_pin), $00\n"+lifecycleText.slice(end);
     lifecycleText=lifecycleText.slice(0,head)+"heavy_claim_pin:\n"+lifecycleText.slice(head);
   }
+  // Recovery A: retain the 105-byte damage entry and every following hot
+  // extension/ASM address when its nonlethal returns become resident tail calls.
+  {
+    const start=lifecycleText.indexOf(".proc\t_enemy_c_apply_pending_damage:");
+    if(start<0)throw new Error("Heavy damage fixed entry missing");
+    const end=lifecycleText.indexOf(".endproc",start);
+    const head=lifecycleText.indexOf("\n",start)+1;
+    lifecycleText=lifecycleText.slice(0,end)+".res 105-(*-heavy_damage_pin), $00\n"+lifecycleText.slice(end);
+    lifecycleText=lifecycleText.slice(0,head)+"heavy_damage_pin:\n"+lifecycleText.slice(head);
+  }
   lifecycleGeneratedAssembly=Buffer.from(lifecycleText);
   if (process.env.VS65_DUMP_GENERATED === "1") {
     writeFile(path.join(buildDirectory, "director-generated.s"), generatedAssembly);

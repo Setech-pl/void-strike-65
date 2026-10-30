@@ -1,4 +1,8 @@
-# M3-H checkpoint6 — BLOCKED_EXTENSION_BYTES
+# M3-H checkpoint6 — historical byte blocker
+
+**Resolved by owner-approved recovery A.** This report preserves the rejected
+trial and the original stop. Current delivery and final measurements are in
+[checkpoint-6-final.md](checkpoint-6-final.md).
 
 **Not an owner-smoke candidate.** Owner passed checkpoint2 at `f33fcdc`.
 Checkpoints3 `0e4160d`, 4 `d9dce3f`, 5 `2064aa8` are committed candidates.

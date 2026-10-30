@@ -1,0 +1,1169 @@
+{
+  "status": "BLOCKED_EXTENSION_BYTES",
+  "ownerAcceptedThrough": {
+    "checkpoint": 2,
+    "commit": "f33fcdc",
+    "date": "2026-10-30"
+  },
+  "committedCandidates": {
+    "3": "0e4160d",
+    "4": "d9dce3f",
+    "5": "2064aa8"
+  },
+  "resources": {
+    "window": {
+      "step": "owner decision X",
+      "owner": "HYBRID_C_WINDOW",
+      "address": 44544,
+      "guardAddress": 48154,
+      "endExclusive": 48128,
+      "capacityBytes": 3584,
+      "guardBytes": 6,
+      "directorHalfBytes": 2258,
+      "lightKernelBytes": 0,
+      "usedBytes": 2258,
+      "freeBytes": 1326,
+      "beforeLanceFreeBytes": 558,
+      "availability": "unconditional: disable_basic_rom forces PORTB bit 1 and writes BASICF at every stage-2 entry",
+      "boundedBy": {
+        "below": "16-sector level buffer $A600-$ADFF",
+        "above": "sector reader BSS $BC00-$BC19, then the guard and the OS screen $BC20-$BFFF (RAMTOP $C0 when BASIC is disabled at coldstart)"
+      },
+      "guard": "HYBRID_C_WINDOW_GUARD $BC1A-$BC1F, reserved with no segment, plus the ld65 assert \"HYBRID_C_WINDOW reaches the sector reader BSS at $BC00\"",
+      "contents": "Director: HYBRID_ASM_WINDOW + HYBRID_C_WINDOW + HYBRID_C_WINDOW_RODATA + HYBRID_C_WINDOW_FLOW + HYBRID_C_WINDOW_HEAVY + HYBRID_C_WINDOW_HEAVY_RODATA + HYBRID_ASM_HEAVY_WINDOW + HYBRID_C_WINDOW_LOOK",
+      "transport": {
+        "record": "own DFMC record, LZ, stagingId extension",
+        "finalDestination": 44544,
+        "startSector": 174,
+        "sectors": 15,
+        "rawBytes": 2258,
+        "packedBytes": 1851,
+        "paddingBytes": 48,
+        "landing": "direct: stage 2 decodes it to AE00 after disable_basic_rom"
+      }
+    },
+    "arena": {
+      "step": "4.5M-M3",
+      "owner": "HYBRID_C_ARENA",
+      "address": 31696,
+      "endExclusive": 32528,
+      "capacityBytes": 832,
+      "usedBytes": 830,
+      "freeBytes": 2,
+      "asmBytes": 162,
+      "codeBytes": 644,
+      "rodataBytes": 24,
+      "segments": [
+        "HYBRID_ASM_ARENA",
+        "HYBRID_C_ARENA",
+        "HYBRID_C_ARENA_RODATA"
+      ],
+      "anchor": "hybrid_arena_anchor (1-B rts, HYBRID_ASM_ARENA): keeps the record non-empty",
+      "replaces": "HYBRID_C_HEAVY window $7E12-$7F04 (243 B) and its 44-B transport tail in the merged low-C/GLUE record",
+      "boundedBy": {
+        "below": "starfield stream A staging / pause-screen backup end $7BD0",
+        "above": "A2 display lists $7F10"
+      },
+      "transport": {
+        "record": "own DFMC record, LZ, stagingId extension",
+        "finalDestination": 31696,
+        "startSector": 168,
+        "sectors": 6,
+        "rawBytes": 830,
+        "packedBytes": 702,
+        "paddingBytes": 45,
+        "landing": "direct: stage 2 decodes it to $7BD0; no hold, no publish copy"
+      },
+      "ownersInArena": [
+        {
+          "owner": "record 7bd0",
+          "start": 31696,
+          "endExclusive": 32526
+        }
+      ],
+      "worstCaseFullArenaPackedBytes": 840,
+      "worstCaseFullArenaSectors": 7
+    },
+    "content": {
+      "address": 4480,
+      "endExclusive": 6400,
+      "capacityBytes": 1920,
+      "usedBytes": 1029,
+      "runIndex": 12,
+      "validAddress": 34483,
+      "phase": "checked fighter/capital content; disarmed before boss"
+    },
+    "l2": 1290,
+    "pickupFree": 1,
+    "totalUsedRAMDelta": 624,
+    "newReservedRAM": 0,
+    "existingBodyBufferBytes": 32,
+    "records": [
+      {
+        "startSector": 102,
+        "sectorCount": 44,
+        "packedLength": 5592,
+        "rawLength": 6653,
+        "finalDestination": 24080,
+        "crc16": 3771,
+        "type": 1,
+        "stagingId": 1,
+        "destination": 33024
+      },
+      {
+        "startSector": 146,
+        "sectorCount": 10,
+        "packedLength": 1185,
+        "rawLength": 1185,
+        "finalDestination": 35968,
+        "crc16": 40497,
+        "type": 0,
+        "stagingId": 2,
+        "destination": 33024
+      },
+      {
+        "startSector": 156,
+        "sectorCount": 1,
+        "packedLength": 105,
+        "rawLength": 106,
+        "finalDestination": 32792,
+        "crc16": 28545,
+        "type": 1,
+        "stagingId": 2,
+        "destination": 33024
+      },
+      {
+        "startSector": 157,
+        "sectorCount": 4,
+        "packedLength": 441,
+        "rawLength": 498,
+        "finalDestination": 39744,
+        "crc16": 60057,
+        "type": 1,
+        "stagingId": 2,
+        "destination": 33024
+      },
+      {
+        "startSector": 161,
+        "sectorCount": 6,
+        "packedLength": 746,
+        "rawLength": 746,
+        "finalDestination": 30736,
+        "crc16": 50493,
+        "type": 0,
+        "stagingId": 2,
+        "destination": 33024
+      },
+      {
+        "startSector": 167,
+        "sectorCount": 1,
+        "packedLength": 23,
+        "rawLength": 21,
+        "finalDestination": 40286,
+        "crc16": 59333,
+        "type": 1,
+        "stagingId": 2,
+        "destination": 33024
+      },
+      {
+        "startSector": 168,
+        "sectorCount": 6,
+        "packedLength": 702,
+        "rawLength": 830,
+        "finalDestination": 31696,
+        "crc16": 36921,
+        "type": 1,
+        "stagingId": 2,
+        "destination": 33024
+      },
+      {
+        "startSector": 174,
+        "sectorCount": 15,
+        "packedLength": 1851,
+        "rawLength": 2258,
+        "finalDestination": 44544,
+        "crc16": 59826,
+        "type": 1,
+        "stagingId": 2,
+        "destination": 33024
+      },
+      {
+        "startSector": 189,
+        "sectorCount": 9,
+        "packedLength": 1032,
+        "rawLength": 1196,
+        "finalDestination": 13891,
+        "crc16": 27444,
+        "type": 1,
+        "stagingId": 2,
+        "destination": 33024
+      },
+      {
+        "startSector": 198,
+        "sectorCount": 12,
+        "packedLength": 1512,
+        "rawLength": 1512,
+        "finalDestination": 40960,
+        "crc16": 64041,
+        "type": 0,
+        "stagingId": 2,
+        "destination": 33024
+      },
+      {
+        "startSector": 210,
+        "sectorCount": 3,
+        "packedLength": 289,
+        "rawLength": 324,
+        "finalDestination": 40309,
+        "crc16": 48172,
+        "type": 1,
+        "stagingId": 2,
+        "destination": 33024
+      }
+    ],
+    "transportSectors": 212,
+    "contentLoad": {
+      "measurement": "MEASURED linked NMOS checked content-load fixture; synthetic drive, not physical host frames",
+      "end": "armed",
+      "cpuCycles": 313556,
+      "driveFixtureFrames": 90,
+      "readSectors": [
+        265,
+        266,
+        267,
+        268,
+        269,
+        270,
+        271,
+        272,
+        273,
+        274,
+        275,
+        276,
+        277,
+        278,
+        279
+      ],
+      "contentUsed": 1029,
+      "contentRun": {
+        "index": 12,
+        "name": "content-module",
+        "startSector": 265,
+        "sectors": 15,
+        "destination": 4480,
+        "bytes": 1920,
+        "sha256": "3ef6595604128aeb649f8ff43eb8ebd6a3868a103e576bc41684c8ac17aa7646",
+        "file": "content-module.bin"
+      }
+    },
+    "startupHostFrames": {
+      "checkpoint2": 863,
+      "restored": 871,
+      "delta": 8,
+      "reference": "checkpoint-2.md; same registered routes, not a physical drive measurement"
+    }
+  },
+  "guardCosts": {
+    "measurement": "MEASURED linked NMOS; entry to first home instruction/return; invalid homes poisoned and read-trapped",
+    "cases": [
+      {
+        "entry": "heavy_damage_publish",
+        "valid": 0,
+        "phase": 6,
+        "to": "return",
+        "cycles": 54,
+        "homeReads": 0,
+        "pending": 0,
+        "requests": [
+          0,
+          0
+        ]
+      },
+      {
+        "entry": "heavy_damage_publish",
+        "valid": 1,
+        "phase": 7,
+        "to": "return",
+        "cycles": 61,
+        "homeReads": 0,
+        "pending": 0,
+        "requests": [
+          0,
+          0
+        ]
+      },
+      {
+        "entry": "heavy_damage_publish",
+        "valid": 1,
+        "phase": 6,
+        "to": "first-home-instruction",
+        "cycles": 32,
+        "homeReads": 0,
+        "pending": 3,
+        "requests": [
+          1,
+          2
+        ]
+      },
+      {
+        "entry": "heavy_breakup_retry",
+        "valid": 0,
+        "phase": 6,
+        "to": "return",
+        "cycles": 69,
+        "homeReads": 0,
+        "pending": 0,
+        "requests": [
+          0,
+          0
+        ]
+      },
+      {
+        "entry": "heavy_breakup_retry",
+        "valid": 1,
+        "phase": 7,
+        "to": "return",
+        "cycles": 76,
+        "homeReads": 0,
+        "pending": 0,
+        "requests": [
+          0,
+          0
+        ]
+      },
+      {
+        "entry": "heavy_breakup_retry",
+        "valid": 1,
+        "phase": 6,
+        "to": "first-home-instruction",
+        "cycles": 50,
+        "homeReads": 0,
+        "pending": 3,
+        "requests": [
+          1,
+          2
+        ]
+      }
+    ]
+  },
+  "linkedSamples": [
+    {
+      "component": "breakup-retry",
+      "archetype": 0,
+      "cycles": 521,
+      "target": 520
+    },
+    {
+      "component": "breakup-retry",
+      "archetype": 2,
+      "cycles": 530,
+      "target": 520
+    },
+    {
+      "component": "rotate-kill",
+      "archetype": 0,
+      "cycles": 827,
+      "target": 850
+    },
+    {
+      "component": "rotate-kill",
+      "archetype": 2,
+      "cycles": 859,
+      "target": 850
+    },
+    {
+      "measurement": "NMOS instruction cycles, including guard/copy/masks/draw; no ANTIC DMA",
+      "samples": [
+        {
+          "shape": 0,
+          "y": 0,
+          "stages": [
+            1,
+            0
+          ],
+          "first": 1073,
+          "later": 1170
+        },
+        {
+          "shape": 0,
+          "y": 0,
+          "stages": [
+            0,
+            2
+          ],
+          "first": 1073,
+          "later": 651
+        },
+        {
+          "shape": 0,
+          "y": 0,
+          "stages": [
+            1,
+            2
+          ],
+          "first": 1592,
+          "later": 651
+        },
+        {
+          "shape": 0,
+          "y": 0,
+          "stages": [
+            2,
+            2
+          ],
+          "first": 1592,
+          "later": 132
+        },
+        {
+          "shape": 0,
+          "y": 15,
+          "stages": [
+            1,
+            0
+          ],
+          "first": 1229,
+          "later": 1482
+        },
+        {
+          "shape": 0,
+          "y": 15,
+          "stages": [
+            0,
+            2
+          ],
+          "first": 1229,
+          "later": 807
+        },
+        {
+          "shape": 0,
+          "y": 15,
+          "stages": [
+            1,
+            2
+          ],
+          "first": 1904,
+          "later": 807
+        },
+        {
+          "shape": 0,
+          "y": 15,
+          "stages": [
+            2,
+            2
+          ],
+          "first": 1904,
+          "later": 132
+        },
+        {
+          "shape": 0,
+          "y": 16,
+          "stages": [
+            1,
+            0
+          ],
+          "first": 1241,
+          "later": 1506
+        },
+        {
+          "shape": 0,
+          "y": 16,
+          "stages": [
+            0,
+            2
+          ],
+          "first": 1241,
+          "later": 819
+        },
+        {
+          "shape": 0,
+          "y": 16,
+          "stages": [
+            1,
+            2
+          ],
+          "first": 1928,
+          "later": 819
+        },
+        {
+          "shape": 0,
+          "y": 16,
+          "stages": [
+            2,
+            2
+          ],
+          "first": 1928,
+          "later": 132
+        },
+        {
+          "shape": 0,
+          "y": 40,
+          "stages": [
+            1,
+            0
+          ],
+          "first": 1241,
+          "later": 1506
+        },
+        {
+          "shape": 0,
+          "y": 40,
+          "stages": [
+            0,
+            2
+          ],
+          "first": 1241,
+          "later": 819
+        },
+        {
+          "shape": 0,
+          "y": 40,
+          "stages": [
+            1,
+            2
+          ],
+          "first": 1928,
+          "later": 819
+        },
+        {
+          "shape": 0,
+          "y": 40,
+          "stages": [
+            2,
+            2
+          ],
+          "first": 1928,
+          "later": 132
+        },
+        {
+          "shape": 0,
+          "y": 72,
+          "stages": [
+            1,
+            0
+          ],
+          "first": 1241,
+          "later": 1506
+        },
+        {
+          "shape": 0,
+          "y": 72,
+          "stages": [
+            0,
+            2
+          ],
+          "first": 1241,
+          "later": 819
+        },
+        {
+          "shape": 0,
+          "y": 72,
+          "stages": [
+            1,
+            2
+          ],
+          "first": 1928,
+          "later": 819
+        },
+        {
+          "shape": 0,
+          "y": 72,
+          "stages": [
+            2,
+            2
+          ],
+          "first": 1928,
+          "later": 132
+        },
+        {
+          "shape": 0,
+          "y": 225,
+          "stages": [
+            1,
+            0
+          ],
+          "first": 1241,
+          "later": 1506
+        },
+        {
+          "shape": 0,
+          "y": 225,
+          "stages": [
+            0,
+            2
+          ],
+          "first": 1241,
+          "later": 819
+        },
+        {
+          "shape": 0,
+          "y": 225,
+          "stages": [
+            1,
+            2
+          ],
+          "first": 1928,
+          "later": 819
+        },
+        {
+          "shape": 0,
+          "y": 225,
+          "stages": [
+            2,
+            2
+          ],
+          "first": 1928,
+          "later": 132
+        },
+        {
+          "shape": 0,
+          "y": 239,
+          "stages": [
+            1,
+            0
+          ],
+          "first": 878,
+          "later": 780
+        },
+        {
+          "shape": 0,
+          "y": 239,
+          "stages": [
+            0,
+            2
+          ],
+          "first": 878,
+          "later": 456
+        },
+        {
+          "shape": 0,
+          "y": 239,
+          "stages": [
+            1,
+            2
+          ],
+          "first": 1202,
+          "later": 456
+        },
+        {
+          "shape": 0,
+          "y": 239,
+          "stages": [
+            2,
+            2
+          ],
+          "first": 1202,
+          "later": 132
+        },
+        {
+          "shape": 2,
+          "y": 0,
+          "stages": [
+            1,
+            0
+          ],
+          "first": 1110,
+          "later": 1244
+        },
+        {
+          "shape": 2,
+          "y": 0,
+          "stages": [
+            0,
+            2
+          ],
+          "first": 1110,
+          "later": 688
+        },
+        {
+          "shape": 2,
+          "y": 0,
+          "stages": [
+            1,
+            2
+          ],
+          "first": 1666,
+          "later": 688
+        },
+        {
+          "shape": 2,
+          "y": 0,
+          "stages": [
+            2,
+            2
+          ],
+          "first": 1666,
+          "later": 132
+        },
+        {
+          "shape": 2,
+          "y": 15,
+          "stages": [
+            1,
+            0
+          ],
+          "first": 1290,
+          "later": 1604
+        },
+        {
+          "shape": 2,
+          "y": 15,
+          "stages": [
+            0,
+            2
+          ],
+          "first": 1290,
+          "later": 868
+        },
+        {
+          "shape": 2,
+          "y": 15,
+          "stages": [
+            1,
+            2
+          ],
+          "first": 2026,
+          "later": 868
+        },
+        {
+          "shape": 2,
+          "y": 15,
+          "stages": [
+            2,
+            2
+          ],
+          "first": 2026,
+          "later": 132
+        },
+        {
+          "shape": 2,
+          "y": 16,
+          "stages": [
+            1,
+            0
+          ],
+          "first": 1302,
+          "later": 1628
+        },
+        {
+          "shape": 2,
+          "y": 16,
+          "stages": [
+            0,
+            2
+          ],
+          "first": 1302,
+          "later": 880
+        },
+        {
+          "shape": 2,
+          "y": 16,
+          "stages": [
+            1,
+            2
+          ],
+          "first": 2050,
+          "later": 880
+        },
+        {
+          "shape": 2,
+          "y": 16,
+          "stages": [
+            2,
+            2
+          ],
+          "first": 2050,
+          "later": 132
+        },
+        {
+          "shape": 2,
+          "y": 40,
+          "stages": [
+            1,
+            0
+          ],
+          "first": 1302,
+          "later": 1628
+        },
+        {
+          "shape": 2,
+          "y": 40,
+          "stages": [
+            0,
+            2
+          ],
+          "first": 1302,
+          "later": 880
+        },
+        {
+          "shape": 2,
+          "y": 40,
+          "stages": [
+            1,
+            2
+          ],
+          "first": 2050,
+          "later": 880
+        },
+        {
+          "shape": 2,
+          "y": 40,
+          "stages": [
+            2,
+            2
+          ],
+          "first": 2050,
+          "later": 132
+        },
+        {
+          "shape": 2,
+          "y": 72,
+          "stages": [
+            1,
+            0
+          ],
+          "first": 1302,
+          "later": 1628
+        },
+        {
+          "shape": 2,
+          "y": 72,
+          "stages": [
+            0,
+            2
+          ],
+          "first": 1302,
+          "later": 880
+        },
+        {
+          "shape": 2,
+          "y": 72,
+          "stages": [
+            1,
+            2
+          ],
+          "first": 2050,
+          "later": 880
+        },
+        {
+          "shape": 2,
+          "y": 72,
+          "stages": [
+            2,
+            2
+          ],
+          "first": 2050,
+          "later": 132
+        },
+        {
+          "shape": 2,
+          "y": 225,
+          "stages": [
+            1,
+            0
+          ],
+          "first": 1287,
+          "later": 1598
+        },
+        {
+          "shape": 2,
+          "y": 225,
+          "stages": [
+            0,
+            2
+          ],
+          "first": 1287,
+          "later": 865
+        },
+        {
+          "shape": 2,
+          "y": 225,
+          "stages": [
+            1,
+            2
+          ],
+          "first": 2020,
+          "later": 865
+        },
+        {
+          "shape": 2,
+          "y": 225,
+          "stages": [
+            2,
+            2
+          ],
+          "first": 2020,
+          "later": 132
+        },
+        {
+          "shape": 2,
+          "y": 239,
+          "stages": [
+            1,
+            0
+          ],
+          "first": 881,
+          "later": 786
+        },
+        {
+          "shape": 2,
+          "y": 239,
+          "stages": [
+            0,
+            2
+          ],
+          "first": 881,
+          "later": 459
+        },
+        {
+          "shape": 2,
+          "y": 239,
+          "stages": [
+            1,
+            2
+          ],
+          "first": 1208,
+          "later": 459
+        },
+        {
+          "shape": 2,
+          "y": 239,
+          "stages": [
+            2,
+            2
+          ],
+          "first": 1208,
+          "later": 132
+        }
+      ]
+    },
+    {
+      "event": "live-damage",
+      "shape": 0,
+      "difficulty": 0,
+      "hp": 1,
+      "cycles": 2392
+    },
+    {
+      "event": "live-damage",
+      "shape": 0,
+      "difficulty": 1,
+      "hp": 1,
+      "cycles": 2392
+    },
+    {
+      "event": "live-damage",
+      "shape": 0,
+      "difficulty": 2,
+      "hp": 2,
+      "cycles": 2392
+    },
+    {
+      "event": "live-damage",
+      "shape": 0,
+      "difficulty": 2,
+      "hp": 1,
+      "cycles": 1970
+    },
+    {
+      "event": "live-damage",
+      "shape": 2,
+      "difficulty": 0,
+      "hp": 3,
+      "cycles": 12
+    },
+    {
+      "event": "live-damage",
+      "shape": 2,
+      "difficulty": 0,
+      "hp": 2,
+      "cycles": 2528
+    },
+    {
+      "event": "live-damage",
+      "shape": 2,
+      "difficulty": 0,
+      "hp": 1,
+      "cycles": 2106
+    },
+    {
+      "event": "live-damage",
+      "shape": 2,
+      "difficulty": 1,
+      "hp": 3,
+      "cycles": 12
+    },
+    {
+      "event": "live-damage",
+      "shape": 2,
+      "difficulty": 1,
+      "hp": 2,
+      "cycles": 2528
+    },
+    {
+      "event": "live-damage",
+      "shape": 2,
+      "difficulty": 1,
+      "hp": 1,
+      "cycles": 2106
+    },
+    {
+      "event": "live-damage",
+      "shape": 2,
+      "difficulty": 2,
+      "hp": 4,
+      "cycles": 12
+    },
+    {
+      "event": "live-damage",
+      "shape": 2,
+      "difficulty": 2,
+      "hp": 3,
+      "cycles": 12
+    },
+    {
+      "event": "live-damage",
+      "shape": 2,
+      "difficulty": 2,
+      "hp": 2,
+      "cycles": 2528
+    },
+    {
+      "event": "live-damage",
+      "shape": 2,
+      "difficulty": 2,
+      "hp": 1,
+      "cycles": 2106
+    },
+    {
+      "event": "forced-dual",
+      "shape": 0,
+      "cycles": 2337
+    },
+    {
+      "event": "forced-dual",
+      "shape": 2,
+      "cycles": 2473
+    },
+    {
+      "family": "assault",
+      "maximum": 1190,
+      "mean": 1053.0175131348512,
+      "frames": 668
+    },
+    {
+      "family": "heavy-reset",
+      "profile": "assault",
+      "difficulty": 0,
+      "cycles": 1844,
+      "phase0": 1612,
+      "delta": 232,
+      "nominalCombinedDelta": 150
+    },
+    {
+      "family": "heavy-reset",
+      "profile": "armoured",
+      "difficulty": 0,
+      "cycles": 1874,
+      "phase0": 1612,
+      "delta": 262,
+      "nominalCombinedDelta": 150
+    },
+    {
+      "family": "heavy-reset",
+      "profile": "bomber",
+      "difficulty": 0,
+      "cycles": 2491,
+      "phase0": 2245,
+      "delta": 246,
+      "nominalCombinedDelta": 150
+    },
+    {
+      "family": "heavy-reset",
+      "profile": "assault",
+      "difficulty": 1,
+      "cycles": 1844,
+      "phase0": 1612,
+      "delta": 232,
+      "nominalCombinedDelta": 150
+    },
+    {
+      "family": "heavy-reset",
+      "profile": "armoured",
+      "difficulty": 1,
+      "cycles": 1874,
+      "phase0": 1612,
+      "delta": 262,
+      "nominalCombinedDelta": 150
+    },
+    {
+      "family": "heavy-reset",
+      "profile": "bomber",
+      "difficulty": 1,
+      "cycles": 2491,
+      "phase0": 2245,
+      "delta": 246,
+      "nominalCombinedDelta": 150
+    },
+    {
+      "family": "heavy-reset",
+      "profile": "assault",
+      "difficulty": 2,
+      "cycles": 1844,
+      "phase0": 1612,
+      "delta": 232,
+      "nominalCombinedDelta": 150
+    },
+    {
+      "family": "heavy-reset",
+      "profile": "armoured",
+      "difficulty": 2,
+      "cycles": 1874,
+      "phase0": 1612,
+      "delta": 262,
+      "nominalCombinedDelta": 150
+    },
+    {
+      "family": "heavy-reset",
+      "profile": "bomber",
+      "difficulty": 2,
+      "cycles": 2491,
+      "phase0": 2245,
+      "delta": 246,
+      "nominalCombinedDelta": 150
+    }
+  ],
+  "tests": {
+    "focusedPass": 60,
+    "focusedFail": 0,
+    "focusedSkipped": 1,
+    "actualLevel2Pass": 17,
+    "actualHeavyVariantPass": 17,
+    "fullSuite": "INTERRUPTED BEFORE DEPARTURE FIX; no completed final A/B/C; baseline historical137 shared"
+  },
+  "atrs": [
+    {
+      "file": "build/play/m3h-session2/checkpoint-6-diagnostic/campaign.atr",
+      "bytes": 133136,
+      "sha256": "838cacb6f8b9b62221ed99dfa7444e5cf1c05782f90c9af70bebc31663628f5e",
+      "status": "INCOMPLETE DIAGNOSTIC; not final owner smoke"
+    },
+    {
+      "file": "build/play/m3h-session2/checkpoint-6-diagnostic/level-2.atr",
+      "bytes": 133136,
+      "sha256": "ccc5cde12bf67df15f5a41196d589418434a24f97606a49a74cce647c8540d5b",
+      "status": "INCOMPLETE DIAGNOSTIC; not final owner smoke"
+    },
+    {
+      "file": "build/play/m3h-session2/checkpoint-6-diagnostic/heavy-sector.atr",
+      "bytes": 133136,
+      "sha256": "89d5689698785ddf05294b85fed0a1f5acdcb6b194e3e0ff632da044491989af",
+      "status": "INCOMPLETE DIAGNOSTIC; not final owner smoke"
+    },
+    {
+      "file": "build/play/m3h-session2/checkpoint-6-diagnostic/capital-960.atr",
+      "bytes": 133136,
+      "sha256": "7ee47a4a1ba6d66f12ebfee1e9b060db6ff7d5cf2530bd230ef7e0b3c36b05a5",
+      "status": "INCOMPLETE DIAGNOSTIC; not final owner smoke"
+    }
+  ]
+}

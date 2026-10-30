@@ -8,7 +8,8 @@ LIFE_CAPSULE_COLOUR = LIFE_CAPSULE_BASE+10
 LIFE_CAPSULE_SHAPES = LIFE_CAPSULE_BASE+13
 LIFE_CAPSULE_FORCED = LIFE_CAPSULE_SHAPES+64
 ; Existing PICKUP_CODE tail, a byte-neutral sector-entry call replacement.
-LIFE_CAPSULE_STAR_CONTINUATION = $8B5A
+; H14 spends six pickup-tail bytes; this cold continuation follows them.
+LIFE_CAPSULE_STAR_CONTINUATION = $8B60
 LIFE_CAPSULE_COLOUR_OPERAND = $3AD2
 ; Checked at both independently linked ends of the boss-only spawn shortcut.
 LIFE_CAPSULE_ORDINARY = $3A6E

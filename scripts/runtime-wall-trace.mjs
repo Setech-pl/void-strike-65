@@ -4310,6 +4310,10 @@ function main() {
     addressEnvironment.DFTRACE_HEAVY_LOOK_FLAGS = `0x${labels.get('M3H_BODY_FLAGS').toString(16)}`;
     addressEnvironment.DFTRACE_HEAVY_LOOK_BODY = `0x${(manifest.levelDef.payload.blockAddress+HEAVY_LOOK_OFFSET).toString(16)}`;
   }
+  if(directorLabels.has('_enemy_c_heavy_visual_claim')) {
+    addressEnvironment.DFTRACE_HEAVY_DAMAGE_STAGES = '0x'+labels.get('M3H_DAMAGE_STAGE').toString(16);
+    addressEnvironment.DFTRACE_HEAVY_DAMAGE_HOLES = '0x'+directorLabels.get('heavy_damage_holes').toString(16);
+  }
   for (const [environmentName, labelName] of Object.entries(traceLabels)) {
     const address = labels.get(labelName) ?? glueLabels.get(labelName);
     invariant(Number.isInteger(address), `Trace label ${labelName} is missing`);

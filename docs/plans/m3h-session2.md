@@ -135,11 +135,9 @@ never trust a host model's opcode assumption. Source bases `$ABA2` and
 subsequent BROADSIDE label by padding; preserve original draw bounds.
 
 The original lifted formula `(hp << 1) + 2` is unsafe for HARD's 5 HP:
-12 +4 reaches luminance 16 and changes hue. The proposed clamped table keeps
+12 +4 reaches luminance 16 and changes hue. The accepted clamped table keeps
 base ≤8, 1-HP visibility 4 and flash/charge ≤12. It intentionally flattens the
-healthy end of the ramp; holes distinguish the last two HP stages. This is a
-review proposal, not an accepted palette change or a silent application of
-the old four-HP estimate.
+healthy end of the ramp; holes distinguish the last two HP stages. The owner authorized this exact table for final smoke on 2026-10-30.
 
 ### Accepted event contract — choice B
 
@@ -263,4 +261,41 @@ starts without the next owner instruction.
 Plan deliverable CPU/RAM/residency delta: **0 /0 B /0 B**. Baseline play ATRs
 are for reproduction only, not a session-2 gameplay candidate. Validation,
 current quick peaks and the exact full-suite debt comparison are in
-[the audit](../diagnostics/m3h-session2-plan/audit.md). **NEXT TASK: checkpoints1–2, then pause for owner smoke of the two Raider looks.**
+[the audit](../diagnostics/m3h-session2-plan/audit.md). **NEXT TASK: finish checkpoint6 verification, then pause for owner smoke of the whole Heavy package.**
+
+## Implementation refinement after checkpoint2 acceptance
+
+Checkpoint2 (`f33fcdc`) owner smoke PASS, 2026-10-30. Checkpoint3 `0e4160d`,
+checkpoint4 `d9dce3f`, checkpoint5 `2064aa8` are committed candidates.
+The new H14 C stage/claim helper also uses the checked content home, behind the
+same resident validity/phase guard as H12. This keeps the measured total window
+growth at **190 B**, within 250 B. It is a placement refinement of the plan,
+not a window fallback or a new owner decision. Home use is **1,029/1,920 B**: H12
+187, H13 24, H14 C 206 additional bytes versus the 612-B baseline. Invalid-home
+requests drop before any new C policy or publisher instruction/table is read.
+
+H14 spends six pickup bytes (one left), moving the cold boss-head and LIFE
+continuation pins by six bytes with explicit build checks. The 33-B arena
+death-claim entry becomes JMP +30 pad; masked death policy lives in appended
+window code. Arena 830/832 B; no protected reservation grows. The no-pending
+LDY/BNE/RTS bytes and 12-cycle cost remain identical.
+
+Record8 is 15 sectors (+1); the checked content run stays 15 sectors and the
+linked load fixture remains 313,556 cycles (added 0 cycles/reads). No release
+evidence is inferred from these checks. Final native quick peaks remain
+30,465/31,153; individual dual-event/component estimates are report-only.
+
+### Checkpoint6 hard stop — uncovered departure case
+
+H14 is **INCOMPLETE / BLOCKED_EXTENSION_BYTES**, not silently dropped. Normal
+hit-watch paths pass the linked/native checks, but the pre-existing departure
+cutoff bypasses both motion HP watches. New damage after that cutoff does not
+queue a stamp. The attempted C HP-boundary notification adds27 B to a composite
+with24 B free: **3 B short**, hard STOP. The failed attempt is reverted; no
+final-smoke candidate or completed final full-suite/A/B/C claim is made.
+[Exact bytes, source, measurements and two bounded recovery options](../diagnostics/m3h-session2/checkpoint-6-blocked.md).
+
+DEFER pending resumed authorization after the hard stop: completion of this
+post-cutoff notification and checkpoint6 validation/owner smoke. No requested
+Heavy feature is being declared complete through this deferral. H12/H13 home
+and the nonrotate-only rule remain fixed.

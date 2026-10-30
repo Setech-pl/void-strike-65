@@ -144,9 +144,11 @@ runs on alternate frames. Some formations use the armoured profile: they
 pause at a fixed height to fire and dodge sideways when they survive a hit.
 Armoured Raiders have broader plated wings and a brighter hostile hull colour.
 Level 2 mixes them with the original assault silhouette.
+Armoured Raiders and Bombers gain lasting holes at 2 and 1 HP. An armoured
+Raider starting with 2 HP jumps straight to the last damage look after a hit.
+Holes stay visible through flight, stops and dodges; hit boxes stay the same.
 
-The Bomber's hull darkens as it takes damage, so the colour tells you how much
-of it is left. It brightens when braking to aim and dims when its sweep
+The Bomber's green hull darkens at 2 and 1 HP and stays readable at 1 HP. It brightens when braking to aim and dims when its sweep
 resumes. A surviving hit makes it dodge sideways for six frames; its height
 stays fixed during the dodge. A hit during an authored stop does not shorten
 that stop. An Interceptor takes three hits: when one of your shots hits it

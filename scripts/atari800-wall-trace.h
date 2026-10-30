@@ -908,6 +908,8 @@ static unsigned dftrace_enemy_body_data;
 static unsigned dftrace_enemy_frame_heights;
 static unsigned dftrace_heavy_look_flags;
 static unsigned dftrace_heavy_look_body;
+static unsigned dftrace_heavy_damage_stages;
+static unsigned dftrace_heavy_damage_holes;
 static unsigned dftrace_character_last_writer[65536];
 static unsigned dftrace_character_last_writer_x[65536];
 static const char *dftrace_first_writer_output;
@@ -5400,7 +5402,20 @@ static void dftrace_snapshot_enemy_pmg_mismatch(DFTraceFrame *frame, int accumul
 			unsigned expected = 0u;
 			if (live && row >= y && row < y + height)
 				expected = MEMORY_mem[(body + (row - y)) & 0xffffu];
-			if (slot == 0u && reticle != 0u && row >= reticle && row < reticle + 8u)
+			/* Independent expected body: intact profile + generated clear masks,
+             * never the RAM copy or the renderer's source operand. */
+            if (live && row >= y && row < y + height && dftrace_heavy_damage_stages != 0u &&
+                dftrace_heavy_damage_holes != 0u && !dftrace_boss_active()) {
+                unsigned stage = MEMORY_mem[dftrace_heavy_damage_stages + slot];
+                if (stage >= 1u && stage <= 2u) {
+                    unsigned table = dftrace_heavy_damage_holes + (archetype == 2u ? 12u : 0u) + (stage - 1u) * 6u;
+                    unsigned hole;
+                    for (hole = 0u; hole < 6u; hole += 2u)
+                        if (MEMORY_mem[table + hole] == row - y)
+                            expected &= ~MEMORY_mem[table + hole + 1u];
+                }
+            }
+            if (slot == 0u && reticle != 0u && row >= reticle && row < reticle + 8u)
 				expected = dftrace_lance_hollow != 0u && MEMORY_mem[dftrace_lance_hollow] != 0u
 					? dftrace_lance_hollow_bytes[row - reticle]
 					: MEMORY_mem[(dftrace_lance_shape + (row - reticle)) & 0xffffu];
@@ -8174,6 +8189,8 @@ static void dftrace_init(void)
 	DFTRACE_ADDRESS(dftrace_enemy_frame_heights, "DFTRACE_ENEMY_FRAME_HEIGHTS");
 	DFTRACE_ADDRESS(dftrace_heavy_look_flags, "DFTRACE_HEAVY_LOOK_FLAGS");
 	DFTRACE_ADDRESS(dftrace_heavy_look_body, "DFTRACE_HEAVY_LOOK_BODY");
+	DFTRACE_ADDRESS(dftrace_heavy_damage_stages, "DFTRACE_HEAVY_DAMAGE_STAGES");
+	DFTRACE_ADDRESS(dftrace_heavy_damage_holes, "DFTRACE_HEAVY_DAMAGE_HOLES");
 	DFTRACE_ADDRESS(dftrace_director_state, "DFTRACE_DIRECTOR_STATE");
 	DFTRACE_ADDRESS(dftrace_muzzle_screen_hi, "DFTRACE_MUZZLE_SCREEN_HI");
 	DFTRACE_ADDRESS(dftrace_muzzle_screen_lo, "DFTRACE_MUZZLE_SCREEN_LO");

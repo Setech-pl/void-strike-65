@@ -188,6 +188,10 @@ pixels while preserving the established hull silhouette and backing behavior.
   and `$44`. Both use the same 14-row frame, collision bounds and PMG slots.
   Source: `enemy-roster.json` → `heavyLooks.armouredRaider`, or a level's
   `payload.heavyLook`; `node scripts/heavy-look-preview.mjs` rebuilds the sheet.
+  Damage variant C clears authored interior pixels at 2/1 HP without changing
+  the silhouette bounds. The source triples are `heavyDamage` in the same JSON;
+  `node scripts/heavy-damage-preview.mjs` renders intact/stage1/stage2. Bomber
+  base luminances for HP1..5 are 4/6/8/8/8 in hue C, with +4 flash/charge.
 - **Light Wingman** — small 2x1 character enemy in the gameplay charset, glyphs
   120-121, installed at runtime in colour 3 with the hostile bit. It allocates
   no PMG player.

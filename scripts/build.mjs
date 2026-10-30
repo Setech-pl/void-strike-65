@@ -1507,6 +1507,16 @@ async function buildHybridDirectorModule(fighterWeaponsInclude, levelDefInclude,
     const end=lifecycleText.indexOf(".endproc",start);
     lifecycleText=lifecycleText.slice(0,end)+(name==="sector_c_update_capital_phase" ? fs.readFileSync(path.join(rootDirectory,"src/hybrid/l2-lifetime.s"),"utf8")+"\n" : "")+`.res ${bytes}-(*-l2_pin_start), $00\n`+lifecycleText.slice(end);
   }
+  // H14 moves the masked death policy after hot window code, retaining the
+  // original 33-byte arena entry and every later address.
+  {
+    const start=lifecycleText.indexOf(".proc\t_enemy_c_heavy_breakup_claim:");
+    if(start<0)throw new Error("Heavy breakup fixed entry missing");
+    const end=lifecycleText.indexOf(".endproc",start);
+    const head=lifecycleText.indexOf("\n",start)+1;
+    lifecycleText=lifecycleText.slice(0,end)+".res 33-(*-heavy_claim_pin), $00\n"+lifecycleText.slice(end);
+    lifecycleText=lifecycleText.slice(0,head)+"heavy_claim_pin:\n"+lifecycleText.slice(head);
+  }
   lifecycleGeneratedAssembly=Buffer.from(lifecycleText);
   if (process.env.VS65_DUMP_GENERATED === "1") {
     writeFile(path.join(buildDirectory, "director-generated.s"), generatedAssembly);
@@ -1836,6 +1846,8 @@ function renderDirectorAbiInclude(labelBytes, lightKernelAddress, pauseFrontendM
     ["HEAVY_DAMAGE_MEMBER_STATE", "heavy_damage_member_state"],
     ["HEAVY_DAMAGE_TARGET_SLOT", "heavy_damage_target_slot"],
     ["HEAVY_DAMAGE_DRAW", "heavy_damage_draw"],
+    ["HEAVY_VISUAL_RETRY", "heavy_visual_retry"],
+    ["HEAVY_BREAKUP_SPAWN", "heavy_breakup_spawn"],
     ["HEAVY_BODY_FLAGS", "heavy_body_flags"],
     ["HEAVY_BODY_HEIGHT_OPERAND", "heavy_body_height_operand"],
     ["HEAVY_BODY_BASE_OPERAND", "heavy_body_base_operand"],

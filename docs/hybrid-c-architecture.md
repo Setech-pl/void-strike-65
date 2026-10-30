@@ -189,18 +189,40 @@ its stationary-body skip and clipping; no movement or HP policy moves to ASM.
 Eight bytes at `$54BE–$54C5` hold render metadata; the existing 32-B damage
 buffer stays `$549E–$54BD`. Admission resets metadata after boot staging and
 before reading any cached index. The body copy remains lazy/invalid until the
-future content-home damage publisher installs it. A new formation always
+content-home damage publisher installs it. A new formation always
 reinstalls a whole body. Fixed cross-link operand/data bindings have linker
 assertions at their actual main-link instructions and tables.
 
 The admission-only C helper selects the armoured profile's payload colour;
 ASM installs its body pointer and indices without copying a body at admission.
 Render flags at `$54C3` latch appearance in bit5 independently of the runway
-cutoff's movement flag; bit0 is reserved for the lazy damage-copy validity.
+cutoff's movement flag; bit0 records lazy damage-copy validity.
 The native plane observer derives expected rows from this appearance and the
-payload, not from the cached draw operand. No damage publisher is enabled at
-checkpoint2; H12/H13 must use checked content home with the owner-required
-validity/phase guard in later checkpoints.
+payload plus generated clear masks, not from the cached draw operand or RAM copy.
+Checkpoint2 is owner-accepted; checkpoints3–5 are candidates. Checkpoint6 is
+blocked: the departure cutoff bypasses the HP watches; its missing visual
+notification needs a new home after a3-B extension overflow. See
+[the blocker](diagnostics/m3h-session2/checkpoint-6-blocked.md). H12 ASM, H13
+24-byte tables and H14 C stage/claim policy live in checked home `$1180–$18FF`.
+The resident entry shares `cc2_valid` (valid `$86B3` and gameplay `$9A=6`)
+before entering any home instruction/data. Invalid requests clear safely.
+This extends the plan's home placement to the new H14 C helper to stay within
+250 B of total window growth, without moving an existing hot entry.
+
+H14 uses the existing polled `heavy_breakup_pending` byte: bits0/1 request
+member damage, bit7 requests death fragments. `$813F`'s former damage byte
+remains reserved. No-pending LDY/BNE/RTS is unchanged. Death forcing retains
+priority and clears only bit7. C derives stage from live HP, prunes requests,
+then claims the shared event token. Retries may ignore exhaustion but never
+rotate prediction; dual requests coalesce. Admission resets copy/stage/retry
+and pending damage. H16 bodies are copied lazily once, independently stamped,
+and forced through the existing current-Y renderer even during a hold.
+
+The fixed 33-byte arena death-claim entry is a 3-byte tail call plus 30-byte
+pad; masked policy sits after existing hot window code. H14 spends six of seven
+pickup-tail bytes. Cold boss-head and LIFE continuation bindings move by six
+bytes and remain explicitly checked; protected reservations and main hot entries
+are unchanged. Neither renderer class nor collision bounds changes.
 
 ## Calling convention and ABI
 

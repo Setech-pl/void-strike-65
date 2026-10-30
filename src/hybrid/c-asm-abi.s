@@ -685,8 +685,8 @@ heavy_armoured_tick:
     txa
     clc
     adc #1
-    ora _heavy_damage_pending
-    sta _heavy_damage_pending
+    ora _heavy_breakup_pending
+    sta _heavy_breakup_pending
 @direction:
     lda #6
     ldy heavy_abi_x,x

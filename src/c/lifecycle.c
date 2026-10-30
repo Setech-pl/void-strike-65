@@ -358,7 +358,7 @@ volatile uint8_t heavy_member_colour;
 uint8_t heavy_descent_mask;
 uint8_t heavy_armoured;
 uint8_t heavy_hold_row;
-uint8_t heavy_damage_pending;
+uint8_t heavy_damage_pending; /* former H15 queue: reserved; shared bits live at $8128 */
 #pragma bss-name ("HYBRID_HEAVY_MEMBERS")
 uint8_t heavy_hold_left[2];
 uint8_t heavy_last_hp[2];
@@ -542,8 +542,8 @@ uint8_t light_screen_slot_limit;
 uint8_t light_rotate_frame;
 #pragma bss-name ("HYBRID_HEAVY_BREAKUP")
 /* Heavy break-up (plan-4.6-placement.md §7.4 variant 2, owner smoke
- * 2026-09-21). ONE byte: "a Heavy member died and its fragments have not been
- * spawned yet". It is the Heavy's equivalent of the Light's
+ * 2026-09-21). H14 shares this byte: bit7 is deferred death fragments,
+ * bits0/1 are member damage requests. No additional per-frame test. It is the Heavy's equivalent of the Light's
  * LIGHT_BREAKUP_PENDING state, which the Light gets for free because it has a
  * per-slot state byte; HYBRID_HEAVY_STATE is 11 of 11, so this takes the next
  * byte of the same unowned gap light_screen_slot_limit and light_rotate_frame
@@ -1574,6 +1574,7 @@ void enemy_c_spawn_raiders(void)
     heavy_hold_row = heavy_wave_hold_row;
     heavy_hold_left[0] = heavy_hold_left[1] = heavy_wave_hold_frames;
     heavy_damage_pending = heavy_dodge_left[0] = heavy_dodge_left[1] = 0u;
+    heavy_breakup_pending &= 0x80u; /* admission drops every old visual request */
     ENEMY_MEMBER_STATE_0 = ENEMY_ACTIVE_STATE;
     ENEMY_MEMBER_STATE_1 = ENEMY_ACTIVE_STATE;
     ENEMY_LIVE_COUNT = RAIDER_SLOT_COUNT;
@@ -1611,7 +1612,7 @@ static void bomber_colour(void)
     if (heavy_index != (heavy_member_aux & BOMBER_HP_MASK)) {
         heavy_member_aux = (uint8_t)(heavy_index | (BOMBER_FLASH_FRAMES << 4));
         if (heavy_index <= 2u) {
-            heavy_damage_pending |= (uint8_t)(HEAVY_SLOT + 1u);
+            heavy_breakup_pending |= (uint8_t)(HEAVY_SLOT + 1u);
         }
         heavy_index = 2u;
         if (heavy_member_x < PLAYER_X) {
@@ -1736,9 +1737,10 @@ colour:
  * begin_enemy_fighter_explosion_tail has just overwritten the snapshot - the
  * truncation plan §7.6 records as owner question Q-3, resolved here in the
  * cheap direction. */
-uint8_t enemy_c_heavy_breakup_claim(void)
+#pragma code-name (push, "HYBRID_C_WINDOW_LOOK")
+uint8_t enemy_c_heavy_breakup_policy(void)
 {
-    if (heavy_breakup_pending != 0u) {
+    if ((heavy_breakup_pending & 0x80u) != 0u) {
         return 0u;
     }
     /* THE ROTATE GATE (docs/plans/m3-waves-heavy.md §9). This claim runs
@@ -1749,7 +1751,7 @@ uint8_t enemy_c_heavy_breakup_claim(void)
      * rotate? A denial parks without touching the token, exactly as the
      * marker's denial does; the frame after a rotate frame never rotates. */
     if (asm_world_rotate_due() != 0u) {
-        heavy_breakup_pending = 1u;
+        heavy_breakup_pending |= 0x80u;
         return 0u;
     }
     if (light_take_deferrable_token() != 0u) {
@@ -1759,8 +1761,16 @@ uint8_t enemy_c_heavy_breakup_claim(void)
      * update_enemy, and is not gated at all - it ignores the rotate marker and
      * the token budget alike. That is what bounds the wait at two frames with
      * no counter, exactly as the Light's BREAKUP_PENDING branch does. */
-    heavy_breakup_pending = 1u;
+    heavy_breakup_pending |= 0x80u;
     return 0u;
+}
+
+#pragma code-name (pop)
+
+/* Fixed 33-byte arena entry: build pins the 3-byte tail-call + 30-byte pad. */
+uint8_t enemy_c_heavy_breakup_claim(void)
+{
+    return enemy_c_heavy_breakup_policy();
 }
 
 #pragma code-name (push, "CONTENT_CODE")
@@ -1769,6 +1779,52 @@ uint8_t cc2_heavy_tick(void)
 {
     if (heavy_departure != 0u) { ++heavy_member_y; return 0u; }
     return enemy_c_heavy_tick_original();
+}
+
+/* H14 policy runs only through the resident home/phase guard. Requests share
+ * breakup's existing polled byte: bits0/1 damage, bit7 death. The obsolete
+ * heavy_damage_pending byte remains reserved at its ABI address. */
+#define HEAVY_VISUAL_APPLIED     ((volatile uint8_t*)0x54C0u)
+#define HEAVY_VISUAL_RETRY       U8_AT(0x54C2u)
+#define HEAVY_VISUAL_FLAGS       U8_AT(0x54C3u)
+#define HEAVY_VISUAL_REQUEST     ((volatile uint8_t*)0x54C4u)
+#define HEAVY_MEMBER_STATES      ((volatile uint8_t*)0x5470u)
+uint8_t enemy_c_heavy_visual_claim(void)
+{
+    heavy_scratch = 0u;
+    heavy_index = 1u;
+    do {
+        HEAVY_VISUAL_REQUEST[heavy_index] = 0u;
+        if ((heavy_breakup_pending & (heavy_index + 1u)) != 0u &&
+            HEAVY_MEMBER_STATES[heavy_index] == ENEMY_ACTIVE_STATE &&
+            ENEMY_HP_0_ADDRESS[heavy_index] != 0u &&
+            ENEMY_HP_0_ADDRESS[heavy_index] <= 2u &&
+            ((HEAVY_VISUAL_FLAGS & 0x20u) != 0u || ENEMY_ARCHETYPE == 2u)) {
+            heavy_scratch = (uint8_t)(3u - ENEMY_HP_0_ADDRESS[heavy_index]);
+            HEAVY_VISUAL_REQUEST[heavy_index] = heavy_scratch;
+            if (heavy_scratch <= HEAVY_VISUAL_APPLIED[heavy_index]) {
+                HEAVY_VISUAL_REQUEST[heavy_index] = 0u;
+            }
+        }
+    } while (heavy_index-- != 0u);
+    /* Prune dead/retired/already-applied requests before any denial. Death
+     * priority was consumed by ASM before this function could be entered. */
+    heavy_scratch = 0u;
+    if (HEAVY_VISUAL_REQUEST[0] != 0u) { heavy_scratch = 1u; }
+    if (HEAVY_VISUAL_REQUEST[1] != 0u) { heavy_scratch |= 2u; }
+    heavy_breakup_pending = heavy_scratch;
+    if (heavy_scratch == 0u) {
+        HEAVY_VISUAL_RETRY = 0u;
+        return 0u;
+    }
+    /* Choice B: retries ignore the token, but NEVER the rotate prediction. */
+    if (asm_world_rotate_due() != 0u ||
+        (HEAVY_VISUAL_RETRY == 0u && light_take_deferrable_token() == 0u)) {
+        HEAVY_VISUAL_RETRY = 1u;
+        return 0u;
+    }
+    HEAVY_VISUAL_RETRY = heavy_breakup_pending = 0u;
+    return 1u;
 }
 
 /* Admission-only visual profile policy. Kept after existing hot window code;

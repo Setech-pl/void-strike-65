@@ -15,8 +15,8 @@ lifetimes, covering flight, 64-frame hold, hit dodge, retirement and exact plane
 
 Linked NMOS costs, **including guard/copy/masks/draw but excluding DMA**:
 first full-height single **1,225 armour /1,286 Bomber**, dual **1,912 /2,034**;
-later dual **1,490 /1,612**. Guard successful entry is 21 instruction cycles
-before home execution; invalid entry 16/23/26 depending on failed guard branch.
+later dual **1,490 /1,612**. Guard successful entry is 16 instruction cycles
+before home execution; invalid calls cost 23/30 cycles depending on failed guard branch.
 The final H14 claim will be charged separately. No fallback to window placement.
 
 Record8 now **15 sectors (+1)**, packed 1,791 B; all other DFMC record counts

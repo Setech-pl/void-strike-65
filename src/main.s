@@ -12292,13 +12292,16 @@ heavy_death_feedback:
     bne heavy_spawn_breakup
     rts
 
-; The forcing rule's ungated second attempt. Nothing can be pending unless a
-; Heavy died within the last two frames, and integration_update_enemy has
-; already established that a Heavy exists before it asks.
+; Shared pending test: identical idle bytes/cycles. The resident nonzero
+; dispatcher preserves death forcing (bit7) and guards/claims damage (bits0/1).
+; integration_update_enemy has already established that a Heavy exists.
 heavy_breakup_retry:
     ldy HEAVY_BREAKUP_PENDING
-    bne heavy_spawn_breakup
+    bne heavy_visual_pending
     rts
+
+heavy_visual_pending:
+    jmp HEAVY_VISUAL_RETRY
 
 ; The expensive half on its own, so the forcing rule's ungated retry above can
 ; reach it too. Registers are free: every caller reloads X from
@@ -12310,7 +12313,9 @@ heavy_breakup_retry:
 ; update_transient_effects and entity_effects_render already walk this pool for
 ; debris breakups, with the same slot count.
 heavy_spawn_breakup:
-    lda #$00
+    .assert * = HEAVY_BREAKUP_SPAWN, lderror, "Heavy breakup spawn ABI moved"
+    lda HEAVY_BREAKUP_PENDING
+    and #$7F
     sta HEAVY_BREAKUP_PENDING   ; spent, whichever attempt this is
     ; A debris breakup or an older Heavy breakup may still be live; the pool
     ; holds one, so the newer event wins, exactly as the debris path does.

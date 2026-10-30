@@ -1,6 +1,6 @@
 # VOID STRIKE 65 — CURRENT STATUS
 
-Last update: 2026-10-30 (M3-H session 2 checkpoint 2 owner smoke PASS; 3–6 authorized)
+Last update: 2026-10-30 (M3-H checkpoints 3–5 committed; checkpoint6 blocked by 3-B extension overflow)
 
 What is true now. Rules: [reguly-projektu.txt](reguly-projektu.txt). Roadmap:
 [plan-realizacji.md](plan-realizacji.md). Source-of-truth order:
@@ -20,37 +20,44 @@ the values below.
 
 ## Checkpoint
 
-### M3-H session 2 — checkpoints 1–2 OWNER-ACCEPTED; 3–6 in progress
+### M3-H session 2 — 1–2 OWNER-ACCEPTED; 3–5 candidate; 6 BLOCKED_EXTENSION_BYTES
 
-Owner smoke after checkpoint 2 **PASS**, 2026-10-30, at `f33fcdc`. Checkpoints 1–2
-are OWNER-ACCEPTED. Owner authorized 3–6 with final smoke after 6.
-Owner accepted the plan and amendments on 2026-10-30. Checkpoint 1 `5041ccb`
-installs/reset the body cache; checkpoint 2 adds the payload-driven plated
-armoured look and C colour selection. Assault/Bomber source art and existing
-combat/movement policies stay unchanged. [Smoke ATRs, hashes and audit](diagnostics/m3h-session2/checkpoint-2.md).
+Owner smoke after checkpoint2 (`f33fcdc`) **PASS**, 2026-10-30. Checkpoints3
+`0e4160d` (readable Bomber ramp), 4 `d9dce3f` (generated variant-C tables),
+and 5 `2064aa8` (guarded controlled publisher) are committed candidates.
+Checkpoint6 has live nonrotate-only damage integration, but is **incomplete**;
+no final smoke acceptance or smoke-ready delivery is claimed.
 
-Measured window 2,153 B (**+85**, target ≤250); render state +8 B; total added used
-RAM 93 B within existing reservations. Arena 827, Director 324, L2 1,290 and
-content 612/1,920 B unchanged. Content record 15 sectors; added checked-load
-fixture cost 0 CPU cycles/0 reads. All 11 DFMC sector counts unchanged.
-Body copy −8 cycles, stationary cost 0; reset +159/+187 cycles report-only.
+A confirmed uncovered case: the existing departure cutoff bypasses the movement
+HP watches. A surviving hit AFTER that cutoff can leave a Heavy without its
+new holes. A departure-only C notification was attempted at the HP boundary;
+it grew the shared extension by27 B with24 free, causing **3-B overflow**.
+AGENTS byte gate requires STOP. The failed trial is reverted to the buildable
+integration; its source and exact gate are retained. No H12/H13 window fallback.
+[Blocker, bounded recovery options and verification](diagnostics/m3h-session2/checkpoint-6-blocked.md).
 
-Normal gated build PASS. Final focused 127/11 exact shared; both level 2 look
-fixtures 5/5; repaired SIO/audio 7/7. One full suite raw 1488/140; audited 1491/137
-with one accepted art pin and two SIO setup corrections. Against advanced main
-`71a38a8`: **A137/B0/C0**. Quick Spread 30,465 /capital-960 31,153; hard margin 1,415,
-zero misses/VBI/DLI anomalies. Release evidence/debt remains pending.
+Restored integration: window **2,258 B (+190 session)**, arena830/832,
+Director324, L2 1,290; checked home **1,029/1,920 B**. H12 ASM187 +H13 tables24
++new H14 C206 use that home. Metadata+8 B; pickup+6 B (1 free); existing32-B
+H16 buffer reused. Added used RAM624 B, no reservation growth. Record8 is15
+sectors (+1); checked content15 sectors with0 added linked load cycles/reads.
 
-The branch stays based on owner-cut `7fe9040`; main advanced concurrently with
-Spine B3 and is not merged/rebased here. Owner integration is needed before
-fast-forward merge. New armoured rendering has linked NMOS variant coverage;
-extra bounded native level 2 replays did not reach an armoured admission.
+Restored normal build PASS. Focused ordinary profiles60 PASS/0 FAIL (one
+review-only skip); actual level2 and Heavy variants17/17 each. Quick native
+Spread30,465 /capital-96031,153, hard margin1,415, no misses/raster anomalies;
+boss entry325. Natural Heavy2400-frame and seeded dual900-frame native captures
+peak30,841 with zero PMG mismatches. These bind the restored guest bytes; they
+are not a proof of the uncovered post-cutoff case. Armour has linked fixture
+coverage; no native armoured admission is claimed.
 
-**NEXT TASK: implement checkpoints 3–6, then pause for final owner smoke.** H12/H13 remain
-assigned to checked content home with a resident validity/phase guard; H14
-choice B stays nonrotate-only, ≤3 frames. Bomber ramp 4/6/8/8/8 hue C is authorized
-for the later final smoke. Checkpoints 3–6 remain candidates until the final owner smoke. No merge, push
-or release is claimed.
+The continuation's full suite was interrupted at the concrete uncovered case,
+so **no completed final npm-test/A/B/C result** is claimed. Checkpoint2's prior
+A137/B0/C0 remains historical. Main is71a38a8; this branch stays on owner-cut
+7fe9040 with no merge/rebase. Release evidence/debt remains pending.
+
+**NEXT TASK:** choose a bounded home for the post-cutoff notification, finish
+checkpoint6 and its final validation, then pause for owner smoke. Do not start
+a new roadmap item. The diagnostic ATRs are explicitly incomplete, not candidates.
 
 ### Loop-phase resync — partial OWNER-SMOKE CANDIDATE
 

@@ -151,6 +151,9 @@ drugą. Niektóre formacje korzystają z opancerzonej odmiany: zatrzymują się 
 stałej wysokości, by strzelać, i robią unik w bok po trafieniu, które przeżyją.
 Opancerzone Raidery mają szersze, osłonięte płytami skrzydła i jaśniejszy kolor
 wrogiego kadłuba. Na poziomie 2 występują obok szturmowych Raiderów o dawnej sylwetce.
+Opancerzone Raidery i Bombery zyskują trwałe dziury przy 2 i 1 HP. Opancerzony
+Raider zaczynający z 2 HP po trafieniu przechodzi od razu do ostatniego wyglądu
+uszkodzeń. Dziury zostają podczas lotu, postoju i uniku; pole trafień się nie zmienia.
 
 Kadłub Bombera ciemnieje przy 2 i 1 HP, ale przy 1 HP pozostaje czytelny. Rozjaśnia się, gdy Bomber hamuje, by celować, i ciemnieje po powrocie
 do lotu. Po przeżytym trafieniu Bomber przez sześć klatek robi unik w bok,

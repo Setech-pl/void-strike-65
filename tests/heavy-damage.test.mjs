@@ -19,6 +19,12 @@ function plane(rows,y) {
   for(let i=0;i<rows.length;i++)if(y+i>=16&&y+i<240)p[y+i]=rows[i];
   return p;
 }
+function schedule(m,{rotate=false,token=true}={}) {
+  const v=m.memory;v[0x86]=(v[0x86]+1)&255;v[0x86b4]=8;
+  v[L('scroll_accumulator')]=rotate?39:0;
+  v[L('_light_token_frame')]=v[0x86];v[L('_light_token')]=token?1:0;
+  v[L('_light_rotate_frame')]=(v[0x86]-1)&255;
+}
 
 test('H13 generated variant C is 24 checked-home bytes with cumulative holes',()=>{
   const c=compileHeavyDamage(),m=machine();
@@ -127,4 +133,95 @@ test('H12 review build holds the preselected stages through flight, hold, dodge 
     }
     assert.ok(dodged&&held>=64);assert.equal(v[L('ENEMY_LIVE_COUNT')],0);
   }
+});
+
+test('H14 natural hit watches publish HP stages on both Heavy profiles and every difficulty',()=>{
+  const generated=compileHeavyDamage();
+  for(const shape of [0,2])for(const difficulty of [0,1,2]) {
+    const m=formation(shape,{difficulty}),v=m.memory;
+    v[L('ENEMY_Y')]=v[L('ENEMY_Y')+1]=72;
+    v[L('_heavy_hold_row')]=72;v[L('_heavy_hold_left')]=v[L('_heavy_hold_left')+1]=64;
+    for(const slot of [0,1])call(m,'draw_enemy_member',slot,255); // seed the current-Y planes before a hold
+    const initial=v[L('ENEMY_HP')];
+    for(let hp=initial-1;hp>=1;hp--) {
+      // Collision-owned HP changes; the real member tick supplies the request.
+      v[L('ENEMY_HP')]=v[L('ENEMY_HP')+1]=hp;call(m,'update_enemy');
+      const requested=hp<=2?3:0;
+      assert.equal(v[L('_heavy_breakup_pending')]&3,requested);
+      const before=[v[L('ENEMY_Y')],v[L('ENEMY_Y')+1]];
+      schedule(m);const event=call(m,'heavy_breakup_retry');
+      const stage=hp<=2?3-hp:0;
+      assert.deepEqual([...v.slice(L('M3H_DAMAGE_STAGE'),L('M3H_DAMAGE_STAGE')+2)],[stage,stage]);
+      for(const slot of [0,1])assert.deepEqual(v.slice(0x3d00+slot*256,0x3e00+slot*256),
+        plane(generated.stages[shape===2?1:0][stage],before[slot]));
+      assert.equal(v[L('_heavy_breakup_pending')],0);
+      console.log(JSON.stringify({event:'live-damage',shape,difficulty,hp,cycles:event.cycles}));
+    }
+    assert.equal(v[L('_heavy_damage_pending')],0,'old request byte remains reserved');
+  }
+});
+
+test('H14 token denial then rotate retry coalesces both members by the third frame',()=>{
+  for(const shape of [0,2]) {
+    const m=formation(shape),v=m.memory;
+    v[L('ENEMY_Y')]=v[L('ENEMY_Y')+1]=72;
+    v[L('ENEMY_HP')]=v[L('ENEMY_HP')+1]=2;call(m,'update_enemy');
+    const pmg=v.slice(0x3d00,0x3f00);
+    schedule(m,{token:false});call(m,'heavy_breakup_retry');
+    assert.equal(v[L('M3H_DAMAGE_RETRY')],1);assert.equal(v[L('_heavy_breakup_pending')],3);
+    assert.deepEqual(v.slice(0x3d00,0x3f00),pmg);
+    // A newer, lower HP supersedes the pending stage without another token.
+    v[L('ENEMY_HP')+1]=1;
+    schedule(m,{rotate:true,token:false});call(m,'heavy_breakup_retry');
+    assert.equal(v[L('_heavy_breakup_pending')],3);assert.deepEqual(v.slice(0x3d00,0x3f00),pmg);
+    schedule(m,{token:false});const forced=call(m,'heavy_breakup_retry');
+    assert.deepEqual([...v.slice(L('M3H_DAMAGE_STAGE'),L('M3H_DAMAGE_STAGE')+2)],[1,2]);
+    assert.equal(v[L('_heavy_breakup_pending')],0);assert.equal(v[L('M3H_DAMAGE_RETRY')],0);
+    console.log(JSON.stringify({event:'forced-dual',shape,cycles:forced.cycles}));
+  }
+});
+
+test('H14 first rotate denial leaves the token untouched and publishes on the next nonrotate',()=>{
+  const m=formation(),v=m.memory;v[L('ENEMY_HP')]=1;call(m,'update_enemy');
+  schedule(m,{rotate:true});call(m,'heavy_breakup_retry');
+  assert.equal(v[L('_light_token')],1);assert.equal(v[L('M3H_DAMAGE_RETRY')],1);
+  schedule(m,{token:false});call(m,'heavy_breakup_retry');assert.equal(v[L('M3H_DAMAGE_STAGE')],2);
+});
+
+test('H14 breakup retains priority and surviving requests, including the nonrotate deadline',()=>{
+  const m=formation(2),v=m.memory;
+  v[L('ENEMY_Y')]=v[L('ENEMY_Y')+1]=72;
+  v[L('ENEMY_HP')]=v[L('ENEMY_HP')+1]=1;call(m,'update_enemy');
+  v[L('ENEMY_HP')]=0;v[L('ENEMY_MEMBER_STATE')]=0;
+  v[L('_heavy_breakup_pending')]|=0x80;
+  schedule(m);call(m,'heavy_breakup_retry');
+  assert.equal(v[L('_heavy_breakup_pending')],3,'breakup clear must preserve request bits');
+  assert.equal(v[L('EFFECT_ACTIVE_COUNT')],5);
+  assert.equal(v[L('M3H_DAMAGE_STAGE')+1],0,'death got the first event');
+  schedule(m,{rotate:true,token:false});call(m,'heavy_breakup_retry');
+  assert.equal(v[L('_heavy_breakup_pending')],2,'dead request pruned');
+  schedule(m,{token:false});call(m,'heavy_breakup_retry');
+  assert.equal(v[L('M3H_DAMAGE_STAGE')],0);assert.equal(v[L('M3H_DAMAGE_STAGE')+1],2);
+});
+
+test('H14 stale/dead/assault requests and invalid-home events drop safely; admission clears all damage',()=>{
+  for(const scenario of ['dead','assault','invalid','boss-phase','already-applied']) {
+    const m=formation(0,{armoured:scenario!=='assault'}),v=m.memory;
+    v[L('ENEMY_HP')]=1;v[L('_heavy_breakup_pending')]=1;
+    if(scenario==='dead')v[L('ENEMY_MEMBER_STATE')]=0;
+    if(scenario==='invalid')v[0x86b3]=0;
+    if(scenario==='boss-phase')v[L('game_state')]=7;
+    if(scenario==='already-applied')v[L('M3H_DAMAGE_STAGE')]=2;
+    const pmg=v.slice(0x3d00,0x3f00);schedule(m);call(m,'heavy_breakup_retry');
+    assert.deepEqual(v.slice(0x3d00,0x3f00),pmg);assert.equal(v[L('_heavy_breakup_pending')],0);
+    v[0x86b3]=1;v[L('game_state')]=6;v[L('_heavy_breakup_pending')]=3;
+    call(m,'reset_enemy');assert.equal(v[L('_heavy_breakup_pending')],0);
+    assert.equal(v[L('M3H_DAMAGE_RETRY')],0);
+  }
+});
+
+test('H14 idle pending entry remains byte-exact LDY/BNE/RTS with zero added cycles',()=>{
+  const m=formation(),v=m.memory,p=L('heavy_breakup_retry'),pending=L('_heavy_breakup_pending');
+  assert.deepEqual([...v.slice(p,p+6)],[0xac,pending&255,pending>>8,0xd0,1,0x60]);
+  v[pending]=0;assert.equal(call(m,'heavy_breakup_retry').cycles,12);
 });

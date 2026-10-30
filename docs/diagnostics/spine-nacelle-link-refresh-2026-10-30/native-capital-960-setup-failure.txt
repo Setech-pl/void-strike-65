@@ -1,0 +1,23 @@
+file:///Users/marcinkrzetowski/Projects/dark-fighter-spine-b3/scripts/runtime-wall-trace.mjs:2140
+    throw new Error([
+          ^
+
+Error: /Users/marcinkrzetowski/Projects/dark-fighter-spine-b3/build/atari800-trace/src/atari800 -xl -pal -config /Users/marcinkrzetowski/Projects/dark-fighter-spine-b3/build/atari800-pinned.cfg -nobasic -nosound -turbo -no-video-accel -no-vsync build/l2-capital-960/runtime-wall-trace/media/l2-960-2-brake.atr failed with status 2
+Reading Atari800 config file: /Users/marcinkrzetowski/Projects/dark-fighter-spine-b3/build/atari800-pinned.cfg
+Created by Atari 800 Emulator, Version 7.1.2
+
+Cannot use OpenGL - unable to dynamically open OpenGL library: No dynamic OpenGL support in current SDL video driver (dummy)
+
+Requested resolution 1728x1117 is too big, using 1024x768 instead.
+Video Mode: 1024x768x32 fullscreen 
+
+L2 lifetime requires ownership images
+
+    at run (file:///Users/marcinkrzetowski/Projects/dark-fighter-spine-b3/scripts/runtime-wall-trace.mjs:2140:11)
+    at main (file:///Users/marcinkrzetowski/Projects/dark-fighter-spine-b3/scripts/runtime-wall-trace.mjs:4938:7)
+    at file:///Users/marcinkrzetowski/Projects/dark-fighter-spine-b3/scripts/runtime-wall-trace.mjs:9891:1
+    at ModuleJob.run (node:internal/modules/esm/module_job:569:25)
+    at async node:internal/modules/esm/loader:650:26
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:105:5)
+
+Node.js v26.12.1

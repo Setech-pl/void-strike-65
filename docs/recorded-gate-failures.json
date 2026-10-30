@@ -391,5 +391,839 @@
         "epitaph": "MEASURED 2026-10-01: on HARD the hostile shells of level 1 stop at Y 180, under the policy's shell_y >= 191; on MEDIUM (probe) they follow the player and stop at Y 156, so a difficulty change does not repair it. RENAMED 2026-09-30 with its session (owner decision 1, docs/plans/atr-only-build.md §5): the XEX-only session switched to the ATR as -atr-hard. Owner decision 2026-10-01 (trace-clause-repairs, Q3): stays recorded, reclassified from pre-existing-unclassified to (a); the redesign of the contact scenarios is chore/contact-scenario-redesign. RE-DIAGNOSED 2026-10-02 (contact-scenario-redesign, owner decision Q1: kept as it is, class (a)): (1) its steering `target_y = shell_y - 7` predates the final-raster collision of 4753399, so even a qualifying shell cannot give the mode-1 raster contact; (2) on HARD level 1 a low hostile shell (BROAD_Y >= 191) is rare and late: with the contact preamble and a passive player the hostile launches after the sector opens are fixed (116, 180, 180, 116, 172, 172, 180, 180 through +908) whatever the preamble row, and low ones appeared only after ~+840 frames (220 at 1504, 212 at 1582, 220 at +917), each time behind a debris hit or a low Allied damage call. The lower-row contact raster is gated since then by the Allied session lower-playfield-allied-contact-atr-hard. Follow-up: the hostile lower-row contact gets an honest scenario in M5, where the boss's lasers make low hostile shells frequent; the M5 plan must cover it."
       }
     ]
-  }
+  },
+  "unit_test_debt": [
+    {
+      "task": "spine-nacelle-link main refresh, 2026-10-30",
+      "baseline_head": "a0660986a4c45d54ed7022d7fd0edd2206f17703",
+      "policy": "Per-task gate policy, 2026-10-30: record failures reproduced on main as debt.",
+      "measurement": "docs/diagnostics/spine-nacelle-link-refresh-2026-10-30/raw-test-comparison.json",
+      "scope": "Unit failures only. Existing runtime failures array and canonical runtime evidence are unchanged.",
+      "class": "pre-existing-unclassified",
+      "failures": [
+        {
+          "file": "tests/basic-window-capacity.test.mjs",
+          "test": "the window's free tail agrees with the linker map's Light kernel tail",
+          "first_failing_assertion": "tests/basic-window-capacity.test.mjs:39",
+          "first_failing_message": "Expected values to be strictly equal:"
+        },
+        {
+          "file": "tests/basic-window-capacity.test.mjs",
+          "test": "the window has room for the Director: the free tail stays at 900 B or more",
+          "first_failing_assertion": "tests/basic-window-capacity.test.mjs:131",
+          "first_failing_message": "L1 moves Light out of the BASIC window"
+        },
+        {
+          "file": "tests/booster-admission-diagnostic.test.mjs",
+          "test": "every third idle-slot qualifying kill creates one deterministic pending capsule",
+          "first_failing_assertion": "tests/booster-admission-diagnostic.test.mjs:75",
+          "first_failing_message": "Expected values to be strictly equal:"
+        },
+        {
+          "file": "tests/boot-loading-blank-screen.test.mjs",
+          "test": "the blanking costs 9 bytes of the initial block and no sector",
+          "first_failing_assertion": "tests/boot-loading-blank-screen.test.mjs:63",
+          "first_failing_message": "Expected values to be strictly equal:"
+        },
+        {
+          "file": "tests/boss-band.test.mjs",
+          "test": "the level image still ends before $AC80, where band rows 6-7 and the tables land",
+          "first_failing_assertion": "tests/boss-band.test.mjs:168",
+          "first_failing_message": "level 1 is 2048 B and would reach band B at $AC80"
+        },
+        {
+          "file": "tests/boss-banners.test.mjs",
+          "test": "decision AY: each region's banner picture, its packed size and its sectors are the pinned ones",
+          "first_failing_assertion": "tests/boss-banners.test.mjs:87",
+          "first_failing_message": "region 1 (Blockade Breaker): the entry's sectors"
+        },
+        {
+          "file": "tests/boss-banners.test.mjs",
+          "test": "region 1 (Blockade Breaker): the reads - theme, banner, then the boss's data in today's order - and the main loop",
+          "first_failing_assertion": "tests/boss-banners.test.mjs:188",
+          "first_failing_message": "Expected values to be strictly deep-equal:"
+        },
+        {
+          "file": "tests/boss-banners.test.mjs",
+          "test": "region 2 (Void Citadel): the reads - theme, banner, then the boss's data in today's order - and the main loop",
+          "first_failing_assertion": "tests/boss-banners.test.mjs:188",
+          "first_failing_message": "Expected values to be strictly deep-equal:"
+        },
+        {
+          "file": "tests/boss-banners.test.mjs",
+          "test": "region 3 (Siege Spine): the reads - theme, banner, then the boss's data in today's order - and the main loop",
+          "first_failing_assertion": "tests/boss-banners.test.mjs:188",
+          "first_failing_message": "Expected values to be strictly deep-equal:"
+        },
+        {
+          "file": "tests/boss-banners.test.mjs",
+          "test": "region 4 (Bastion): the reads - theme, banner, then the boss's data in today's order - and the main loop",
+          "first_failing_assertion": "tests/boss-banners.test.mjs:188",
+          "first_failing_message": "Expected values to be strictly deep-equal:"
+        },
+        {
+          "file": "tests/boss-lasers.test.mjs",
+          "test": "leaving by the win: the lasers off, the column erased, COLPM1 / COLPM2 restored, PRIOR never written",
+          "first_failing_assertion": "tests/boss-lasers.test.mjs:481",
+          "first_failing_message": "the win: COLPM1 not restored"
+        },
+        {
+          "file": "tests/boss-order-scale.test.mjs",
+          "test": "the curve evidence was measured on this data, three replays a cell, every fight finished",
+          "first_failing_assertion": "tests/boss-order-scale.test.mjs:70",
+          "first_failing_message": "the curve is stale: the boss data or the bossDef changed since"
+        },
+        {
+          "file": "tests/boss-overlay.test.mjs",
+          "test": "the window pays the entry's resident half inside the plan's S3 figure, and last",
+          "first_failing_assertion": "tests/boss-overlay.test.mjs:227",
+          "first_failing_message": "Expected values to be strictly equal:"
+        },
+        {
+          "file": "tests/boss-polish.test.mjs",
+          "test": "HULL: a spent quarter is the HUD's blank, as a spent BOOST cell - full, partial and empty hull",
+          "first_failing_assertion": "tests/boss-polish.test.mjs:50",
+          "first_failing_message": "hull 3 of 10"
+        },
+        {
+          "file": "tests/boss-polish.test.mjs",
+          "test": "HULL: the respawn's full hull shows four plates again",
+          "first_failing_assertion": "tests/boss-polish.test.mjs:60",
+          "first_failing_message": "the respawn's HUD"
+        },
+        {
+          "file": "tests/boss-polish.test.mjs",
+          "test": "HULL: the boss sector's HUD, rebuilt by the install, blanks the spent quarters too",
+          "first_failing_assertion": "tests/boss-polish.test.mjs:71",
+          "first_failing_message": "boss HUD at hull 10"
+        },
+        {
+          "file": "tests/boss-region-2.test.mjs",
+          "test": "region 2 is the Bastion from its own draft: the wide hangar, the bays, the rails, on the built disk",
+          "first_failing_assertion": "tests/boss-region-2.test.mjs:164",
+          "first_failing_message": "the Bastion's boss entry is 88 sectors (RE-PINNED M6 stage 1b: the lance run's two more)"
+        },
+        {
+          "file": "tests/boss-region-2.test.mjs",
+          "test": "the doors: locked until every cannon and rail gun is destroyed or covered; then open, flashing, sounding; the core behind them, last",
+          "first_failing_assertion": "tests/boss-region-2.test.mjs:340",
+          "first_failing_message": "routine $366a did not return"
+        },
+        {
+          "file": "tests/boss-region-4.test.mjs",
+          "test": "the pull: towards the axis, 2 clocks every 4 frames (G2), only while a spire stands, the fight on and the ship alive",
+          "first_failing_assertion": "tests/boss-region-4.test.mjs:202",
+          "first_failing_message": "routine $366a did not return"
+        },
+        {
+          "file": "tests/boss-runtime.test.mjs",
+          "test": "the win: the chain, the shake and the flash, then the hand-off to the level summary with the fight's time",
+          "first_failing_assertion": "tests/boss-runtime.test.mjs:639",
+          "first_failing_message": "the boss never handed off to the level summary"
+        },
+        {
+          "file": "tests/boss-s4b5.test.mjs",
+          "test": "slot E's contract, by the source: only draw_hull_row reads the hull maps; only start_gameplay rebuilds them",
+          "first_failing_assertion": "tests/boss-s4b5.test.mjs:130",
+          "first_failing_message": "who names $4C00-$4E3F"
+        },
+        {
+          "file": "tests/broadside-fire.test.mjs",
+          "test": "capital/player collision agrees with independently reconstructed final raster Y",
+          "first_failing_assertion": "tests/broadside-fire.test.mjs:453",
+          "first_failing_message": "top edge: independent raster premise; PMG 118..132, screen $8320 glyph 105..110"
+        },
+        {
+          "file": "tests/broadside-fire.test.mjs",
+          "test": "capital cadence restores the legacy world rate without changing fighter timing",
+          "first_failing_assertion": "tests/broadside-fire.test.mjs:972",
+          "first_failing_message": "The input did not match the regular expression /cmp #CAPITAL_HULL_STATE_OPEN[\\s\\S]+lda world_scroll_rates,x[\\s\\S]+asl[\\s\\S]+lda hull_scroll_rates,x[\\s\\S]+cmp #HULL_SCROLL_RATE_DENOMINATOR[\\s\\S]+sbc #HULL_SCROLL_RATE_DENOMINATOR/. Input:"
+        },
+        {
+          "file": "tests/broadside-fire.test.mjs",
+          "test": "assembled 16-bit hull visibility maps states 0-5 and rejects terminal COMPLETE/OPEN",
+          "first_failing_assertion": "tests/broadside-fire.test.mjs:2002",
+          "first_failing_message": "capital state 5 collision sector row"
+        },
+        {
+          "file": "tests/capital-hull-extension.test.mjs",
+          "test": "the final ATR publishes the exact seeded hull layout bytes",
+          "first_failing_assertion": "tests/capital-hull-extension.test.mjs:147",
+          "first_failing_message": "atr/allied layout bytes differ from the source generator"
+        },
+        {
+          "file": "tests/capital-hulls.test.mjs",
+          "test": "assembled gameplay display list and DLI switch a dedicated ANTIC 2 HUD",
+          "first_failing_assertion": "tests/capital-hulls.test.mjs:238",
+          "first_failing_message": "CH_HUD_HULL_FULL must use its shape-distinct dedicated HUD glyph"
+        },
+        {
+          "file": "tests/capital-hulls.test.mjs",
+          "test": "assembled ANTIC 2 HUD keeps independent live score, life, and hull fields",
+          "first_failing_assertion": "tests/capital-hulls.test.mjs:281",
+          "first_failing_message": "score digit at screen offset 6 must remain live"
+        },
+        {
+          "file": "tests/cold-pickup-record-fit.test.mjs",
+          "test": "fit preserves the reviewed staging and placement gates",
+          "first_failing_assertion": "tests/cold-pickup-record-fit.test.mjs:121",
+          "first_failing_message": "Expected values to be strictly equal:"
+        },
+        {
+          "file": "tests/encounter-director.test.mjs",
+          "test": "debris admission follows the sector mask and the capital traversal exception",
+          "first_failing_assertion": "tests/encounter-director.test.mjs:498",
+          "first_failing_message": "the same debris request must be admitted once the capital traversal is active"
+        },
+        {
+          "file": "tests/encounter-director.test.mjs",
+          "test": "scheduler ownership remains single-source and lifecycle-owned",
+          "first_failing_assertion": "tests/encounter-director.test.mjs:575",
+          "first_failing_message": "integration_update_enemy"
+        },
+        {
+          "file": "tests/encounter-director.test.mjs",
+          "test": "two PMG Raiders keep separate HP, score once, and preserve the surviving machine",
+          "first_failing_assertion": "tests/encounter-director.test.mjs:676",
+          "first_failing_message": "both Raiders must enter naturally at their old formation anchors"
+        },
+        {
+          "file": "tests/encounter-director.test.mjs",
+          "test": "the shared burst alternates two real Raider origins and skips a destroyed owner",
+          "first_failing_assertion": "tests/encounter-director.test.mjs:750",
+          "first_failing_message": "Expected values to be strictly deep-equal:"
+        },
+        {
+          "file": "tests/encounter-director.test.mjs",
+          "test": "the hazard mask is the sector's own, while the capital gate stays local",
+          "first_failing_assertion": "tests/encounter-director.test.mjs:43",
+          "first_failing_message": "Error: L2 islands: capital hazards.debris must be zero"
+        },
+        {
+          "file": "tests/encounter-director.test.mjs",
+          "test": "natural Level 1 reaches a visible two-sided BROADSIDE without state injection",
+          "first_failing_assertion": "tests/encounter-director.test.mjs:1005",
+          "first_failing_message": "difficulty 0 capital must be due on level 1's authored row"
+        },
+        {
+          "file": "tests/enemy-combat.test.mjs",
+          "test": "release Interceptor enters progressively and naturally reaches burst allocation",
+          "first_failing_assertion": "tests/enemy-combat.test.mjs:318",
+          "first_failing_message": "The input did not match the regular expression /void enemy_c_spawn_raiders[\\s\\S]+ENEMY_HP_0 = HEAVY_FIELD\\(ENEMY_ARCHETYPE_FIELD_HIT_POINTS\\)[\\s\\S]+ENEMY_LIVE_COUNT = RAIDER_SLOT_COUNT/. Input:"
+        },
+        {
+          "file": "tests/entity-effects.test.mjs",
+          "test": "capital debris uses existing 3/4/5 pressure ceilings on EASY, MEDIUM and HARD",
+          "first_failing_assertion": "tests/entity-effects.test.mjs:770",
+          "first_failing_message": "difficulty 0 did not admit one debris beside capital pressure"
+        },
+        {
+          "file": "tests/entity-effects.test.mjs",
+          "test": "debris damage updates HULL plates in the contact frame and enters canonical death flow",
+          "first_failing_assertion": "tests/entity-effects.test.mjs:1182",
+          "first_failing_message": "MEDIUM 10->5 must be visible in the HUD before the collision routine returns"
+        },
+        {
+          "file": "tests/flagship-sector.test.mjs",
+          "test": "assembled sector dictionaries, sequences, and overlays match the source asset",
+          "first_failing_assertion": "tests/flagship-sector.test.mjs:199",
+          "first_failing_message": "Expected values to be strictly deep-equal:"
+        },
+        {
+          "file": "tests/formats.test.mjs",
+          "test": "ATR uses standard single-density geometry",
+          "first_failing_assertion": "tests/formats.test.mjs:35",
+          "first_failing_message": "Expected values to be strictly equal:"
+        },
+        {
+          "file": "tests/formats.test.mjs",
+          "test": "resident compaction proof survives and Spread Shot leaves at least 64 source-owned bytes",
+          "first_failing_assertion": "tests/formats.test.mjs:112",
+          "first_failing_message": "Expected values to be strictly equal:"
+        },
+        {
+          "file": "tests/formats.test.mjs",
+          "test": "the code window is declared, guarded and addressable by the build",
+          "first_failing_assertion": "tests/formats.test.mjs:184",
+          "first_failing_message": "Expected values to be strictly equal:"
+        },
+        {
+          "file": "tests/frontend.test.mjs",
+          "test": "menu PlayerFighter is charset-only, frontend PMG stays disabled, and gameplay setup is restored",
+          "first_failing_assertion": "tests/frontend.test.mjs:559",
+          "first_failing_message": "The input did not match the regular expression /sta GRACTL[\\s\\S]+jsr clear_pmg_graphics_latches[\\s\\S]+jsr select_frontend_display/. Input:"
+        },
+        {
+          "file": "tests/frontend.test.mjs",
+          "test": "frontend entry clears stale player and missile graphics latches before DMA resumes",
+          "first_failing_assertion": "tests/frontend.test.mjs:593",
+          "first_failing_message": "main frontend entry must clear PMG graphics latches while display DMA is blanked"
+        },
+        {
+          "file": "tests/game-over.test.mjs",
+          "test": "GAME OVER leaves the gameplay loop before control, combat, spawn, and scoring",
+          "first_failing_assertion": "tests/game-over.test.mjs:152",
+          "first_failing_message": "The input did not match the regular expression /lda #\\$00[\\s\\S]+sta DMACTL[\\s\\S]+sta GRACTL[\\s\\S]+jsr clear_pmg_graphics_latches[\\s\\S]+sta frontend_input_armed/. Input:"
+        },
+        {
+          "file": "tests/gameplay-music-placement.test.mjs",
+          "test": "STARFIELD is smaller than before the move, and the room is still reserved",
+          "first_failing_assertion": "tests/gameplay-music-placement.test.mjs:147",
+          "first_failing_message": "only owner decision A' may grow STARFIELD"
+        },
+        {
+          "file": "tests/gameplay-music-placement.test.mjs",
+          "test": "the ATR START GAME read grows by the planned five plus three plus five sectors and no more",
+          "first_failing_assertion": "tests/gameplay-music-placement.test.mjs:174",
+          "first_failing_message": "Expected values to be strictly equal:"
+        },
+        {
+          "file": "tests/gameplay-speed-tuning.test.mjs",
+          "test": "capital traversal restores the pre-tuning rate while fighter rates stay exact",
+          "first_failing_assertion": "tests/gameplay-speed-tuning.test.mjs:96",
+          "first_failing_message": "The input did not match the regular expression /cmp #CAPITAL_HULL_STATE_OPEN[\\s\\S]+lda world_scroll_rates,x[\\s\\S]+asl[\\s\\S]+lda hull_scroll_rates,x/. Input:"
+        },
+        {
+          "file": "tests/gfx-pins.test.mjs",
+          "test": "the art outside the boss band: build/capital-hulls.inc is the pinned bytes",
+          "first_failing_assertion": "tests/gfx-pins.test.mjs:73",
+          "first_failing_message": "build/capital-hulls.inc changed: re-pin only with the owner decision that changes this art (docs/diagnostics/gfx-regression-2026-10-16.md)"
+        },
+        {
+          "file": "tests/gfx-pins.test.mjs",
+          "test": "the art outside the boss band: build/entity-effects.inc is the pinned bytes",
+          "first_failing_assertion": "tests/gfx-pins.test.mjs:73",
+          "first_failing_message": "build/entity-effects.inc changed: re-pin only with the owner decision that changes this art (docs/diagnostics/gfx-regression-2026-10-16.md)"
+        },
+        {
+          "file": "tests/gfx-pins.test.mjs",
+          "test": "the boss link's colour, charset and DLI-vector stores: only the pinned routines",
+          "first_failing_assertion": "tests/gfx-pins.test.mjs:162",
+          "first_failing_message": "a new colour, charset or DLI-vector store in the boss link: show it stays in the band, then re-pin"
+        },
+        {
+          "file": "tests/github-showcase.test.mjs",
+          "test": "showcase manifest binds every image to the current packed release",
+          "first_failing_assertion": "tests/github-showcase.test.mjs:37",
+          "first_failing_message": "Expected values to be strictly equal:"
+        },
+        {
+          "file": "tests/github-showcase.test.mjs",
+          "test": "showcase and asset sheets regenerate without ignored capture files",
+          "first_failing_assertion": "tests/github-showcase.test.mjs:76",
+          "first_failing_message": "Error: Runtime wall trace does not match the current release ATR"
+        },
+        {
+          "file": "tests/github-showcase.test.mjs",
+          "test": "gameplay GIF is bound to the current ATR and stays within budget",
+          "first_failing_assertion": "tests/github-showcase.test.mjs:194",
+          "first_failing_message": "the GIF predates the current ATR; rerun npm run showcase:gif"
+        },
+        {
+          "file": "tests/hud-audit.test.mjs",
+          "test": "boss entry: every HUD cell as it was before the WARNING screen (booster: rapid)",
+          "first_failing_assertion": "tests/hud-audit.test.mjs:76",
+          "first_failing_message": "Expected values to be strictly deep-equal:"
+        },
+        {
+          "file": "tests/hud-audit.test.mjs",
+          "test": "boss entry: every HUD cell as it was before the WARNING screen (booster: spread)",
+          "first_failing_assertion": "tests/hud-audit.test.mjs:76",
+          "first_failing_message": "Expected values to be strictly deep-equal:"
+        },
+        {
+          "file": "tests/hud-audit.test.mjs",
+          "test": "boss entry: every HUD cell as it was before the WARNING screen (booster: shield)",
+          "first_failing_assertion": "tests/hud-audit.test.mjs:76",
+          "first_failing_message": "Expected values to be strictly deep-equal:"
+        },
+        {
+          "file": "tests/hud-audit.test.mjs",
+          "test": "boss entry: every HUD cell as it was before the WARNING screen (booster: none)",
+          "first_failing_assertion": "tests/hud-audit.test.mjs:76",
+          "first_failing_message": "Expected values to be strictly deep-equal:"
+        },
+        {
+          "file": "tests/hud-audit.test.mjs",
+          "test": "the gameplay start after the summary (START GAME): the HUD drawn whole from the state, the booster idle",
+          "first_failing_assertion": "tests/hud-audit.test.mjs:128",
+          "first_failing_message": "the score cells show 00000"
+        },
+        {
+          "file": "tests/hud-bottom.test.mjs",
+          "test": "§BL 3: a lance ready keeps the four cells full - through the charge, a miss and the torpedo's flight - and a kill empties them",
+          "first_failing_assertion": "tests/hud-bottom.test.mjs:147",
+          "first_failing_message": "the torpedo fired"
+        },
+        {
+          "file": "tests/hud-status.test.mjs",
+          "test": "HUD template keeps full LIFE/HULL labels and four fixed hull plates",
+          "first_failing_assertion": "tests/hud-status.test.mjs:50",
+          "first_failing_message": "The input did not match the regular expression /hud_ascii:\\s*\\.byte \"SCORE 00000  LIFE 3 HULL \"/. Input:"
+        },
+        {
+          "file": "tests/hull-length.test.mjs",
+          "test": "T7: a short hull is right-aligned - it ends on row 479, where the prow always ended",
+          "first_failing_assertion": "tests/hull-length.test.mjs:97",
+          "first_failing_message": "aft, combat, forward, prow in absolute modules; engines start at 16"
+        },
+        {
+          "file": "tests/hull-length.test.mjs",
+          "test": "T7: the phase machine reads the page - a 352-row hull enters DRAIN at row 488",
+          "first_failing_assertion": "tests/hull-length.test.mjs:138",
+          "first_failing_message": "level 2, row 160"
+        },
+        {
+          "file": "tests/hull-length.test.mjs",
+          "test": "T7: the resolvers read the page's sequences at $AC08/$AC44",
+          "first_failing_assertion": "tests/hull-length.test.mjs:164",
+          "first_failing_message": "Expected values to be strictly equal:"
+        },
+        {
+          "file": "tests/hull-length.test.mjs",
+          "test": "T7: capital entry starts level 2's row clock at row 128, level 1's at row 0",
+          "first_failing_assertion": "tests/hull-length.test.mjs:175",
+          "first_failing_message": "level 1: the capital is admitted on its authored row"
+        },
+        {
+          "file": "tests/hybrid-c-arena.test.mjs",
+          "test": "HYBRID_C_ARENA is one contiguous 832-B arena at $7BD0-$7F0F",
+          "first_failing_assertion": "tests/hybrid-c-arena.test.mjs:75",
+          "first_failing_message": "Expected values to be strictly deep-equal:"
+        },
+        {
+          "file": "tests/hybrid-c-arena.test.mjs",
+          "test": "the arena lands directly as its own DFMC record and is the only owner of its range",
+          "first_failing_assertion": "tests/hybrid-c-arena.test.mjs:149",
+          "first_failing_message": "Expected values to be strictly deep-equal:"
+        },
+        {
+          "file": "tests/hybrid-lifecycle.test.mjs",
+          "test": "C EnemyArchetype is a compact exact Raider record in legal extension placement",
+          "first_failing_assertion": "tests/hybrid-lifecycle.test.mjs:137",
+          "first_failing_message": "Expected values to be strictly deep-equal:"
+        },
+        {
+          "file": "tests/hybrid-lifecycle.test.mjs",
+          "test": "C maps the existing capital corridor phases and complete lifecycle exactly",
+          "first_failing_assertion": "tests/hybrid-lifecycle.test.mjs:174",
+          "first_failing_message": "phase $20"
+        },
+        {
+          "file": "tests/hybrid-lifecycle.test.mjs",
+          "test": "ownership is singular and generated C requires neither software stack nor runtime helpers",
+          "first_failing_assertion": "tests/hybrid-lifecycle.test.mjs:315",
+          "first_failing_message": "Expected values to be strictly deep-equal:"
+        },
+        {
+          "file": "tests/interceptor-armour.test.mjs",
+          "test": "H3 from data: the record's hit points, no armour bit in any wave of any level",
+          "first_failing_assertion": "tests/interceptor-armour.test.mjs:228",
+          "first_failing_message": "no armour field in the level format"
+        },
+        {
+          "file": "tests/island-edge-contact.test.mjs",
+          "test": "exact contact leaves both unfired side lanes clear at every row and phase",
+          "first_failing_assertion": "tests/island-edge-contact.test.mjs:17",
+          "first_failing_message": "passage 480/0/688/0/92/4"
+        },
+        {
+          "file": "tests/lance.test.mjs",
+          "test": "M6 (decision BD 6): the build fails when the window's record grows into the lance's RAM",
+          "first_failing_assertion": "tests/lance.test.mjs:218",
+          "first_failing_message": "Expected values to be strictly equal:"
+        },
+        {
+          "file": "tests/level-buffer-16.test.mjs",
+          "test": "Q-1: HYBRID_C_WINDOW is $AE00-$BBFF, 3,584 B, and still stops at the reader BSS",
+          "first_failing_assertion": "tests/level-buffer-16.test.mjs:77",
+          "first_failing_message": "the Light C, the cold Director half, step 5, the boss entry, sector flow, the escort clock"
+        },
+        {
+          "file": "tests/level-buffer-16.test.mjs",
+          "test": "Q-1: the window record lands at $AE00 and costs no extra transport",
+          "first_failing_assertion": "tests/level-buffer-16.test.mjs:140",
+          "first_failing_message": "the window record carries steps 2-5, the boss entry, sector flow and the escort clock"
+        },
+        {
+          "file": "tests/level-buffer-16.test.mjs",
+          "test": "Q-1: level 1 still loads the same image the same way",
+          "first_failing_assertion": "tests/level-buffer-16.test.mjs:173",
+          "first_failing_message": "Expected values to be strictly deep-equal:"
+        },
+        {
+          "file": "tests/level-hull-block.test.mjs",
+          "test": "the ATR reads thirteen sectors at START GAME, and the reader still fits",
+          "first_failing_assertion": "tests/level-hull-block.test.mjs:273",
+          "first_failing_message": "Expected values to be strictly equal:"
+        },
+        {
+          "file": "tests/level-one-equivalence.test.mjs",
+          "test": "T4: the capital admits no later than the authored row, and early only once sector 0 is spent",
+          "first_failing_assertion": "tests/level-one-equivalence.test.mjs:67",
+          "first_failing_message": "the capital admits on row 273, after the authored maximum 272"
+        },
+        {
+          "file": "tests/level-one-equivalence.test.mjs",
+          "test": "owner decision 8 / W1: re-authoring the waves left the capital where it was; W1 moved the level's end",
+          "first_failing_assertion": "tests/level-one-equivalence.test.mjs:235",
+          "first_failing_message": "Expected values to be strictly equal:"
+        },
+        {
+          "file": "tests/level-one-waves.test.mjs",
+          "test": "sector flow: with no kills the swarm's three waves arm and drain, (a) opens within its ceiling, (b)'s Raiders arrive",
+          "first_failing_assertion": "tests/level-one-waves.test.mjs:223",
+          "first_failing_message": "difficulty 0: (b)'s Raiders never arrived with no kills"
+        },
+        {
+          "file": "tests/level-payload.test.mjs",
+          "test": "T13: only the Director's sector entry writes the star operand",
+          "first_failing_assertion": "tests/level-payload.test.mjs:417",
+          "first_failing_message": "declared once, called once - from enter_sector"
+        },
+        {
+          "file": "tests/level-summary-build.test.mjs",
+          "test": "the overlay directory has eleven entries; the summary code is entry 8 at $0500",
+          "first_failing_assertion": "tests/level-summary-build.test.mjs:55",
+          "first_failing_message": "Expected values to be strictly equal:"
+        },
+        {
+          "file": "tests/level-summary-build.test.mjs",
+          "test": "disk runs never overlap: levels, the capital restore, M5b's reservation, the summary",
+          "first_failing_assertion": "tests/level-summary-build.test.mjs:261",
+          "first_failing_message": "seven sectors since M6 stage 1b's gauges (five at §BH, four at §BG)"
+        },
+        {
+          "file": "tests/level-summary-build.test.mjs",
+          "test": "ENGAGING ENEMY SECTOR is one record in the reader, reused by the module; no AI line in either",
+          "first_failing_assertion": "tests/level-summary-build.test.mjs:453",
+          "first_failing_message": "the window moved"
+        },
+        {
+          "file": "tests/level-summary.test.mjs",
+          "test": "the summary stays up at least 3 s and FIRE continues only after the level has arrived (Q15)",
+          "first_failing_assertion": "tests/level-summary.test.mjs:766",
+          "first_failing_message": "the level was not the last read"
+        },
+        {
+          "file": "tests/level-summary.test.mjs",
+          "test": "the art and the restore precede the level, the level is read tail first, the record last of the reads",
+          "first_failing_assertion": "tests/level-summary.test.mjs:787",
+          "first_failing_message": "Expected values to be strictly deep-equal:"
+        },
+        {
+          "file": "tests/level-summary.test.mjs",
+          "test": "the second START GAME of a session reads no code and no level",
+          "first_failing_assertion": "tests/level-summary.test.mjs:800",
+          "first_failing_message": "the summary code and the resident level must not be read again"
+        },
+        {
+          "file": "tests/level-summary.test.mjs",
+          "test": "AUD-02: a changed byte in the level image is refused before its music player runs (owner Q3)",
+          "first_failing_assertion": "tests/level-summary.test.mjs:1260",
+          "first_failing_message": "the damaged level image was accepted"
+        },
+        {
+          "file": "tests/light-interceptor.test.mjs",
+          "test": "placement contract: legal composite and packed size, state inside its reserved windows, no C stack",
+          "first_failing_assertion": "tests/light-interceptor.test.mjs:532",
+          "first_failing_message": "Expected values to be strictly equal:"
+        },
+        {
+          "file": "tests/light-wingman.test.mjs",
+          "test": "Light kernel placement is legal, resident and inside every reviewed gate",
+          "first_failing_assertion": "tests/light-wingman.test.mjs:241",
+          "first_failing_message": "ENTITY_CODE staging margin tracks the Light art tables"
+        },
+        {
+          "file": "tests/master-pal-clock.test.mjs",
+          "test": "starfield observes but never owns world and hull accumulator clocks",
+          "first_failing_assertion": "tests/master-pal-clock.test.mjs:118",
+          "first_failing_message": "The input did not match the regular expression /cmp #CAPITAL_HULL_STATE_OPEN[\\s\\S]+lda world_scroll_rates,x[\\s\\S]+asl[\\s\\S]+lda hull_scroll_rates,x/. Input:"
+        },
+        {
+          "file": "tests/menu-raster.test.mjs",
+          "test": "native menu raster is exact for the ATR and four cold RAM fills",
+          "first_failing_assertion": "tests/menu-raster.test.mjs:41",
+          "first_failing_message": "atr-00 evidence must describe the current artifact"
+        },
+        {
+          "file": "tests/offscreen-spawn.test.mjs",
+          "test": "Heavy entry reaches the old per-slot anchors before unchanged crossing motion",
+          "first_failing_assertion": "tests/offscreen-spawn.test.mjs:167",
+          "first_failing_message": "Expected values to be strictly deep-equal:"
+        },
+        {
+          "file": "tests/overlay-slot.test.mjs",
+          "test": "nothing outside the capital group names a label inside slot A",
+          "first_failing_assertion": "tests/overlay-slot.test.mjs:138",
+          "first_failing_message": "code outside the capital group reaches into slot A without the vector table"
+        },
+        {
+          "file": "tests/overlay-slot.test.mjs",
+          "test": "the capital restore run on the disk is the resident image of slot A",
+          "first_failing_assertion": "tests/overlay-slot.test.mjs:164",
+          "first_failing_message": "Expected values to be strictly equal:"
+        },
+        {
+          "file": "tests/package-release.test.mjs",
+          "test": "M5-05: the release zip carries LICENSE, LICENSE-ASSETS and THIRD_PARTY_NOTICES.md",
+          "first_failing_assertion": "tests/package-release.test.mjs:44",
+          "first_failing_message": "Error: Runtime wall trace binding mismatch for void-strike-65-boot.bin"
+        },
+        {
+          "file": "tests/pickup-boost-colour.test.mjs",
+          "test": "COLPM3 follows the sector state, once per frame, off the latch that exists",
+          "first_failing_assertion": "tests/pickup-boost-colour.test.mjs:126",
+          "first_failing_message": "an OPEN frame gives COLPM3 to the capsule"
+        },
+        {
+          "file": "tests/pickup-pmg-raster-visibility.test.mjs",
+          "test": "each booster type carries its own recovered capsule silhouette",
+          "first_failing_assertion": "tests/pickup-pmg-raster-visibility.test.mjs:25",
+          "first_failing_message": "missing fighter_pickup_pmg_shape:"
+        },
+        {
+          "file": "tests/pickup-pmg-raster-visibility.test.mjs",
+          "test": "the three silhouettes are visually distinguishable",
+          "first_failing_assertion": "tests/pickup-pmg-raster-visibility.test.mjs:25",
+          "first_failing_message": "missing fighter_pickup_pmg_shape:"
+        },
+        {
+          "file": "tests/pickup-pmg-raster-visibility.test.mjs",
+          "test": "the shape table is in plain player bit order, with no fifth-player residue",
+          "first_failing_assertion": "tests/pickup-pmg-raster-visibility.test.mjs:25",
+          "first_failing_message": "missing ; Per-type capsule silhouettes"
+        },
+        {
+          "file": "tests/player-fire-audio.test.mjs",
+          "test": "master PAL gate makes transition-only fire/audio catch-up obsolete",
+          "first_failing_assertion": "tests/player-fire-audio.test.mjs:59",
+          "first_failing_message": "The input did not match the regular expression /lda FIGHTER_PROJECTILE_PUBLICATION_FRAME\\s+beq @fighter_window[\\s\\S]+jsr erase_dynamic_near_star_overlays\\s+jsr publish_dynamic_near_star_phase\\s+jmp fighter_projectile_publication_capital_render\\s+@fighter_window:\\s+lda #PICKUP_BOOST_COLOUR\\s+sta COLPM3\\s+ldx #\\$77\\s+jsr wait_frame_at_line\\s+fighter_projectile_publication_begin/. Input:"
+        },
+        {
+          "file": "tests/preview.test.mjs",
+          "test": "preview consumes the canonical charset, screen, PMG, and palette source",
+          "first_failing_assertion": "tests/preview.test.mjs:164",
+          "first_failing_message": "the gameplay preview must change when player_shape changes"
+        },
+        {
+          "file": "tests/preview.test.mjs",
+          "test": "Rapid Fire owner preview executes the packed ATR pickup lifecycle",
+          "first_failing_assertion": "tests/preview.test.mjs:335",
+          "first_failing_message": "Error: Rapid burst requires collected runtime state (state=0, pickup=0, pickupY=104, playerY=102)"
+        },
+        {
+          "file": "tests/preview.test.mjs",
+          "test": "Spread Shot owner preview is deterministic executed ATR gameplay",
+          "first_failing_assertion": "tests/preview.test.mjs:423",
+          "first_failing_message": "Expected values to be strictly deep-equal:"
+        },
+        {
+          "file": "tests/release-gate-semantics.test.mjs",
+          "test": "the recorded-failure list is one data file, and every entry carries a class and a measurement",
+          "first_failing_assertion": "tests/release-gate-semantics.test.mjs:44",
+          "first_failing_message": "director-complete-0-natural-sweep-fire0 carries no measurement reference"
+        },
+        {
+          "file": "tests/release-gate-semantics.test.mjs",
+          "test": "the release gate passes on the real report, recorded failures and all",
+          "first_failing_assertion": "tests/release-gate-semantics.test.mjs:83",
+          "first_failing_message": "Final build refused by the release gate — recorded failure(s) no longer failing, so docs/recorded-gate-failures.json over-states what this build fails: aggregate/booster-rotation: Atari800 granted booster cycle was 3→3→4→5→3→4→4→5→3→4→3→4→3→4→3→4→0→5→3→4→3→4→5→0→3→4, expected a rotation of Rapid/Spread/Shield with no capsule repeating the previous one; aggregate/director-completion-evidence: Director completion trace measured 15927 frames and 0/3 level-end summaries; aggregate/dli-order: DLI phase/order violations observed: 92; capital-contact-allied-medium: capital-contact-allied-medium did not capture 16 consecutive contact rasters; director-complete-0-natural-sweep-fire0: director-complete-0-natural-sweep-fire0 did not execute LAST-SECTOR ROW CLOCK -> DRAINED BOSS ENTRY -> FIGHT -> CHAIN -> HOLD (entered 3532, entry 3613, engaged 3614, chain undefined, hold undefined, states 1); director-complete-0-natural-sweep-fire0: director-complete-0-natural-sweep-fire0 reached the summary from a boss whose core never fell; director-complete-1-natural-sweep-fire0: director-complete-1-natural-sweep-fire0 did not execute LAST-SECTOR ROW CLOCK -> DRAINED BOSS ENTRY -> FIGHT -> CHAIN -> HOLD (entered 2913, entry 2981, engaged 2982, chain undefined, hold undefined, states 1); director-complete-1-natural-sweep-fire0: director-complete-1-natural-sweep-fire0 reached the summary from a boss whose core never fell; director-complete-2-natural-sweep-fire0: director-complete-2-natural-sweep-fire0 did not execute LAST-SECTOR ROW CLOCK -> DRAINED BOSS ENTRY -> FIGHT -> CHAIN -> HOLD (entered 2747, entry 2776, engaged 2777, chain undefined, hold undefined, states 1); director-complete-2-natural-sweep-fire0: director-complete-2-natural-sweep-fire0 reached the summary from a boss whose core never fell; director-complete-2-write-protected: director-complete-2-write-protected reached the summary from a boss whose core never fell; engine-atr-5a-0-delayed: engine-atr-5a-0-delayed did not save all 150 consecutive Atari800 screenshots; engine-atr-5a-0-immediate: engine-atr-5a-0-immediate did not save all 150 consecutive Atari800 screenshots; engine-atr-5a-1-delayed: engine-atr-5a-1-delayed did not save all 150 consecutive Atari800 screenshots; engine-atr-5a-1-immediate: engine-atr-5a-1-immediate did not save all 150 consecutive Atari800 screenshots; engine-atr-5a-2-delayed: engine-atr-5a-2-delayed did not save all 150 consecutive Atari800 screenshots; engine-atr-5a-2-immediate: engine-atr-5a-2-immediate did not save all 150 consecutive Atari800 screenshots; engine-atr-a5-0-delayed: engine-atr-a5-0-delayed did not save all 150 consecutive Atari800 screenshots; engine-atr-a5-0-immediate: engine-atr-a5-0-immediate did not save all 150 consecutive Atari800 screenshots; engine-atr-a5-1-delayed: engine-atr-a5-1-delayed did not save all 150 consecutive Atari800 screenshots; engine-atr-a5-1-immediate: engine-atr-a5-1-immediate did not save all 150 consecutive Atari800 screenshots; engine-atr-a5-2-delayed: engine-atr-a5-2-delayed did not save all 150 consecutive Atari800 screenshots; engine-atr-a5-2-immediate: engine-atr-a5-2-immediate did not save all 150 consecutive Atari800 screenshots; engine-restart-atr-a5: engine-restart-atr-a5 did not execute 150 frames of the restarted game; engine-restart-atr-a5: engine-restart-atr-a5 did not reach a second game after GAME OVER; lower-playfield-allied-contact-atr-hard: lower-playfield-allied-contact-atr-hard did not enter the capital damage pipeline exactly once; lower-playfield-atr-hard: Lower-playfield replay is missing a selected native raster; lower-playfield-laser-contact-atr-hard: lower-playfield-laser-contact-atr-hard: band frames saw 0 to 2 row switches (one count a region); weapon-pickup-overlap-2-hunt-fire5: weapon-pickup-overlap-2-hunt-fire5 final raster contains a cut capsule or stale post-collection footprint (COLPM3 $1c in x 56-72: 216, 216, 216, 216, 216, 216, 216, 216, 216, 188, 156, 132, 108, 84, 60, 28, 0, 0, 0, 0, 0, 0); weapon-pickup-sequence-2-hunt-fire3: Expected one complete smooth final-raster capsule sequence in COLPM3 $1c at x 56-72, found 0/11 (largest silhouette 144 px); weapon-pickup-traversal-2-observe-fire8: Native pickup did not remain one logical slot and one whole 16-row capsule; weapon-pickup-traversal-2-observe-fire8: Native pickup slot was not released cleanly at the lower boundary. Fix the build, or record the failure in docs/recorded-gate-failures.json with its class and the measurement that classified it."
+        },
+        {
+          "file": "tests/release-gate-semantics.test.mjs",
+          "test": "the release gate fails when a recorded failure silently disappears",
+          "first_failing_assertion": "tests/release-gate-semantics.test.mjs:120",
+          "first_failing_message": "the open recorded failure fails the gate"
+        },
+        {
+          "file": "tests/release-gate-semantics.test.mjs",
+          "test": "the release gate fails when timing_and_dli_passed is false",
+          "first_failing_assertion": "tests/release-gate-semantics.test.mjs:136",
+          "first_failing_message": "Expected values to be strictly deep-equal:"
+        },
+        {
+          "file": "tests/runtime-timing.test.mjs",
+          "test": "measured DMA-on fields come only from an artifact-matched Atari800 trace",
+          "first_failing_assertion": "tests/runtime-timing.test.mjs:67",
+          "first_failing_message": "runtime wall trace is missing"
+        },
+        {
+          "file": "tests/runtime-wall-trace.test.mjs",
+          "test": "wall trace is artifact-bound and adds no guest timing work",
+          "first_failing_assertion": "tests/runtime-wall-trace.test.mjs:75",
+          "first_failing_message": "Expected values to be strictly deep-equal:"
+        },
+        {
+          "file": "tests/runtime-wall-trace.test.mjs",
+          "test": "Spread Shot passes PAL wall budget with a legal capsule and projectile-heavy frame",
+          "first_failing_assertion": "tests/runtime-wall-trace.test.mjs:668",
+          "first_failing_message": "Expected values to be strictly deep-equal:"
+        },
+        {
+          "file": "tests/runtime-wall-trace.test.mjs",
+          "test": "debris visual polish preserves foundation history and passes its +256 PAL gate",
+          "first_failing_assertion": "tests/runtime-wall-trace.test.mjs:843",
+          "first_failing_message": "Expected values to be strictly equal:"
+        },
+        {
+          "file": "tests/runtime-wall-trace.test.mjs",
+          "test": "explosion colour flash passes its +64 PAL gate with exact GTIA traces",
+          "first_failing_assertion": "tests/runtime-wall-trace.test.mjs:895",
+          "first_failing_message": "Expected values to be strictly deep-equal:"
+        },
+        {
+          "file": "tests/runtime-wall-trace.test.mjs",
+          "test": "destructible debris passes PAL, inactive-path and linked-code budgets",
+          "first_failing_assertion": "tests/runtime-wall-trace.test.mjs:938",
+          "first_failing_message": "Expected values to be strictly deep-equal:"
+        },
+        {
+          "file": "tests/runtime-wall-trace.test.mjs",
+          "test": "enemy breakup passes the hard PAL gate and draws no character effect",
+          "first_failing_assertion": "tests/runtime-wall-trace.test.mjs:1009",
+          "first_failing_message": "Expected values to be strictly deep-equal:"
+        },
+        {
+          "file": "tests/score.test.mjs",
+          "test": "assembled decimal score code carries without inserting partial-game scores",
+          "first_failing_assertion": "tests/score.test.mjs:433",
+          "first_failing_message": "0009 + 1 HUD screen codes"
+        },
+        {
+          "file": "tests/sector-flow.test.mjs",
+          "test": "C1: no hold before a capital - its entry waits for the drain itself",
+          "first_failing_assertion": "tests/sector-flow.test.mjs:59",
+          "first_failing_message": "Error: L2 islands: capital hazards.debris must be zero"
+        },
+        {
+          "file": "tests/sio-patch-policy.test.mjs",
+          "test": "the committed evidence: real-SIO boot smoke with stage 2 clean, pinned patch-on replays and menu raster",
+          "first_failing_assertion": "tests/sio-patch-policy.test.mjs:98",
+          "first_failing_message": "atr-a5 stage-2 SIOV reads"
+        },
+        {
+          "file": "tests/slot-f.test.mjs",
+          "test": "Q9: the HUD draws codes 0-63 only, so the block in codes 64-127 is never shown",
+          "first_failing_assertion": "tests/slot-f.test.mjs:88",
+          "first_failing_message": "only 18 codes seen"
+        },
+        {
+          "file": "tests/slot-f.test.mjs",
+          "test": "Q9: each region's block is its fourth run - on the disk at 696 + 4 x region, folded into the head's check",
+          "first_failing_assertion": "tests/slot-f.test.mjs:109",
+          "first_failing_message": "region 1's head sum does not cover its block"
+        },
+        {
+          "file": "tests/torpedo.test.mjs",
+          "test": "§BL 5 (§BH): a miss - no target under the ship - the torpedo flies to the band's foot at the ship's column; the lance kept, the reticle back",
+          "first_failing_assertion": "tests/torpedo.test.mjs:77",
+          "first_failing_message": "the torpedo fired"
+        },
+        {
+          "file": "tests/weapon-pickup-rapid-fire.test.mjs",
+          "test": "three eight-phase source banks hold one tapered 8x16 capsule and the runtime draws a PMG silhouette",
+          "first_failing_assertion": "tests/weapon-pickup-rapid-fire.test.mjs:161",
+          "first_failing_message": "The input did not match the regular expression /fighter_pickup_pmg_shape:[\\s\\S]+\\.assert \\* - fighter_pickup_pmg_shape = WEAPON_PICKUP_TYPE_COUNT\\*WEAPON_PICKUP_HEIGHT_SCANLINES/. Input:"
+        },
+        {
+          "file": "tests/weapon-pickup-rapid-fire.test.mjs",
+          "test": "the release ATR executes 0→1→2→pending only for consumed PlayerFighter kills",
+          "first_failing_assertion": "tests/weapon-pickup-rapid-fire.test.mjs:180",
+          "first_failing_message": "Error: Rapid burst requires collected runtime state (state=0, pickup=0, pickupY=104, playerY=102)"
+        },
+        {
+          "file": "tests/weapon-pickup-rapid-fire.test.mjs",
+          "test": "pickup pending remains hidden and non-colliding for thirty full frames",
+          "first_failing_assertion": "tests/weapon-pickup-rapid-fire.test.mjs:207",
+          "first_failing_message": "Error: Rapid burst requires collected runtime state (state=0, pickup=0, pickupY=104, playerY=102)"
+        },
+        {
+          "file": "tests/weapon-pickup-rapid-fire.test.mjs",
+          "test": "active capsule is one logical PMG object, writes no character cell and cannot be shot",
+          "first_failing_assertion": "tests/weapon-pickup-rapid-fire.test.mjs:270",
+          "first_failing_message": "Error: Rapid burst requires collected runtime state (state=0, pickup=0, pickupY=104, playerY=102)"
+        },
+        {
+          "file": "tests/weapon-pickup-rapid-fire.test.mjs",
+          "test": "pickup movement resolves half world speed into smooth scanline phases",
+          "first_failing_assertion": "tests/weapon-pickup-rapid-fire.test.mjs:309",
+          "first_failing_message": "Error: Rapid burst requires collected runtime state (state=0, pickup=0, pickupY=104, playerY=102)"
+        },
+        {
+          "file": "tests/weapon-pickup-rapid-fire.test.mjs",
+          "test": "debris and the reserved pickup coexist without allocator overwrite for every A2 head",
+          "first_failing_assertion": "tests/weapon-pickup-rapid-fire.test.mjs:322",
+          "first_failing_message": "Error: Rapid burst requires collected runtime state (state=0, pickup=0, pickupY=104, playerY=102)"
+        },
+        {
+          "file": "tests/weapon-pickup-rapid-fire.test.mjs",
+          "test": "pickup collection is single-shot and changes neither score, HULL nor LIFE",
+          "first_failing_assertion": "tests/weapon-pickup-rapid-fire.test.mjs:438",
+          "first_failing_message": "Error: Rapid burst requires collected runtime state (state=0, pickup=0, pickupY=104, playerY=102)"
+        },
+        {
+          "file": "tests/weapon-pickup-rapid-fire.test.mjs",
+          "test": "weapon boosters use four proportional ANTIC 2 segments with a timer-derived warning blink",
+          "first_failing_assertion": "tests/weapon-pickup-rapid-fire.test.mjs:457",
+          "first_failing_message": "Expected values to be strictly deep-equal:"
+        },
+        {
+          "file": "tests/weapon-pickup-rapid-fire.test.mjs",
+          "test": "HULL plates and the ten-cell BOOST field remain distinct at native screen codes",
+          "first_failing_assertion": "tests/weapon-pickup-rapid-fire.test.mjs:500",
+          "first_failing_message": "Expected values to be strictly deep-equal:"
+        },
+        {
+          "file": "tests/weapon-pickup-rapid-fire.test.mjs",
+          "test": "Rapid Fire lasts 500 active frames and keeps its accepted accelerated burst",
+          "first_failing_assertion": "tests/weapon-pickup-rapid-fire.test.mjs:545",
+          "first_failing_message": "Error: Rapid burst requires collected runtime state (state=0, pickup=0, pickupY=104, playerY=102)"
+        },
+        {
+          "file": "tests/weapon-pickup-rapid-fire.test.mjs",
+          "test": "release trace CSV exposes the authoritative counter, state, timing and score",
+          "first_failing_assertion": "tests/weapon-pickup-rapid-fire.test.mjs:760",
+          "first_failing_message": "Error: Rapid burst requires collected runtime state (state=0, pickup=0, pickupY=104, playerY=102)"
+        },
+        {
+          "file": "tests/weapon-pickup-shield.test.mjs",
+          "test": "pickup rotation is exactly Rapid Spread Shield Rapid without RNG",
+          "first_failing_assertion": "tests/weapon-pickup-shield.test.mjs:63",
+          "first_failing_message": "Expected values to be strictly deep-equal:"
+        },
+        {
+          "file": "tests/weapon-pickup-shield.test.mjs",
+          "test": "Shield HUD uses exact 188 126 63 thresholds and a continuous distinct glyph",
+          "first_failing_assertion": "tests/weapon-pickup-shield.test.mjs:167",
+          "first_failing_message": "Expected values to be strictly deep-equal:"
+        },
+        {
+          "file": "tests/weapon-pickup-spread-shot.test.mjs",
+          "test": "Spread Shot owns one phased red fan in the shared six-glyph bank",
+          "first_failing_assertion": "tests/weapon-pickup-spread-shot.test.mjs:84",
+          "first_failing_message": "The input did not match the regular expression /fighter_pickup_pmg_shape:[\\s\\S]+; SPREAD[\\s\\S]+\\.byte \\$FF,\\$FF,\\$A5,\\$A5,\\$C3,\\$DB,\\$E7,\\$E7/. Input:"
+        },
+        {
+          "file": "tests/weapon-pickup-spread-shot.test.mjs",
+          "test": "the release ATR executes the deterministic Rapid Spread Shield drop cycle",
+          "first_failing_assertion": "tests/weapon-pickup-spread-shot.test.mjs:95",
+          "first_failing_message": "Expected values to be strictly deep-equal:"
+        },
+        {
+          "file": "tests/weapon-pickup-spread-shot.test.mjs",
+          "test": "Spread collection lasts exactly 500 active PAL frames and pause freezes it",
+          "first_failing_assertion": "tests/weapon-pickup-spread-shot.test.mjs:124",
+          "first_failing_message": "Expected values to be strictly deep-equal:"
+        },
+        {
+          "file": "tests/weapon-pickup-spread-shot.test.mjs",
+          "test": "all three projectiles leave the screen cleanly without HUD or charset corruption",
+          "first_failing_assertion": "tests/weapon-pickup-spread-shot.test.mjs:286",
+          "first_failing_message": "the volley is the full left/centre/right fan"
+        }
+      ]
+    }
+  ]
 }

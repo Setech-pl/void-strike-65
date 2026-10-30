@@ -703,15 +703,7 @@ section "Decyzje literowe 2026-09-20".
   Levels 7-9 end on a long segmented spine with dorsal spikes, a generator
   sphere at each end, a domed siege cannon at the centre (a laser on every
   laser tier), two more emitters and two guns behind armour plates, and two
-  open guns near the ends (the edges stay under fire). Destroyed generators
-  reveal revision B3 (§BX): a five-row outlined plate beam with a repeating
-  bolt pattern and rust underside, a two-pixel grey/violet mounting rail
-  connecting all three nozzles, and a collar bracket at the hull joint.
-  The bottom third is the pod's rounded, ribbed wreck, torn open with holes
-  and exposed core. The left end mirrors the right exactly. This decoration
-  scrolls with the hull, has no collision, and does not change the field, lance,
-  damage feedback, scoring or fight-length rules (owner smoke pending).
-  Under the spine runs a
+  open guns near the ends (the edges stay under fire). Under the spine runs a
   **force field** in two halves, each fed by the generator at its end: while a
   half is powered every player shot in its columns stops on the field (the
   deflection, no damage); the boss's guns and lasers fire through it. Breaking
@@ -726,6 +718,14 @@ section "Decyzje literowe 2026-09-20".
   Fight (aiming bot, the ratio rule): 89.5 / 118.8 / 150.1 s on levels 7-8,
   109.4 / 118.2 / 152.0 s on level 9 (EASY / MEDIUM / HARD); **HARD is far
   longer than MEDIUM, for review in M8**, as region 1's.
+  Destroyed generators
+  reveal revision B3 (§BX): a five-row outlined plate beam with a repeating
+  bolt pattern and rust underside, a two-pixel grey/violet mounting rail
+  connecting all three nozzles, and a collar bracket at the hull joint.
+  The bottom third is the pod's rounded, ribbed wreck, torn open with holes
+  and exposed core. The left end mirrors the right exactly. This decoration
+  scrolls with the hull, has no collision, and does not change the field, lance,
+  damage feedback, scoring or fight-length rules (owner smoke pending).
 - **The Void Citadel (region 4 as built; region 2 since feat/boss-order-scale) and its gravity well (S5-4, the
   owner's decisions of 2026-10-13 and 2026-10-14; the still citadel of
   `fix/r4-immobile`, journal §AR; `OWNER-SMOKE CANDIDATE`,

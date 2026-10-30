@@ -1,5 +1,18 @@
 # Current memory map
 
+## Spine B3 refreshed onto main — 2026-10-30
+
+MEASURED against main `a066098`: R3 `BOSS_F_CODE` **213 -> 243 B**
+(+30), F occupied span **323 -> 353/512 B** (159 free), look data
+**80 -> 98/110 B** (18 B reclaimed padding). R3 glyphs **864 -> 976/1024 B**
+(+112, 48 free); charset disk run **896 -> 1024 B**, 7 -> 8 sectors.
+F disk run remains 384 B / 3 sectors. All other linked segment starts/sizes
+and reserved ranges are unchanged; resident allocation delta 0.
+Shared boss image, R3 theme and banner have size delta 0; only generated
+R3 sector-count/integrity/progress-bar metadata changes in those runs.
+[Complete main/candidate segment table](diagnostics/spine-nacelle-link-refresh-2026-10-30/byte-comparison.json).
+The older B-to-B3 accounting below remains historical.
+
 ## Siege Spine B3 link candidate — 2026-10-26
 
 Current candidate delta from B (`73f7512`), MEASURED by the compiler/build:

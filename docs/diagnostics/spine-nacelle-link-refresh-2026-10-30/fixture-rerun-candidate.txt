@@ -1,0 +1,11 @@
+✔ the boss entry's loads leave async receive off (debug route --level=1:sector=6, real SIO) (5214.622834ms)
+✔ the built ATR boots through real SIO to gameplay, BASIC on and off (scripts/sio-boot-repro.mjs) (1992.939791ms)
+✔ a debug-route replay leaves the default evidence byte-identical (30626.042459ms)
+ℹ tests 3
+ℹ suites 0
+ℹ pass 3
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 37986.791875

@@ -1,0 +1,2587 @@
+{
+  "mainHead": "a066098",
+  "candidateSourceHead": "e4aaeec",
+  "segments": [
+    {
+      "map": "boss-death.map",
+      "name": "DEATH_HEAD",
+      "main": {
+        "start": 4096,
+        "end": 4587,
+        "bytes": 492
+      },
+      "candidate": {
+        "start": 4096,
+        "end": 4587,
+        "bytes": 492
+      },
+      "delta": 0
+    },
+    {
+      "map": "boss-death.map",
+      "name": "DEATH_CODE",
+      "main": {
+        "start": 4588,
+        "end": 6479,
+        "bytes": 1892
+      },
+      "candidate": {
+        "start": 4588,
+        "end": 6479,
+        "bytes": 1892
+      },
+      "delta": 0
+    },
+    {
+      "map": "boss-death.map",
+      "name": "DEATH_DATA",
+      "main": {
+        "start": 6480,
+        "end": 6654,
+        "bytes": 175
+      },
+      "candidate": {
+        "start": 6480,
+        "end": 6654,
+        "bytes": 175
+      },
+      "delta": 0
+    },
+    {
+      "map": "boss-death.map",
+      "name": "DEATH_BUFFER",
+      "main": {
+        "start": 7680,
+        "end": 8191,
+        "bytes": 512
+      },
+      "candidate": {
+        "start": 7680,
+        "end": 8191,
+        "bytes": 512
+      },
+      "delta": 0
+    },
+    {
+      "map": "boss-death.map",
+      "name": "DEATH_STATE",
+      "main": {
+        "start": 19744,
+        "end": 19766,
+        "bytes": 23
+      },
+      "candidate": {
+        "start": 19744,
+        "end": 19766,
+        "bytes": 23
+      },
+      "delta": 0
+    },
+    {
+      "map": "boss.map",
+      "name": "LANCE_ZP",
+      "main": {
+        "start": 182,
+        "end": 195,
+        "bytes": 14
+      },
+      "candidate": {
+        "start": 182,
+        "end": 195,
+        "bytes": 14
+      },
+      "delta": 0
+    },
+    {
+      "map": "boss.map",
+      "name": "LANCE_PAGE",
+      "main": {
+        "start": 1024,
+        "end": 1273,
+        "bytes": 250
+      },
+      "candidate": {
+        "start": 1024,
+        "end": 1273,
+        "bytes": 250
+      },
+      "delta": 0
+    },
+    {
+      "map": "boss.map",
+      "name": "BOSS_BANNER",
+      "main": {
+        "start": 4096,
+        "end": 4286,
+        "bytes": 191
+      },
+      "candidate": {
+        "start": 4096,
+        "end": 4286,
+        "bytes": 191
+      },
+      "delta": 0
+    },
+    {
+      "map": "boss.map",
+      "name": "BOSS_C_CODE",
+      "main": {
+        "start": 4096,
+        "end": 5371,
+        "bytes": 1276
+      },
+      "candidate": {
+        "start": 4096,
+        "end": 5371,
+        "bytes": 1276
+      },
+      "delta": 0
+    },
+    {
+      "map": "boss.map",
+      "name": "BOSS_BANNER_HEAD",
+      "main": {
+        "start": 4287,
+        "end": 4334,
+        "bytes": 48
+      },
+      "candidate": {
+        "start": 4287,
+        "end": 4334,
+        "bytes": 48
+      },
+      "delta": 0
+    },
+    {
+      "map": "boss.map",
+      "name": "BOSS_BANNER_LATE",
+      "main": {
+        "start": 4335,
+        "end": 4570,
+        "bytes": 236
+      },
+      "candidate": {
+        "start": 4335,
+        "end": 4570,
+        "bytes": 236
+      },
+      "delta": 0
+    },
+    {
+      "map": "boss.map",
+      "name": "BOSS_DEATH_PREP",
+      "main": {
+        "start": 5372,
+        "end": 5452,
+        "bytes": 81
+      },
+      "candidate": {
+        "start": 5372,
+        "end": 5452,
+        "bytes": 81
+      },
+      "delta": 0
+    },
+    {
+      "map": "boss.map",
+      "name": "BOSS_C_RODATA",
+      "main": {
+        "start": 5454,
+        "end": 5463,
+        "bytes": 10
+      },
+      "candidate": {
+        "start": 5454,
+        "end": 5463,
+        "bytes": 10
+      },
+      "delta": 0
+    },
+    {
+      "map": "boss.map",
+      "name": "BOSS_C_ASM",
+      "main": {
+        "start": 5464,
+        "end": 5916,
+        "bytes": 453
+      },
+      "candidate": {
+        "start": 5464,
+        "end": 5916,
+        "bytes": 453
+      },
+      "delta": 0
+    },
+    {
+      "map": "boss.map",
+      "name": "BOSS_C_BSS",
+      "main": {
+        "start": 5917,
+        "end": 6139,
+        "bytes": 223
+      },
+      "candidate": {
+        "start": 5917,
+        "end": 6139,
+        "bytes": 223
+      },
+      "delta": 0
+    },
+    {
+      "map": "boss.map",
+      "name": "BOSS_SCRATCH",
+      "main": {
+        "start": 6144,
+        "end": 6295,
+        "bytes": 152
+      },
+      "candidate": {
+        "start": 6144,
+        "end": 6295,
+        "bytes": 152
+      },
+      "delta": 0
+    },
+    {
+      "map": "boss.map",
+      "name": "BOSS_BSS",
+      "main": {
+        "start": 6296,
+        "end": 6388,
+        "bytes": 93
+      },
+      "candidate": {
+        "start": 6296,
+        "end": 6388,
+        "bytes": 93
+      },
+      "delta": 0
+    },
+    {
+      "map": "boss.map",
+      "name": "BOSS_HUD_BACKUP",
+      "main": {
+        "start": 6395,
+        "end": 6399,
+        "bytes": 5
+      },
+      "candidate": {
+        "start": 6395,
+        "end": 6399,
+        "bytes": 5
+      },
+      "delta": 0
+    },
+    {
+      "map": "boss.map",
+      "name": "BOSS_D_CODE",
+      "main": {
+        "start": 6400,
+        "end": 8083,
+        "bytes": 1684
+      },
+      "candidate": {
+        "start": 6400,
+        "end": 8083,
+        "bytes": 1684
+      },
+      "delta": 0
+    },
+    {
+      "map": "boss.map",
+      "name": "BOSS_D_BSS",
+      "main": {
+        "start": 8084,
+        "end": 8187,
+        "bytes": 104
+      },
+      "candidate": {
+        "start": 8084,
+        "end": 8187,
+        "bytes": 104
+      },
+      "delta": 0
+    },
+    {
+      "map": "boss.map",
+      "name": "BOSS_E_CODE",
+      "main": {
+        "start": 19456,
+        "end": 19966,
+        "bytes": 511
+      },
+      "candidate": {
+        "start": 19456,
+        "end": 19966,
+        "bytes": 511
+      },
+      "delta": 0
+    },
+    {
+      "map": "boss.map",
+      "name": "BOSS_E_BSS",
+      "main": {
+        "start": 19967,
+        "end": 19982,
+        "bytes": 16
+      },
+      "candidate": {
+        "start": 19967,
+        "end": 19982,
+        "bytes": 16
+      },
+      "delta": 0
+    },
+    {
+      "map": "boss.map",
+      "name": "BOSS_R_DATA",
+      "main": {
+        "start": 21043,
+        "end": 21100,
+        "bytes": 58
+      },
+      "candidate": {
+        "start": 21043,
+        "end": 21100,
+        "bytes": 58
+      },
+      "delta": 0
+    },
+    {
+      "map": "boss.map",
+      "name": "BOSS_F_CODE",
+      "main": {
+        "start": 21102,
+        "end": 21314,
+        "bytes": 213
+      },
+      "candidate": {
+        "start": 21102,
+        "end": 21344,
+        "bytes": 243
+      },
+      "delta": 30
+    },
+    {
+      "map": "boss.map",
+      "name": "BOSS_G_CODE",
+      "main": {
+        "start": 21102,
+        "end": 21420,
+        "bytes": 319
+      },
+      "candidate": {
+        "start": 21102,
+        "end": 21420,
+        "bytes": 319
+      },
+      "delta": 0
+    },
+    {
+      "map": "boss.map",
+      "name": "BOSS_R_CODE",
+      "main": {
+        "start": 21102,
+        "end": 21499,
+        "bytes": 398
+      },
+      "candidate": {
+        "start": 21102,
+        "end": 21499,
+        "bytes": 398
+      },
+      "delta": 0
+    },
+    {
+      "map": "boss.map",
+      "name": "BOSS_HEAD",
+      "main": {
+        "start": 28136,
+        "end": 28174,
+        "bytes": 39
+      },
+      "candidate": {
+        "start": 28136,
+        "end": 28174,
+        "bytes": 39
+      },
+      "delta": 0
+    },
+    {
+      "map": "boss.map",
+      "name": "BOSS_CODE",
+      "main": {
+        "start": 28175,
+        "end": 30137,
+        "bytes": 1963
+      },
+      "candidate": {
+        "start": 28175,
+        "end": 30137,
+        "bytes": 1963
+      },
+      "delta": 0
+    },
+    {
+      "map": "boss.map",
+      "name": "BOSS_HEAD_CHECK",
+      "main": {
+        "start": 30138,
+        "end": 30173,
+        "bytes": 36
+      },
+      "candidate": {
+        "start": 30138,
+        "end": 30173,
+        "bytes": 36
+      },
+      "delta": 0
+    },
+    {
+      "map": "boss.map",
+      "name": "BOSS_INSTALL",
+      "main": {
+        "start": 30736,
+        "end": 31118,
+        "bytes": 383
+      },
+      "candidate": {
+        "start": 30736,
+        "end": 31118,
+        "bytes": 383
+      },
+      "delta": 0
+    },
+    {
+      "map": "boss.map",
+      "name": "BOSS_ENTRY_COLD",
+      "main": {
+        "start": 31304,
+        "end": 31369,
+        "bytes": 66
+      },
+      "candidate": {
+        "start": 31304,
+        "end": 31369,
+        "bytes": 66
+      },
+      "delta": 0
+    },
+    {
+      "map": "boss.map",
+      "name": "BOSS_BANNER_KEEP",
+      "main": {
+        "start": 31376,
+        "end": 31625,
+        "bytes": 250
+      },
+      "candidate": {
+        "start": 31376,
+        "end": 31625,
+        "bytes": 250
+      },
+      "delta": 0
+    },
+    {
+      "map": "boss.map",
+      "name": "BOSS_BANNER_KEEP_BSS",
+      "main": {
+        "start": 31626,
+        "end": 31641,
+        "bytes": 16
+      },
+      "candidate": {
+        "start": 31626,
+        "end": 31641,
+        "bytes": 16
+      },
+      "delta": 0
+    },
+    {
+      "map": "boss.map",
+      "name": "LANCE_CODE",
+      "main": {
+        "start": 47360,
+        "end": 48111,
+        "bytes": 752
+      },
+      "candidate": {
+        "start": 47360,
+        "end": 48111,
+        "bytes": 752
+      },
+      "delta": 0
+    },
+    {
+      "map": "boss.map",
+      "name": "LANCE_BSS",
+      "main": {
+        "start": 48112,
+        "end": 48116,
+        "bytes": 5
+      },
+      "candidate": {
+        "start": 48112,
+        "end": 48116,
+        "bytes": 5
+      },
+      "delta": 0
+    },
+    {
+      "map": "capital-player-collision.map",
+      "name": "COLLISION",
+      "main": {
+        "start": 35687,
+        "end": 35719,
+        "bytes": 33
+      },
+      "candidate": {
+        "start": 35687,
+        "end": 35719,
+        "bytes": 33
+      },
+      "delta": 0
+    },
+    {
+      "map": "content-module.map",
+      "name": "CONTENT_HEADER",
+      "main": {
+        "start": 4480,
+        "end": 4480,
+        "bytes": 1
+      },
+      "candidate": {
+        "start": 4480,
+        "end": 4480,
+        "bytes": 1
+      },
+      "delta": 0
+    },
+    {
+      "map": "content-module.map",
+      "name": "CONTENT_CODE",
+      "main": {
+        "start": 4481,
+        "end": 5086,
+        "bytes": 606
+      },
+      "candidate": {
+        "start": 4481,
+        "end": 5086,
+        "bytes": 606
+      },
+      "delta": 0
+    },
+    {
+      "map": "content-module.map",
+      "name": "CONTENT_DATA",
+      "main": {
+        "start": 5087,
+        "end": 5091,
+        "bytes": 5
+      },
+      "candidate": {
+        "start": 5087,
+        "end": 5091,
+        "bytes": 5
+      },
+      "delta": 0
+    },
+    {
+      "map": "content-module.map",
+      "name": "HYBRID_ASM_ARENA",
+      "main": {
+        "start": 31696,
+        "end": 31857,
+        "bytes": 162
+      },
+      "candidate": {
+        "start": 31696,
+        "end": 31857,
+        "bytes": 162
+      },
+      "delta": 0
+    },
+    {
+      "map": "content-module.map",
+      "name": "HYBRID_C_ARENA",
+      "main": {
+        "start": 31858,
+        "end": 32498,
+        "bytes": 641
+      },
+      "candidate": {
+        "start": 31858,
+        "end": 32498,
+        "bytes": 641
+      },
+      "delta": 0
+    },
+    {
+      "map": "content-module.map",
+      "name": "HYBRID_C_ARENA_RODATA",
+      "main": {
+        "start": 32499,
+        "end": 32522,
+        "bytes": 24
+      },
+      "candidate": {
+        "start": 32499,
+        "end": 32522,
+        "bytes": 24
+      },
+      "delta": 0
+    },
+    {
+      "map": "content-module.map",
+      "name": "HYBRID_LIGHT_SLOTS",
+      "main": {
+        "start": 32709,
+        "end": 32767,
+        "bytes": 59
+      },
+      "candidate": {
+        "start": 32709,
+        "end": 32767,
+        "bytes": 59
+      },
+      "delta": 0
+    },
+    {
+      "map": "content-module.map",
+      "name": "HYBRID_LIGHT_STATE",
+      "main": {
+        "start": 33024,
+        "end": 33039,
+        "bytes": 16
+      },
+      "candidate": {
+        "start": 33024,
+        "end": 33039,
+        "bytes": 16
+      },
+      "delta": 0
+    },
+    {
+      "map": "content-module.map",
+      "name": "HYBRID_C_STATE",
+      "main": {
+        "start": 33040,
+        "end": 33048,
+        "bytes": 9
+      },
+      "candidate": {
+        "start": 33040,
+        "end": 33048,
+        "bytes": 9
+      },
+      "delta": 0
+    },
+    {
+      "map": "content-module.map",
+      "name": "HYBRID_ENCOUNTER_STATE",
+      "main": {
+        "start": 33049,
+        "end": 33050,
+        "bytes": 2
+      },
+      "candidate": {
+        "start": 33049,
+        "end": 33050,
+        "bytes": 2
+      },
+      "delta": 0
+    },
+    {
+      "map": "content-module.map",
+      "name": "HYBRID_HEAVY_STATE",
+      "main": {
+        "start": 33051,
+        "end": 33061,
+        "bytes": 11
+      },
+      "candidate": {
+        "start": 33051,
+        "end": 33061,
+        "bytes": 11
+      },
+      "delta": 0
+    },
+    {
+      "map": "content-module.map",
+      "name": "HYBRID_LIGHT_SCREEN",
+      "main": {
+        "start": 33062,
+        "end": 33062,
+        "bytes": 1
+      },
+      "candidate": {
+        "start": 33062,
+        "end": 33062,
+        "bytes": 1
+      },
+      "delta": 0
+    },
+    {
+      "map": "content-module.map",
+      "name": "HYBRID_LIGHT_ROTATE",
+      "main": {
+        "start": 33063,
+        "end": 33063,
+        "bytes": 1
+      },
+      "candidate": {
+        "start": 33063,
+        "end": 33063,
+        "bytes": 1
+      },
+      "delta": 0
+    },
+    {
+      "map": "content-module.map",
+      "name": "HYBRID_HEAVY_BREAKUP",
+      "main": {
+        "start": 33064,
+        "end": 33064,
+        "bytes": 1
+      },
+      "candidate": {
+        "start": 33064,
+        "end": 33064,
+        "bytes": 1
+      },
+      "delta": 0
+    },
+    {
+      "map": "content-module.map",
+      "name": "DIRECTOR_SECTOR_STATE",
+      "main": {
+        "start": 33065,
+        "end": 33069,
+        "bytes": 5
+      },
+      "candidate": {
+        "start": 33065,
+        "end": 33069,
+        "bytes": 5
+      },
+      "delta": 0
+    },
+    {
+      "map": "content-module.map",
+      "name": "HYBRID_LIGHT_LOOK",
+      "main": {
+        "start": 33070,
+        "end": 33082,
+        "bytes": 13
+      },
+      "candidate": {
+        "start": 33070,
+        "end": 33082,
+        "bytes": 13
+      },
+      "delta": 0
+    },
+    {
+      "map": "content-module.map",
+      "name": "HYBRID_HEAVY_PACKAGE",
+      "main": {
+        "start": 33083,
+        "end": 33087,
+        "bytes": 5
+      },
+      "candidate": {
+        "start": 33083,
+        "end": 33087,
+        "bytes": 5
+      },
+      "delta": 0
+    },
+    {
+      "map": "content-module.map",
+      "name": "HYBRID_HEAVY_MEMBERS",
+      "main": {
+        "start": 34278,
+        "end": 34285,
+        "bytes": 8
+      },
+      "candidate": {
+        "start": 34278,
+        "end": 34285,
+        "bytes": 8
+      },
+      "delta": 0
+    },
+    {
+      "map": "content-module.map",
+      "name": "HYBRID_C_SECTOR",
+      "main": {
+        "start": 34306,
+        "end": 34549,
+        "bytes": 244
+      },
+      "candidate": {
+        "start": 34306,
+        "end": 34549,
+        "bytes": 244
+      },
+      "delta": 0
+    },
+    {
+      "map": "content-module.map",
+      "name": "DIRECTOR_C_BSS",
+      "main": {
+        "start": 34554,
+        "end": 34560,
+        "bytes": 7
+      },
+      "candidate": {
+        "start": 34554,
+        "end": 34560,
+        "bytes": 7
+      },
+      "delta": 0
+    },
+    {
+      "map": "content-module.map",
+      "name": "DIRECTOR_ABI",
+      "main": {
+        "start": 34561,
+        "end": 34666,
+        "bytes": 106
+      },
+      "candidate": {
+        "start": 34561,
+        "end": 34666,
+        "bytes": 106
+      },
+      "delta": 0
+    },
+    {
+      "map": "content-module.map",
+      "name": "DIRECTOR_C_LOW",
+      "main": {
+        "start": 35720,
+        "end": 35933,
+        "bytes": 214
+      },
+      "candidate": {
+        "start": 35720,
+        "end": 35933,
+        "bytes": 214
+      },
+      "delta": 0
+    },
+    {
+      "map": "content-module.map",
+      "name": "ENEMY_ARCHETYPE_DATA",
+      "main": {
+        "start": 35965,
+        "end": 36012,
+        "bytes": 48
+      },
+      "candidate": {
+        "start": 35965,
+        "end": 36012,
+        "bytes": 48
+      },
+      "delta": 0
+    },
+    {
+      "map": "content-module.map",
+      "name": "HYBRID_C_EXT",
+      "main": {
+        "start": 36013,
+        "end": 36708,
+        "bytes": 696
+      },
+      "candidate": {
+        "start": 36013,
+        "end": 36708,
+        "bytes": 696
+      },
+      "delta": 0
+    },
+    {
+      "map": "content-module.map",
+      "name": "DIRECTOR_C_PRE",
+      "main": {
+        "start": 40286,
+        "end": 40306,
+        "bytes": 21
+      },
+      "candidate": {
+        "start": 40286,
+        "end": 40306,
+        "bytes": 21
+      },
+      "delta": 0
+    },
+    {
+      "map": "content-module.map",
+      "name": "DIRECTOR_C_RODATA",
+      "main": {
+        "start": 40309,
+        "end": 40328,
+        "bytes": 20
+      },
+      "candidate": {
+        "start": 40309,
+        "end": 40328,
+        "bytes": 20
+      },
+      "delta": 0
+    },
+    {
+      "map": "content-module.map",
+      "name": "DIRECTOR_C_CODE",
+      "main": {
+        "start": 40329,
+        "end": 40632,
+        "bytes": 304
+      },
+      "candidate": {
+        "start": 40329,
+        "end": 40632,
+        "bytes": 304
+      },
+      "delta": 0
+    },
+    {
+      "map": "content-module.map",
+      "name": "LEVEL_CORE",
+      "main": {
+        "start": 43520,
+        "end": 43775,
+        "bytes": 256
+      },
+      "candidate": {
+        "start": 43520,
+        "end": 43775,
+        "bytes": 256
+      },
+      "delta": 0
+    },
+    {
+      "map": "content-module.map",
+      "name": "LEVEL_GEOMETRY",
+      "main": {
+        "start": 44032,
+        "end": 44039,
+        "bytes": 8
+      },
+      "candidate": {
+        "start": 44032,
+        "end": 44039,
+        "bytes": 8
+      },
+      "delta": 0
+    },
+    {
+      "map": "content-module.map",
+      "name": "HYBRID_C_WINDOW",
+      "main": {
+        "start": 44544,
+        "end": 46079,
+        "bytes": 1536
+      },
+      "candidate": {
+        "start": 44544,
+        "end": 46079,
+        "bytes": 1536
+      },
+      "delta": 0
+    },
+    {
+      "map": "content-module.map",
+      "name": "HYBRID_ASM_WINDOW",
+      "main": {
+        "start": 46080,
+        "end": 46080,
+        "bytes": 1
+      },
+      "candidate": {
+        "start": 46080,
+        "end": 46080,
+        "bytes": 1
+      },
+      "delta": 0
+    },
+    {
+      "map": "content-module.map",
+      "name": "HYBRID_C_WINDOW_FLOW",
+      "main": {
+        "start": 46081,
+        "end": 46202,
+        "bytes": 122
+      },
+      "candidate": {
+        "start": 46081,
+        "end": 46202,
+        "bytes": 122
+      },
+      "delta": 0
+    },
+    {
+      "map": "content-module.map",
+      "name": "HYBRID_C_WINDOW_HEAVY",
+      "main": {
+        "start": 46203,
+        "end": 46446,
+        "bytes": 244
+      },
+      "candidate": {
+        "start": 46203,
+        "end": 46446,
+        "bytes": 244
+      },
+      "delta": 0
+    },
+    {
+      "map": "content-module.map",
+      "name": "HYBRID_C_WINDOW_HEAVY_RODATA",
+      "main": {
+        "start": 46447,
+        "end": 46505,
+        "bytes": 59
+      },
+      "candidate": {
+        "start": 46447,
+        "end": 46505,
+        "bytes": 59
+      },
+      "delta": 0
+    },
+    {
+      "map": "content-module.map",
+      "name": "HYBRID_ASM_HEAVY_WINDOW",
+      "main": {
+        "start": 46506,
+        "end": 46611,
+        "bytes": 106
+      },
+      "candidate": {
+        "start": 46506,
+        "end": 46611,
+        "bytes": 106
+      },
+      "delta": 0
+    },
+    {
+      "map": "encounter-director.map",
+      "name": "CONTENT_HEADER",
+      "main": {
+        "start": 4480,
+        "end": 4480,
+        "bytes": 1
+      },
+      "candidate": {
+        "start": 4480,
+        "end": 4480,
+        "bytes": 1
+      },
+      "delta": 0
+    },
+    {
+      "map": "encounter-director.map",
+      "name": "CONTENT_CODE",
+      "main": {
+        "start": 4481,
+        "end": 5086,
+        "bytes": 606
+      },
+      "candidate": {
+        "start": 4481,
+        "end": 5086,
+        "bytes": 606
+      },
+      "delta": 0
+    },
+    {
+      "map": "encounter-director.map",
+      "name": "CONTENT_DATA",
+      "main": {
+        "start": 5087,
+        "end": 5091,
+        "bytes": 5
+      },
+      "candidate": {
+        "start": 5087,
+        "end": 5091,
+        "bytes": 5
+      },
+      "delta": 0
+    },
+    {
+      "map": "encounter-director.map",
+      "name": "HYBRID_ASM_ARENA",
+      "main": {
+        "start": 31696,
+        "end": 31857,
+        "bytes": 162
+      },
+      "candidate": {
+        "start": 31696,
+        "end": 31857,
+        "bytes": 162
+      },
+      "delta": 0
+    },
+    {
+      "map": "encounter-director.map",
+      "name": "HYBRID_C_ARENA",
+      "main": {
+        "start": 31858,
+        "end": 32498,
+        "bytes": 641
+      },
+      "candidate": {
+        "start": 31858,
+        "end": 32498,
+        "bytes": 641
+      },
+      "delta": 0
+    },
+    {
+      "map": "encounter-director.map",
+      "name": "HYBRID_C_ARENA_RODATA",
+      "main": {
+        "start": 32499,
+        "end": 32522,
+        "bytes": 24
+      },
+      "candidate": {
+        "start": 32499,
+        "end": 32522,
+        "bytes": 24
+      },
+      "delta": 0
+    },
+    {
+      "map": "encounter-director.map",
+      "name": "HYBRID_LIGHT_SLOTS",
+      "main": {
+        "start": 32709,
+        "end": 32767,
+        "bytes": 59
+      },
+      "candidate": {
+        "start": 32709,
+        "end": 32767,
+        "bytes": 59
+      },
+      "delta": 0
+    },
+    {
+      "map": "encounter-director.map",
+      "name": "HYBRID_LIGHT_STATE",
+      "main": {
+        "start": 33024,
+        "end": 33039,
+        "bytes": 16
+      },
+      "candidate": {
+        "start": 33024,
+        "end": 33039,
+        "bytes": 16
+      },
+      "delta": 0
+    },
+    {
+      "map": "encounter-director.map",
+      "name": "HYBRID_C_STATE",
+      "main": {
+        "start": 33040,
+        "end": 33048,
+        "bytes": 9
+      },
+      "candidate": {
+        "start": 33040,
+        "end": 33048,
+        "bytes": 9
+      },
+      "delta": 0
+    },
+    {
+      "map": "encounter-director.map",
+      "name": "HYBRID_ENCOUNTER_STATE",
+      "main": {
+        "start": 33049,
+        "end": 33050,
+        "bytes": 2
+      },
+      "candidate": {
+        "start": 33049,
+        "end": 33050,
+        "bytes": 2
+      },
+      "delta": 0
+    },
+    {
+      "map": "encounter-director.map",
+      "name": "HYBRID_HEAVY_STATE",
+      "main": {
+        "start": 33051,
+        "end": 33061,
+        "bytes": 11
+      },
+      "candidate": {
+        "start": 33051,
+        "end": 33061,
+        "bytes": 11
+      },
+      "delta": 0
+    },
+    {
+      "map": "encounter-director.map",
+      "name": "HYBRID_LIGHT_SCREEN",
+      "main": {
+        "start": 33062,
+        "end": 33062,
+        "bytes": 1
+      },
+      "candidate": {
+        "start": 33062,
+        "end": 33062,
+        "bytes": 1
+      },
+      "delta": 0
+    },
+    {
+      "map": "encounter-director.map",
+      "name": "HYBRID_LIGHT_ROTATE",
+      "main": {
+        "start": 33063,
+        "end": 33063,
+        "bytes": 1
+      },
+      "candidate": {
+        "start": 33063,
+        "end": 33063,
+        "bytes": 1
+      },
+      "delta": 0
+    },
+    {
+      "map": "encounter-director.map",
+      "name": "HYBRID_HEAVY_BREAKUP",
+      "main": {
+        "start": 33064,
+        "end": 33064,
+        "bytes": 1
+      },
+      "candidate": {
+        "start": 33064,
+        "end": 33064,
+        "bytes": 1
+      },
+      "delta": 0
+    },
+    {
+      "map": "encounter-director.map",
+      "name": "DIRECTOR_SECTOR_STATE",
+      "main": {
+        "start": 33065,
+        "end": 33069,
+        "bytes": 5
+      },
+      "candidate": {
+        "start": 33065,
+        "end": 33069,
+        "bytes": 5
+      },
+      "delta": 0
+    },
+    {
+      "map": "encounter-director.map",
+      "name": "HYBRID_LIGHT_LOOK",
+      "main": {
+        "start": 33070,
+        "end": 33082,
+        "bytes": 13
+      },
+      "candidate": {
+        "start": 33070,
+        "end": 33082,
+        "bytes": 13
+      },
+      "delta": 0
+    },
+    {
+      "map": "encounter-director.map",
+      "name": "HYBRID_HEAVY_PACKAGE",
+      "main": {
+        "start": 33083,
+        "end": 33087,
+        "bytes": 5
+      },
+      "candidate": {
+        "start": 33083,
+        "end": 33087,
+        "bytes": 5
+      },
+      "delta": 0
+    },
+    {
+      "map": "encounter-director.map",
+      "name": "HYBRID_HEAVY_MEMBERS",
+      "main": {
+        "start": 34278,
+        "end": 34285,
+        "bytes": 8
+      },
+      "candidate": {
+        "start": 34278,
+        "end": 34285,
+        "bytes": 8
+      },
+      "delta": 0
+    },
+    {
+      "map": "encounter-director.map",
+      "name": "HYBRID_C_SECTOR",
+      "main": {
+        "start": 34306,
+        "end": 34549,
+        "bytes": 244
+      },
+      "candidate": {
+        "start": 34306,
+        "end": 34549,
+        "bytes": 244
+      },
+      "delta": 0
+    },
+    {
+      "map": "encounter-director.map",
+      "name": "DIRECTOR_C_BSS",
+      "main": {
+        "start": 34554,
+        "end": 34560,
+        "bytes": 7
+      },
+      "candidate": {
+        "start": 34554,
+        "end": 34560,
+        "bytes": 7
+      },
+      "delta": 0
+    },
+    {
+      "map": "encounter-director.map",
+      "name": "DIRECTOR_ABI",
+      "main": {
+        "start": 34561,
+        "end": 34666,
+        "bytes": 106
+      },
+      "candidate": {
+        "start": 34561,
+        "end": 34666,
+        "bytes": 106
+      },
+      "delta": 0
+    },
+    {
+      "map": "encounter-director.map",
+      "name": "DIRECTOR_C_LOW",
+      "main": {
+        "start": 35720,
+        "end": 35933,
+        "bytes": 214
+      },
+      "candidate": {
+        "start": 35720,
+        "end": 35933,
+        "bytes": 214
+      },
+      "delta": 0
+    },
+    {
+      "map": "encounter-director.map",
+      "name": "ENEMY_ARCHETYPE_DATA",
+      "main": {
+        "start": 35965,
+        "end": 36012,
+        "bytes": 48
+      },
+      "candidate": {
+        "start": 35965,
+        "end": 36012,
+        "bytes": 48
+      },
+      "delta": 0
+    },
+    {
+      "map": "encounter-director.map",
+      "name": "HYBRID_C_EXT",
+      "main": {
+        "start": 36013,
+        "end": 36708,
+        "bytes": 696
+      },
+      "candidate": {
+        "start": 36013,
+        "end": 36708,
+        "bytes": 696
+      },
+      "delta": 0
+    },
+    {
+      "map": "encounter-director.map",
+      "name": "DIRECTOR_C_PRE",
+      "main": {
+        "start": 40286,
+        "end": 40306,
+        "bytes": 21
+      },
+      "candidate": {
+        "start": 40286,
+        "end": 40306,
+        "bytes": 21
+      },
+      "delta": 0
+    },
+    {
+      "map": "encounter-director.map",
+      "name": "DIRECTOR_C_RODATA",
+      "main": {
+        "start": 40309,
+        "end": 40328,
+        "bytes": 20
+      },
+      "candidate": {
+        "start": 40309,
+        "end": 40328,
+        "bytes": 20
+      },
+      "delta": 0
+    },
+    {
+      "map": "encounter-director.map",
+      "name": "DIRECTOR_C_CODE",
+      "main": {
+        "start": 40329,
+        "end": 40632,
+        "bytes": 304
+      },
+      "candidate": {
+        "start": 40329,
+        "end": 40632,
+        "bytes": 304
+      },
+      "delta": 0
+    },
+    {
+      "map": "encounter-director.map",
+      "name": "LEVEL_CORE",
+      "main": {
+        "start": 43520,
+        "end": 43775,
+        "bytes": 256
+      },
+      "candidate": {
+        "start": 43520,
+        "end": 43775,
+        "bytes": 256
+      },
+      "delta": 0
+    },
+    {
+      "map": "encounter-director.map",
+      "name": "LEVEL_GEOMETRY",
+      "main": {
+        "start": 44032,
+        "end": 44039,
+        "bytes": 8
+      },
+      "candidate": {
+        "start": 44032,
+        "end": 44039,
+        "bytes": 8
+      },
+      "delta": 0
+    },
+    {
+      "map": "encounter-director.map",
+      "name": "HYBRID_C_WINDOW",
+      "main": {
+        "start": 44544,
+        "end": 46079,
+        "bytes": 1536
+      },
+      "candidate": {
+        "start": 44544,
+        "end": 46079,
+        "bytes": 1536
+      },
+      "delta": 0
+    },
+    {
+      "map": "encounter-director.map",
+      "name": "HYBRID_ASM_WINDOW",
+      "main": {
+        "start": 46080,
+        "end": 46080,
+        "bytes": 1
+      },
+      "candidate": {
+        "start": 46080,
+        "end": 46080,
+        "bytes": 1
+      },
+      "delta": 0
+    },
+    {
+      "map": "encounter-director.map",
+      "name": "HYBRID_C_WINDOW_FLOW",
+      "main": {
+        "start": 46081,
+        "end": 46202,
+        "bytes": 122
+      },
+      "candidate": {
+        "start": 46081,
+        "end": 46202,
+        "bytes": 122
+      },
+      "delta": 0
+    },
+    {
+      "map": "encounter-director.map",
+      "name": "HYBRID_C_WINDOW_HEAVY",
+      "main": {
+        "start": 46203,
+        "end": 46446,
+        "bytes": 244
+      },
+      "candidate": {
+        "start": 46203,
+        "end": 46446,
+        "bytes": 244
+      },
+      "delta": 0
+    },
+    {
+      "map": "encounter-director.map",
+      "name": "HYBRID_C_WINDOW_HEAVY_RODATA",
+      "main": {
+        "start": 46447,
+        "end": 46505,
+        "bytes": 59
+      },
+      "candidate": {
+        "start": 46447,
+        "end": 46505,
+        "bytes": 59
+      },
+      "delta": 0
+    },
+    {
+      "map": "encounter-director.map",
+      "name": "HYBRID_ASM_HEAVY_WINDOW",
+      "main": {
+        "start": 46506,
+        "end": 46611,
+        "bytes": 106
+      },
+      "candidate": {
+        "start": 46506,
+        "end": 46611,
+        "bytes": 106
+      },
+      "delta": 0
+    },
+    {
+      "map": "gameplay-music.map",
+      "name": "GAMEPLAY_MUSIC",
+      "main": {
+        "start": 42504,
+        "end": 43015,
+        "bytes": 512
+      },
+      "candidate": {
+        "start": 42504,
+        "end": 43015,
+        "bytes": 512
+      },
+      "delta": 0
+    },
+    {
+      "map": "integration-glue.map",
+      "name": "GLUE",
+      "main": {
+        "start": 20222,
+        "end": 20471,
+        "bytes": 250
+      },
+      "candidate": {
+        "start": 20222,
+        "end": 20471,
+        "bytes": 250
+      },
+      "delta": 0
+    },
+    {
+      "map": "l2.map",
+      "name": "L2",
+      "main": {
+        "start": 6400,
+        "end": 7689,
+        "bytes": 1290
+      },
+      "candidate": {
+        "start": 6400,
+        "end": 7689,
+        "bytes": 1290
+      },
+      "delta": 0
+    },
+    {
+      "map": "level-summary.map",
+      "name": "LEVEL_SUMMARY",
+      "main": {
+        "start": 1280,
+        "end": 3071,
+        "bytes": 1792
+      },
+      "candidate": {
+        "start": 1280,
+        "end": 3071,
+        "bytes": 1792
+      },
+      "delta": 0
+    },
+    {
+      "map": "light-kernel.map",
+      "name": "LIGHT_KERNEL",
+      "main": {
+        "start": 13891,
+        "end": 14712,
+        "bytes": 822
+      },
+      "candidate": {
+        "start": 13891,
+        "end": 14712,
+        "bytes": 822
+      },
+      "delta": 0
+    },
+    {
+      "map": "light-kernel.map",
+      "name": "DISK_GUARD",
+      "main": {
+        "start": 14713,
+        "end": 14809,
+        "bytes": 97
+      },
+      "candidate": {
+        "start": 14713,
+        "end": 14809,
+        "bytes": 97
+      },
+      "delta": 0
+    },
+    {
+      "map": "light-kernel.map",
+      "name": "CAPITAL_VECTOR_IMAGE",
+      "main": {
+        "start": 14810,
+        "end": 14845,
+        "bytes": 36
+      },
+      "candidate": {
+        "start": 14810,
+        "end": 14845,
+        "bytes": 36
+      },
+      "delta": 0
+    },
+    {
+      "map": "light-kernel.map",
+      "name": "HUD_BOOSTER_BACKUP",
+      "main": {
+        "start": 14846,
+        "end": 14867,
+        "bytes": 22
+      },
+      "candidate": {
+        "start": 14846,
+        "end": 14867,
+        "bytes": 22
+      },
+      "delta": 0
+    },
+    {
+      "map": "light-kernel.map",
+      "name": "LIFE_CAPSULE",
+      "main": {
+        "start": 14868,
+        "end": 15076,
+        "bytes": 209
+      },
+      "candidate": {
+        "start": 14868,
+        "end": 15076,
+        "bytes": 209
+      },
+      "delta": 0
+    },
+    {
+      "map": "light-kernel.map",
+      "name": "PAUSE_FRONTEND",
+      "main": {
+        "start": 15077,
+        "end": 15086,
+        "bytes": 10
+      },
+      "candidate": {
+        "start": 15077,
+        "end": 15086,
+        "bytes": 10
+      },
+      "delta": 0
+    },
+    {
+      "map": "sector-reader.map",
+      "name": "READER_ZP",
+      "main": {
+        "start": 160,
+        "end": 161,
+        "bytes": 2
+      },
+      "candidate": {
+        "start": 160,
+        "end": 161,
+        "bytes": 2
+      },
+      "delta": 0
+    },
+    {
+      "map": "sector-reader.map",
+      "name": "SECTOR_READER",
+      "main": {
+        "start": 40960,
+        "end": 42471,
+        "bytes": 1512
+      },
+      "candidate": {
+        "start": 40960,
+        "end": 42471,
+        "bytes": 1512
+      },
+      "delta": 0
+    },
+    {
+      "map": "sector-reader.map",
+      "name": "READER_BSS",
+      "main": {
+        "start": 48128,
+        "end": 48148,
+        "bytes": 21
+      },
+      "candidate": {
+        "start": 48128,
+        "end": 48148,
+        "bytes": 21
+      },
+      "delta": 0
+    },
+    {
+      "map": "void-strike-65.map",
+      "name": "ZEROPAGE",
+      "main": {
+        "start": 128,
+        "end": 159,
+        "bytes": 32
+      },
+      "candidate": {
+        "start": 128,
+        "end": 159,
+        "bytes": 32
+      },
+      "delta": 0
+    },
+    {
+      "map": "void-strike-65.map",
+      "name": "BOOT_SPLASH",
+      "main": {
+        "start": 1280,
+        "end": 1791,
+        "bytes": 512
+      },
+      "candidate": {
+        "start": 1280,
+        "end": 1791,
+        "bytes": 512
+      },
+      "delta": 0
+    },
+    {
+      "map": "void-strike-65.map",
+      "name": "MENU_OVERLAY",
+      "main": {
+        "start": 3072,
+        "end": 4375,
+        "bytes": 1304
+      },
+      "candidate": {
+        "start": 3072,
+        "end": 4375,
+        "bytes": 1304
+      },
+      "delta": 0
+    },
+    {
+      "map": "void-strike-65.map",
+      "name": "CODE",
+      "main": {
+        "start": 8192,
+        "end": 12655,
+        "bytes": 4464
+      },
+      "candidate": {
+        "start": 8192,
+        "end": 12655,
+        "bytes": 4464
+      },
+      "delta": 0
+    },
+    {
+      "map": "void-strike-65.map",
+      "name": "BOOT_STAGE2",
+      "main": {
+        "start": 8641,
+        "end": 10086,
+        "bytes": 1446
+      },
+      "candidate": {
+        "start": 8641,
+        "end": 10086,
+        "bytes": 1446
+      },
+      "delta": 0
+    },
+    {
+      "map": "void-strike-65.map",
+      "name": "RODATA",
+      "main": {
+        "start": 12656,
+        "end": 15887,
+        "bytes": 3232
+      },
+      "candidate": {
+        "start": 12656,
+        "end": 15887,
+        "bytes": 3232
+      },
+      "delta": 0
+    },
+    {
+      "map": "void-strike-65.map",
+      "name": "PROJECTILES",
+      "main": {
+        "start": 21504,
+        "end": 21693,
+        "bytes": 190
+      },
+      "candidate": {
+        "start": 21504,
+        "end": 21693,
+        "bytes": 190
+      },
+      "delta": 0
+    },
+    {
+      "map": "void-strike-65.map",
+      "name": "STARFIELD",
+      "main": {
+        "start": 21732,
+        "end": 23159,
+        "bytes": 1428
+      },
+      "candidate": {
+        "start": 21732,
+        "end": 23159,
+        "bytes": 1428
+      },
+      "delta": 0
+    },
+    {
+      "map": "void-strike-65.map",
+      "name": "BROADSIDE",
+      "main": {
+        "start": 24080,
+        "end": 30732,
+        "bytes": 6653
+      },
+      "candidate": {
+        "start": 24080,
+        "end": 30732,
+        "bytes": 6653
+      },
+      "delta": 0
+    },
+    {
+      "map": "void-strike-65.map",
+      "name": "ENTITY_STATE",
+      "main": {
+        "start": 32768,
+        "end": 33023,
+        "bytes": 256
+      },
+      "candidate": {
+        "start": 32768,
+        "end": 33023,
+        "bytes": 256
+      },
+      "delta": 0
+    },
+    {
+      "map": "void-strike-65.map",
+      "name": "PICKUP_CODE",
+      "main": {
+        "start": 34678,
+        "end": 35679,
+        "bytes": 1002
+      },
+      "candidate": {
+        "start": 34678,
+        "end": 35679,
+        "bytes": 1002
+      },
+      "delta": 0
+    },
+    {
+      "map": "void-strike-65.map",
+      "name": "LIGHT_CODE",
+      "main": {
+        "start": 36709,
+        "end": 36775,
+        "bytes": 67
+      },
+      "candidate": {
+        "start": 36709,
+        "end": 36775,
+        "bytes": 67
+      },
+      "delta": 0
+    },
+    {
+      "map": "void-strike-65.map",
+      "name": "HEAVY_CODE",
+      "main": {
+        "start": 36776,
+        "end": 36839,
+        "bytes": 64
+      },
+      "candidate": {
+        "start": 36776,
+        "end": 36839,
+        "bytes": 64
+      },
+      "delta": 0
+    },
+    {
+      "map": "void-strike-65.map",
+      "name": "A2_KERNEL",
+      "main": {
+        "start": 36864,
+        "end": 37100,
+        "bytes": 237
+      },
+      "candidate": {
+        "start": 36864,
+        "end": 37100,
+        "bytes": 237
+      },
+      "delta": 0
+    },
+    {
+      "map": "void-strike-65.map",
+      "name": "ENTITY_RUN_PAD",
+      "main": {
+        "start": 36864,
+        "end": 36864,
+        "bytes": 1
+      },
+      "candidate": {
+        "start": 36864,
+        "end": 36864,
+        "bytes": 1
+      },
+      "delta": 0
+    },
+    {
+      "map": "void-strike-65.map",
+      "name": "ENTITY_CODE",
+      "main": {
+        "start": 37120,
+        "end": 40280,
+        "bytes": 3161
+      },
+      "candidate": {
+        "start": 37120,
+        "end": 40280,
+        "bytes": 3161
+      },
+      "delta": 0
+    }
+  ],
+  "changedRuns": [
+    {
+      "name": "boss-code",
+      "main": {
+        "name": "boss-code",
+        "startSector": 528,
+        "sectors": 16,
+        "destination": 28136,
+        "bytes": 2048,
+        "sha256": "ae767813d42f97aad82c44afe9d68b88632d2df45a77d1a676bbcfb35b5d6474",
+        "file": "overlay-boss-code.bin"
+      },
+      "candidate": {
+        "name": "boss-code",
+        "startSector": 528,
+        "sectors": 16,
+        "destination": 28136,
+        "bytes": 2048,
+        "sha256": "91e7174ea978bdf7de35fbb4b5cf51e1ec4a062274e514a695bf7c1914b6b6e1",
+        "file": "overlay-boss-code.bin"
+      },
+      "delta": 0
+    },
+    {
+      "name": "boss-region-3-theme",
+      "main": {
+        "name": "boss-region-3-theme",
+        "startSector": 664,
+        "sectors": 2,
+        "destination": 31120,
+        "bytes": 256,
+        "sha256": "4c205a7b03f2f8035990637265d4380003c2082d8e2dc640ae9346bb80c06580",
+        "file": "boss-region-3-theme.bin"
+      },
+      "candidate": {
+        "name": "boss-region-3-theme",
+        "startSector": 664,
+        "sectors": 2,
+        "destination": 31120,
+        "bytes": 256,
+        "sha256": "e954825061b7512d6dff8535f0eef2246679757d1dee50ca47591b46de058497",
+        "file": "boss-region-3-theme.bin"
+      },
+      "delta": 0
+    },
+    {
+      "name": "boss-region-3-banner",
+      "main": {
+        "name": "boss-region-3-banner",
+        "startSector": 300,
+        "sectors": 10,
+        "destination": 4096,
+        "bytes": 1280,
+        "sha256": "108016d581d5c8dba5b2ae938ac950b688c3dbf53068da096103056a489e1505",
+        "file": "boss-region-3-banner.bin"
+      },
+      "candidate": {
+        "name": "boss-region-3-banner",
+        "startSector": 300,
+        "sectors": 10,
+        "destination": 4096,
+        "bytes": 1280,
+        "sha256": "30fb519fc02428064f904dd3f99267e3cbec545b8cc07fd3b2fc2b88eef32615",
+        "file": "boss-region-3-banner.bin"
+      },
+      "delta": 0
+    },
+    {
+      "name": "boss-region-3-charset",
+      "main": {
+        "name": "boss-region-3-charset",
+        "startSector": 672,
+        "sectors": 7,
+        "destination": 3072,
+        "bytes": 896,
+        "sha256": "8fbd7f0df413b288fd3c93afd9a41677ea223b0f6d4f9563c2dfb58cf06d1c66",
+        "file": "boss-region-3-charset.bin"
+      },
+      "candidate": {
+        "name": "boss-region-3-charset",
+        "startSector": 672,
+        "sectors": 8,
+        "destination": 3072,
+        "bytes": 1024,
+        "sha256": "7fdb0477fde6b55c658bc9f4844a4cf692d3f86ac3053449800653c9c7262fd9",
+        "file": "boss-region-3-charset.bin"
+      },
+      "delta": 128
+    },
+    {
+      "name": "boss-region-3-block",
+      "main": {
+        "name": "boss-region-3-block",
+        "startSector": 704,
+        "sectors": 3,
+        "destination": 20992,
+        "bytes": 384,
+        "sha256": "9a969c1f22ad430106f480f3efacaafbbd2769dc831bbe72e029e76925158e42",
+        "file": "boss-region-3-block.bin"
+      },
+      "candidate": {
+        "name": "boss-region-3-block",
+        "startSector": 704,
+        "sectors": 3,
+        "destination": 20992,
+        "bytes": 384,
+        "sha256": "591f82f62809e7b2ba30ad1aba6f2bfc738830fd69ab30666e1f422667a7672c",
+        "file": "boss-region-3-block.bin"
+      },
+      "delta": 0
+    }
+  ],
+  "charset": {
+    "mainUsed": 864,
+    "candidateUsed": 976,
+    "capacity": 1024,
+    "delta": 112,
+    "candidateFree": 48
+  },
+  "slotF": {
+    "main": {
+      "region": 3,
+      "bytes": 323,
+      "lookTailBytes": 80,
+      "codeBytes": 213,
+      "sectors": 3,
+      "startSector": 704,
+      "freeBytes": 189
+    },
+    "candidate": {
+      "region": 3,
+      "bytes": 353,
+      "lookTailBytes": 98,
+      "codeBytes": 243,
+      "sectors": 3,
+      "startSector": 704,
+      "freeBytes": 159
+    }
+  },
+  "residentAllocationDelta": 0,
+  "transport": {
+    "main": {
+      "format": "DFMC-v1 multi-chunk",
+      "initialBootBytes": 12928,
+      "initialBootContentBytes": 12843,
+      "initialBootEnvelopeBytes": 85,
+      "initialBootSectors": 101,
+      "extensionBytes": 14080,
+      "extensionSectors": 110,
+      "totalTransportBytes": 27008,
+      "totalTransportSectors": 211,
+      "remainingAtrSectors": 509,
+      "remainingAtrTransportBytes": 65152,
+      "architecturalAdditionalCapacityBytes": 0,
+      "maximumExtensionChunkBytes": 6400,
+      "maximumChunkCount": 11,
+      "maximumNewSimultaneousResidencyBytes": 7993,
+      "remainingSafeResidencyBytes": 2310,
+      "bootOnlyStaging": {
+        "address": 33024,
+        "bytes": 6484
+      },
+      "loaderResidentBytes": 0,
+      "stage2": {
+        "runAddress": 8641,
+        "loadAddress": 31232,
+        "bytes": 1446,
+        "overwrittenByResidentSuffix": true
+      },
+      "bootSplash": {
+        "runAddress": 1280,
+        "loadAddress": 32678,
+        "transportAddress": 20519,
+        "bytes": 512,
+        "codeBytes": 510,
+        "immutableAddress": 1301,
+        "immutableBytes": 491,
+        "sha256": "720e1bce3596e8628aba589490381e41907c00b8b50c04f39a3965df57436073",
+        "source": "assets/audio/boot-splash.json",
+        "sourceSha256": "a6895ae5251009719ae6cdee6403abb9d83c128e50bc095108e1ebb4dfba11a3",
+        "holdFrames": 250,
+        "fadeStartFrame": 176,
+        "segments": [
+          {
+            "type": "SILENCE",
+            "frames": 5
+          },
+          {
+            "type": "LEADER",
+            "frames": 60
+          },
+          {
+            "type": "DATA",
+            "frames": 55
+          },
+          {
+            "type": "SILENCE",
+            "frames": 10
+          },
+          {
+            "type": "DATA_LOW",
+            "frames": 50
+          },
+          {
+            "type": "SILENCE",
+            "frames": 10
+          },
+          {
+            "type": "DATA",
+            "frames": 60
+          }
+        ]
+      },
+      "manifest": {
+        "address": 9897,
+        "bytes": 190,
+        "crc16": 39646,
+        "parsed": {
+          "version": 1,
+          "totalOccupiedSectors": 211,
+          "manifestBytes": 190,
+          "crc16": 39646,
+          "records": [
+            {
+              "startSector": 102,
+              "sectorCount": 44,
+              "packedLength": 5590,
+              "rawLength": 6653,
+              "finalDestination": 24080,
+              "crc16": 13253,
+              "type": 1,
+              "stagingId": 1,
+              "destination": 33024
+            },
+            {
+              "startSector": 146,
+              "sectorCount": 10,
+              "packedLength": 1182,
+              "rawLength": 1182,
+              "finalDestination": 35968,
+              "crc16": 33138,
+              "type": 0,
+              "stagingId": 2,
+              "destination": 33024
+            },
+            {
+              "startSector": 156,
+              "sectorCount": 1,
+              "packedLength": 105,
+              "rawLength": 106,
+              "finalDestination": 32792,
+              "crc16": 30405,
+              "type": 1,
+              "stagingId": 2,
+              "destination": 33024
+            },
+            {
+              "startSector": 157,
+              "sectorCount": 4,
+              "packedLength": 441,
+              "rawLength": 498,
+              "finalDestination": 39744,
+              "crc16": 62429,
+              "type": 1,
+              "stagingId": 2,
+              "destination": 33024
+            },
+            {
+              "startSector": 161,
+              "sectorCount": 6,
+              "packedLength": 746,
+              "rawLength": 746,
+              "finalDestination": 30736,
+              "crc16": 56441,
+              "type": 0,
+              "stagingId": 2,
+              "destination": 33024
+            },
+            {
+              "startSector": 167,
+              "sectorCount": 1,
+              "packedLength": 23,
+              "rawLength": 21,
+              "finalDestination": 40286,
+              "crc16": 65153,
+              "type": 1,
+              "stagingId": 2,
+              "destination": 33024
+            },
+            {
+              "startSector": 168,
+              "sectorCount": 6,
+              "packedLength": 727,
+              "rawLength": 827,
+              "finalDestination": 31696,
+              "crc16": 27628,
+              "type": 1,
+              "stagingId": 2,
+              "destination": 33024
+            },
+            {
+              "startSector": 174,
+              "sectorCount": 14,
+              "packedLength": 1684,
+              "rawLength": 2068,
+              "finalDestination": 44544,
+              "crc16": 31322,
+              "type": 1,
+              "stagingId": 2,
+              "destination": 33024
+            },
+            {
+              "startSector": 188,
+              "sectorCount": 9,
+              "packedLength": 1032,
+              "rawLength": 1196,
+              "finalDestination": 13891,
+              "crc16": 47925,
+              "type": 1,
+              "stagingId": 2,
+              "destination": 33024
+            },
+            {
+              "startSector": 197,
+              "sectorCount": 12,
+              "packedLength": 1512,
+              "rawLength": 1512,
+              "finalDestination": 40960,
+              "crc16": 41436,
+              "type": 0,
+              "stagingId": 2,
+              "destination": 33024
+            },
+            {
+              "startSector": 209,
+              "sectorCount": 3,
+              "packedLength": 289,
+              "rawLength": 324,
+              "finalDestination": 40309,
+              "crc16": 44867,
+              "type": 1,
+              "stagingId": 2,
+              "destination": 33024
+            }
+          ]
+        }
+      }
+    },
+    "candidate": {
+      "format": "DFMC-v1 multi-chunk",
+      "initialBootBytes": 12928,
+      "initialBootContentBytes": 12843,
+      "initialBootEnvelopeBytes": 85,
+      "initialBootSectors": 101,
+      "extensionBytes": 14080,
+      "extensionSectors": 110,
+      "totalTransportBytes": 27008,
+      "totalTransportSectors": 211,
+      "remainingAtrSectors": 509,
+      "remainingAtrTransportBytes": 65152,
+      "architecturalAdditionalCapacityBytes": 0,
+      "maximumExtensionChunkBytes": 6400,
+      "maximumChunkCount": 11,
+      "maximumNewSimultaneousResidencyBytes": 7993,
+      "remainingSafeResidencyBytes": 2310,
+      "bootOnlyStaging": {
+        "address": 33024,
+        "bytes": 6484
+      },
+      "loaderResidentBytes": 0,
+      "stage2": {
+        "runAddress": 8641,
+        "loadAddress": 31232,
+        "bytes": 1446,
+        "overwrittenByResidentSuffix": true
+      },
+      "bootSplash": {
+        "runAddress": 1280,
+        "loadAddress": 32678,
+        "transportAddress": 20519,
+        "bytes": 512,
+        "codeBytes": 510,
+        "immutableAddress": 1301,
+        "immutableBytes": 491,
+        "sha256": "720e1bce3596e8628aba589490381e41907c00b8b50c04f39a3965df57436073",
+        "source": "assets/audio/boot-splash.json",
+        "sourceSha256": "a6895ae5251009719ae6cdee6403abb9d83c128e50bc095108e1ebb4dfba11a3",
+        "holdFrames": 250,
+        "fadeStartFrame": 176,
+        "segments": [
+          {
+            "type": "SILENCE",
+            "frames": 5
+          },
+          {
+            "type": "LEADER",
+            "frames": 60
+          },
+          {
+            "type": "DATA",
+            "frames": 55
+          },
+          {
+            "type": "SILENCE",
+            "frames": 10
+          },
+          {
+            "type": "DATA_LOW",
+            "frames": 50
+          },
+          {
+            "type": "SILENCE",
+            "frames": 10
+          },
+          {
+            "type": "DATA",
+            "frames": 60
+          }
+        ]
+      },
+      "manifest": {
+        "address": 9897,
+        "bytes": 190,
+        "crc16": 3412,
+        "parsed": {
+          "version": 1,
+          "totalOccupiedSectors": 211,
+          "manifestBytes": 190,
+          "crc16": 3412,
+          "records": [
+            {
+              "startSector": 102,
+              "sectorCount": 44,
+              "packedLength": 5590,
+              "rawLength": 6653,
+              "finalDestination": 24080,
+              "crc16": 13253,
+              "type": 1,
+              "stagingId": 1,
+              "destination": 33024
+            },
+            {
+              "startSector": 146,
+              "sectorCount": 10,
+              "packedLength": 1182,
+              "rawLength": 1182,
+              "finalDestination": 35968,
+              "crc16": 33138,
+              "type": 0,
+              "stagingId": 2,
+              "destination": 33024
+            },
+            {
+              "startSector": 156,
+              "sectorCount": 1,
+              "packedLength": 105,
+              "rawLength": 106,
+              "finalDestination": 32792,
+              "crc16": 30405,
+              "type": 1,
+              "stagingId": 2,
+              "destination": 33024
+            },
+            {
+              "startSector": 157,
+              "sectorCount": 4,
+              "packedLength": 441,
+              "rawLength": 498,
+              "finalDestination": 39744,
+              "crc16": 62429,
+              "type": 1,
+              "stagingId": 2,
+              "destination": 33024
+            },
+            {
+              "startSector": 161,
+              "sectorCount": 6,
+              "packedLength": 746,
+              "rawLength": 746,
+              "finalDestination": 30736,
+              "crc16": 56441,
+              "type": 0,
+              "stagingId": 2,
+              "destination": 33024
+            },
+            {
+              "startSector": 167,
+              "sectorCount": 1,
+              "packedLength": 23,
+              "rawLength": 21,
+              "finalDestination": 40286,
+              "crc16": 65153,
+              "type": 1,
+              "stagingId": 2,
+              "destination": 33024
+            },
+            {
+              "startSector": 168,
+              "sectorCount": 6,
+              "packedLength": 727,
+              "rawLength": 827,
+              "finalDestination": 31696,
+              "crc16": 27628,
+              "type": 1,
+              "stagingId": 2,
+              "destination": 33024
+            },
+            {
+              "startSector": 174,
+              "sectorCount": 14,
+              "packedLength": 1684,
+              "rawLength": 2068,
+              "finalDestination": 44544,
+              "crc16": 31322,
+              "type": 1,
+              "stagingId": 2,
+              "destination": 33024
+            },
+            {
+              "startSector": 188,
+              "sectorCount": 9,
+              "packedLength": 1032,
+              "rawLength": 1196,
+              "finalDestination": 13891,
+              "crc16": 3732,
+              "type": 1,
+              "stagingId": 2,
+              "destination": 33024
+            },
+            {
+              "startSector": 197,
+              "sectorCount": 12,
+              "packedLength": 1512,
+              "rawLength": 1512,
+              "finalDestination": 40960,
+              "crc16": 41436,
+              "type": 0,
+              "stagingId": 2,
+              "destination": 33024
+            },
+            {
+              "startSector": 209,
+              "sectorCount": 3,
+              "packedLength": 289,
+              "rawLength": 324,
+              "finalDestination": 40309,
+              "crc16": 44867,
+              "type": 1,
+              "stagingId": 2,
+              "destination": 33024
+            }
+          ]
+        }
+      }
+    }
+  }
+}

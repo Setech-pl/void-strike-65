@@ -3,7 +3,7 @@
 ## Focused owner smoke — Siege Spine link B3 (§BX)
 
 Use the campaign/direct-Spine ATRs and hashes in
-[the candidate evidence](diagnostics/spine-nacelle-link-b3/result.json).
+[the refreshed candidate report](diagnostics/spine-nacelle-link-refresh-2026-10-30/report.md).
 Candidate is implemented, pending owner smoke; this does not require the full
 milestone checklist below.
 
@@ -11,7 +11,9 @@ milestone checklist below.
   hull collar and torn lower-third pod wreck appear after the kill feedback;
   all three nozzles stay attached, with nothing floating.
 - Destroy the left generator: exact horizontal mirror; the living side is intact.
-- Destroy both, in either order: both links remain.
+- Destroy both, in either order: both links remain; the top beam stays permanent.
+- Generator remnants occupy no more than one third of the original height.
+- Destroy generators, plates and weapons: no stray cells remain.
 - Follow horizontal boss motion: links scroll with the hull without seams.
 - Verify the existing per-half shot-blocking field, lance, hit feedback and
   fight length behave as before; no decorative hitbox is added.

@@ -258,3 +258,17 @@ ATRs:
 [Full hashes, counts, build/test logs and captures](../diagnostics/spine-nacelle-link-b3/result.json).
 B ATRs and evidence remain historical. §BX amended; §BY remains free.
 NEXT TASK: owner smoke and owner's merge decision; stop here.
+
+
+## Main refresh for owner smoke — 2026-10-30
+
+Rebased original `e6ec8cd` onto `a066098`, with no B3 pixel changes.
+Only documentation conflicts occurred; main text is retained verbatim,
+including the shot-impact/M3-H checkpoints and §BY island-contact decision.
+§BX remains Spine's reserved decision; main's next-free §BZ marker prevails
+over this plan's historical statement that §BY was free.
+
+The current delivery, build/test/frame evidence, all segment deltas,
+ATRs, SHA-256s, launch commands and owner checklist are maintained in
+[the refresh report](../diagnostics/spine-nacelle-link-refresh-2026-10-30/report.md).
+Earlier B and B3 artifacts above are historical. Owner smoke remains pending.

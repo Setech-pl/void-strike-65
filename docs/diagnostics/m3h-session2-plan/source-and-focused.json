@@ -1,0 +1,35 @@
+{
+  "baselineCommit": "7fe90409bd09db58ff263806bec711db21a76457",
+  "sourceTrees": {
+    "src": "6b296a21745558a26d873518115d1af46f55a6cb",
+    "scripts": "c096d5688f6a39fb95792d5aabf16a015c83b20d",
+    "tests": "9f642d06b66e906da9a0e6d85f9fdcf8d4647131",
+    "assets": "effd69abd43e0d5048fd37d9b92afcfa57e19f33",
+    "cfg": "8c6a941f97addf5c8619163b9ffc0e31ad9895a1",
+    "package.json": "6d4d421210c8a01b929587800f2845a270c682fb",
+    "package-lock.json": "affd4af906d47be3d36ddf716a4477ec0efa0dfd"
+  },
+  "comparison": "No runtime, compiler, test, asset, cfg or package source changes against baseline; one full-suite run evaluates both identical source sets. No independent second main suite claimed.",
+  "focused": {
+    "totals": {
+      "tests": 28,
+      "suites": 0,
+      "pass": 27,
+      "fail": 1,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "duration_ms": 2905.670917
+    },
+    "failures": [
+      {
+        "file": "tests/level-payload.test.mjs",
+        "declared_at": "tests/level-payload.test.mjs:410",
+        "test": "T13: only the Director's sector entry writes the star operand",
+        "message": "declared once, called once - from enter_sector",
+        "first_failing_assertion": "tests/level-payload.test.mjs:417"
+      }
+    ],
+    "hasFailingSection": true
+  }
+}

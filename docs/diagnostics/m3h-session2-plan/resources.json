@@ -1,0 +1,235 @@
+{
+  "baseline": "7fe90409bd09db58ff263806bec711db21a76457",
+  "kind": "MEASURED fresh normal build; no feature implementation",
+  "window": {
+    "used": 2068,
+    "capacity": 2811,
+    "free": 743,
+    "grossFree": 1516,
+    "lanceReserved": 768,
+    "protected": 5
+  },
+  "arena": {
+    "step": "4.5M-M3",
+    "owner": "HYBRID_C_ARENA",
+    "address": 31696,
+    "endExclusive": 32528,
+    "capacityBytes": 832,
+    "usedBytes": 827,
+    "freeBytes": 5,
+    "asmBytes": 162,
+    "codeBytes": 641,
+    "rodataBytes": 24,
+    "segments": [
+      "HYBRID_ASM_ARENA",
+      "HYBRID_C_ARENA",
+      "HYBRID_C_ARENA_RODATA"
+    ],
+    "anchor": "hybrid_arena_anchor (1-B rts, HYBRID_ASM_ARENA): keeps the record non-empty",
+    "replaces": "HYBRID_C_HEAVY window $7E12-$7F04 (243 B) and its 44-B transport tail in the merged low-C/GLUE record",
+    "boundedBy": {
+      "below": "starfield stream A staging / pause-screen backup end $7BD0",
+      "above": "A2 display lists $7F10"
+    },
+    "transport": {
+      "record": "own DFMC record, LZ, stagingId extension",
+      "finalDestination": 31696,
+      "startSector": 168,
+      "sectors": 6,
+      "rawBytes": 827,
+      "packedBytes": 727,
+      "paddingBytes": 20,
+      "landing": "direct: stage 2 decodes it to $7BD0; no hold, no publish copy"
+    },
+    "ownersInArena": [
+      {
+        "owner": "record 7bd0",
+        "start": 31696,
+        "endExclusive": 32523
+      }
+    ],
+    "worstCaseFullArenaPackedBytes": 840,
+    "worstCaseFullArenaSectors": 7
+  },
+  "director": {
+    "implementation": "cc65-c",
+    "runAddress": 40309,
+    "endExclusive": 40633,
+    "reservedEndExclusive": 40954,
+    "bytes": 324,
+    "packedBytes": 289,
+    "externalChunk": {
+      "startSector": 209,
+      "sectors": 3,
+      "transportBytes": 384,
+      "crc16": 44867
+    }
+  },
+  "content": {
+    "address": 4480,
+    "endExclusive": 6400,
+    "capacityBytes": 1920,
+    "usedBytes": 612,
+    "runIndex": 12,
+    "validAddress": 34483,
+    "phase": "checked fighter/capital content; disarmed before boss"
+  },
+  "l2": {
+    "address": 6400,
+    "endExclusive": 8192,
+    "capacityBytes": 1792,
+    "usedBytes": 1290,
+    "freeBytes": 502,
+    "postOneReserveBytes": 256,
+    "runIndex": 11,
+    "phase": "fighter/capital; overwritten by boss"
+  },
+  "initialContentBytes": 12865,
+  "initialSectors": 101,
+  "totalTransportSectors": 211,
+  "records": [
+    {
+      "startSector": 102,
+      "sectorCount": 44,
+      "packedLength": 5591,
+      "rawLength": 6653,
+      "finalDestination": 24080,
+      "crc16": 24111,
+      "type": 1,
+      "stagingId": 1,
+      "destination": 33024
+    },
+    {
+      "startSector": 146,
+      "sectorCount": 10,
+      "packedLength": 1182,
+      "rawLength": 1182,
+      "finalDestination": 35968,
+      "crc16": 33138,
+      "type": 0,
+      "stagingId": 2,
+      "destination": 33024
+    },
+    {
+      "startSector": 156,
+      "sectorCount": 1,
+      "packedLength": 105,
+      "rawLength": 106,
+      "finalDestination": 32792,
+      "crc16": 30405,
+      "type": 1,
+      "stagingId": 2,
+      "destination": 33024
+    },
+    {
+      "startSector": 157,
+      "sectorCount": 4,
+      "packedLength": 441,
+      "rawLength": 498,
+      "finalDestination": 39744,
+      "crc16": 62429,
+      "type": 1,
+      "stagingId": 2,
+      "destination": 33024
+    },
+    {
+      "startSector": 161,
+      "sectorCount": 6,
+      "packedLength": 746,
+      "rawLength": 746,
+      "finalDestination": 30736,
+      "crc16": 56441,
+      "type": 0,
+      "stagingId": 2,
+      "destination": 33024
+    },
+    {
+      "startSector": 167,
+      "sectorCount": 1,
+      "packedLength": 23,
+      "rawLength": 21,
+      "finalDestination": 40286,
+      "crc16": 65153,
+      "type": 1,
+      "stagingId": 2,
+      "destination": 33024
+    },
+    {
+      "startSector": 168,
+      "sectorCount": 6,
+      "packedLength": 727,
+      "rawLength": 827,
+      "finalDestination": 31696,
+      "crc16": 27628,
+      "type": 1,
+      "stagingId": 2,
+      "destination": 33024
+    },
+    {
+      "startSector": 174,
+      "sectorCount": 14,
+      "packedLength": 1684,
+      "rawLength": 2068,
+      "finalDestination": 44544,
+      "crc16": 31322,
+      "type": 1,
+      "stagingId": 2,
+      "destination": 33024
+    },
+    {
+      "startSector": 188,
+      "sectorCount": 9,
+      "packedLength": 1032,
+      "rawLength": 1196,
+      "finalDestination": 13891,
+      "crc16": 47925,
+      "type": 1,
+      "stagingId": 2,
+      "destination": 33024
+    },
+    {
+      "startSector": 197,
+      "sectorCount": 12,
+      "packedLength": 1512,
+      "rawLength": 1512,
+      "finalDestination": 40960,
+      "crc16": 41436,
+      "type": 0,
+      "stagingId": 2,
+      "destination": 33024
+    },
+    {
+      "startSector": 209,
+      "sectorCount": 3,
+      "packedLength": 289,
+      "rawLength": 324,
+      "finalDestination": 40309,
+      "crc16": 44867,
+      "type": 1,
+      "stagingId": 2,
+      "destination": 33024
+    }
+  ],
+  "artifacts": {
+    "manifest.json": {
+      "bytes": 884235,
+      "sha256": "ab28c9cc580c0823710a877c71b402c0ff31a3f03bc0a9966884b8fe0ea0cf0e"
+    },
+    "void-strike-65-boot.bin": {
+      "bytes": 27008,
+      "sha256": "c50e151df038eb3563d3a84614a9dc9a10adb0e3b9161ad3781360289dd2062b"
+    },
+    "void-strike-65.atr": {
+      "bytes": 133136,
+      "sha256": "a125ec10f134ba9e9b8525a56b7c56f0d178095826b92235af989243b2676ac1"
+    },
+    "encounter-director.map": {
+      "bytes": 33766,
+      "sha256": "510ee03f601ef2c428ebbfc054077de5ec942b5d55c62a30ed3fd530fe14390b"
+    },
+    "void-strike-65.map": {
+      "bytes": 4713,
+      "sha256": "5fff1157ec84edbea5cec129d532097db7e028ffb7a14e38494fa4804a0ea3fd"
+    }
+  }
+}

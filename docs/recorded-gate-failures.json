@@ -1373,5 +1373,14 @@
         "first_failing_assertion": "tests/weapon-pickup-spread-shot.test.mjs:286"
       }
     ]
+  },
+  "m3h_session2_plan_unit_debt_2026_10_30": {
+    "baseline": "7fe90409bd09db58ff263806bec711db21a76457",
+    "comparison": "docs/diagnostics/m3h-session2-plan/tests-ab.json",
+    "classification": "pre-existing-unclassified",
+    "count": 139,
+    "existing_entries_reference": "phase_resync_unit_debt_2026_10_30.entries",
+    "new_entries": [],
+    "note": "Planning-only task: source-identity current-main comparison A139/B0/C0, 1484 PASS/139 FAIL of 1623. All 139 tuples match existing debt exactly by file, test, first assertion and message; no new, moved or cleared tuple. Canonical release failures and unit registry remain unchanged."
   }
 }

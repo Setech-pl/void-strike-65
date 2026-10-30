@@ -1,6 +1,6 @@
 # VOID STRIKE 65 — CURRENT STATUS
 
-Last update: 2026-10-30 (phase resync — partial OWNER-SMOKE CANDIDATE)
+Last update: 2026-10-30 (M3-H session 2 planning — owner review pending)
 
 What is true now. Rules: [reguly-projektu.txt](reguly-projektu.txt). Roadmap:
 [plan-realizacji.md](plan-realizacji.md). Source-of-truth order:
@@ -19,6 +19,28 @@ the values below.
 ---
 
 ## Checkpoint
+
+### M3-H session 2 — plan awaiting owner review
+
+Planning only on owner-created `codex/m3h-session2`, current main `7fe9040`.
+[Rebased plan](plans/m3h-session2.md) covers H10–H14/H16, the armoured Raider
+look and generated damage holes, with explicit state/placement/CPU budgets and
+separate smoke checkpoints. No gameplay, renderer, loader or asset source is
+changed. Fresh usable window slack is 743 B, arena 5 B, Director high 321 B,
+L2 246 nonreserved B, checked content home 1,308 B. Quick Spread NORMAL peaks
+at 30,465 cycles, capital-960 NORMAL at 31,153; hard margin 1,415 cycles.
+Normal build gates pass. Full tests: 1,484 PASS/139 shared FAIL, **A139/B0/C0**
+on runtime/test inputs identical to main; all first assertions/messages match
+the existing debt. Focused 27 PASS/1 shared FAIL. Legacy release reconciliation
+remains nonzero; no release readiness claim.
+
+**OWNER_DECISION_REQUIRED before H14 implementation:** choose bounded second
+attempt (retry can rotate) or nonrotate-only publication (up to three frames).
+The old plan promises both two-frame forcing and no rotate publication; a
+spent token on a nonrotate first attempt makes that combination impossible.
+[Planning audit](diagnostics/m3h-session2-plan/audit.md). NEXT TASK: owner
+review of the committed plan; STOP before implementation. This is not a
+session-2 gameplay candidate or an owner acceptance claim.
 
 ### Loop-phase resync — partial OWNER-SMOKE CANDIDATE
 

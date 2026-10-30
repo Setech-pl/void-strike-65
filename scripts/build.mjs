@@ -201,6 +201,7 @@ const twoPmgRaiderPrototype = process.argv.includes("--two-pmg-raiders");
 // frames to measure. It is not a shipping artifact.
 const forceLightPopulation = process.argv.includes("--force-light-population");
 const enemyReviewHarness = process.argv.includes("--enemy-review");
+const heavyDamageReview = process.argv.includes("--heavy-damage-review");
 const enemyCombatReviewHarness = process.argv.includes("--enemy-combat-review");
 const enemyPaletteArgument = process.argv.find((argument) => argument.startsWith("--enemy-palette="));
 const enemyPaletteSlug = enemyPaletteArgument?.slice("--enemy-palette=".length);
@@ -504,7 +505,7 @@ const variantDirectoryNameInner = (escortVariantId !== null
                   : null);
 const longCapital=process.argv.includes("--l2-long-capital");
 if(longCapital && (levelDebugId!==1 || levelDebugSector!==1 || bossRegionValue!==null)) throw new Error("--l2-long-capital requires --level=1:sector=1");
-const variantDirectoryName = longCapital?"l2-capital-960":variantDirectoryNameInner;
+const variantDirectoryName = heavyDamageReview?`heavy-damage-review${levelDebugSuffix}`:longCapital?"l2-capital-960":variantDirectoryNameInner;
 const buildDirectory = variantDirectoryName === null
   ? defaultBuildDirectory
   : path.join(defaultBuildDirectory, variantDirectoryName);
@@ -1428,7 +1429,8 @@ async function buildHybridDirectorModule(fighterWeaponsInclude, levelDefInclude,
   );
   const stdintHeader = fs.readFileSync(path.join(shareDir, "include", "stdint.h"));
   const longBranchMacros = fs.readFileSync(path.join(shareDir, "asminc", "longbranch.mac"));
-  const abiSource = fs.readFileSync(path.join(rootDirectory, "src", "hybrid", "c-asm-abi.s"));
+  const abiSource = Buffer.from(`HEAVY_DAMAGE_REVIEW = ${heavyDamageReview?1:0}
+` + fs.readFileSync(path.join(rootDirectory, "src", "hybrid", "c-asm-abi.s"),"utf8"));
   const config = fs.readFileSync(path.join(rootDirectory, "cfg", "encounter-director.cfg"));
   const lifeCompiled = await runWasmTool("cc65", {
     "/project/life-capsule.c": fs.readFileSync(path.join(rootDirectory, "src/c/life-capsule.c")),
@@ -1541,6 +1543,7 @@ async function buildHybridDirectorModule(fighterWeaponsInclude, levelDefInclude,
   const abiAssembled = await runWasmTool(
     "ca65",
     { [`${base}-abi.s`]: abiSource,
+      "/project/build/heavy-damage.s": fs.readFileSync(path.join(rootDirectory,"src/hybrid/heavy-damage.s")),
       "/project/build/heavy-damage.inc": heavyDamageInclude,
       "/project/build/content-module.s": fs.readFileSync(path.join(rootDirectory,"src/hybrid/content-module.s")),
       "/project/build/life-capsule-layout.inc": fs.readFileSync(path.join(rootDirectory, "src/hybrid/life-capsule-layout.inc")),
@@ -1830,6 +1833,9 @@ function renderDirectorAbiInclude(labelBytes, lightKernelAddress, pauseFrontendM
     ["HEAVY_ABI_Y", "heavy_abi_y"],
     ["HEAVY_ABI_PLAYER_X", "heavy_abi_player_x"],
     ["HEAVY_BODY_INDEX", "heavy_body_index"],
+    ["HEAVY_DAMAGE_MEMBER_STATE", "heavy_damage_member_state"],
+    ["HEAVY_DAMAGE_TARGET_SLOT", "heavy_damage_target_slot"],
+    ["HEAVY_DAMAGE_DRAW", "heavy_damage_draw"],
     ["HEAVY_BODY_FLAGS", "heavy_body_flags"],
     ["HEAVY_BODY_HEIGHT_OPERAND", "heavy_body_height_operand"],
     ["HEAVY_BODY_BASE_OPERAND", "heavy_body_base_operand"],

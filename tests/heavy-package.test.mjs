@@ -113,7 +113,9 @@ test('M3-H placement: appended H2, thirteen BSS bytes and unchanged protected ca
   const m=JSON.parse(fs.readFileSync('build/manifest.json'));
   const r=m.transportCapacity.manifest.parsed.records;
   assert.equal(r[0].sectorCount,44);assert.equal(r[6].sectorCount,6);
-  assert.ok(r[7].sectorCount<=14);assert.equal(r[8].sectorCount,9);assert.equal(r[10].sectorCount,3);
+  // H12's guarded entry grows record 8 past its three-byte packed tail.
+  // Accepted content-home placement still keeps the publisher out of it.
+  assert.ok(r[7].sectorCount<=15);assert.equal(r[8].sectorCount,9);assert.equal(r[10].sectorCount,3);
   // Phase resync uses existing boot-publication padding. Packed content is
   // +22 B over B1; protected capacities and transport sectors stay unchanged.
   assert.equal(m.transportCapacity.initialBootContentBytes,12865);assert.equal(m.l2.usedBytes,1290);

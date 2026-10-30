@@ -738,6 +738,10 @@ heavy_abi_frame_heights = $774A
 heavy_look_spawn:
     jsr _enemy_c_spawn_raiders
     jsr _enemy_c_heavy_look_colour
+.if HEAVY_DAMAGE_REVIEW
+    jsr heavy_look_install
+    jmp heavy_damage_review
+.endif
 heavy_look_install:
     lda #0
     ldx #7
@@ -773,3 +777,5 @@ heavy_look_install:
     rts
 
 .include "content-module.s"
+
+.include "heavy-damage.s"

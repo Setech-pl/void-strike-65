@@ -1151,6 +1151,8 @@ M3H_DAMAGE_SCRATCH:   .res 2
 M3H_RENDER_STATE_END:
 .assert M3H_DAMAGED_BODY_BUFFER = $549E, lderror, "M3-H damaged-body buffer moved"
 .assert M3H_DAMAGED_BODY_BUFFER_END = $54BE, lderror, "M3-H damaged-body buffer grew"
+.assert ENEMY_MEMBER_STATE = HEAVY_DAMAGE_MEMBER_STATE, lderror, "Heavy damage state ABI moved"
+.assert ENEMY_TARGET_SLOT = HEAVY_DAMAGE_TARGET_SLOT, lderror, "Heavy damage target ABI moved"
 .assert M3H_BODY_INDEX = HEAVY_BODY_INDEX, lderror, "M3-H body-index ABI moved"
 .assert M3H_BODY_FLAGS = HEAVY_BODY_FLAGS, lderror, "M3-H body-flags ABI moved"
 .assert M3H_RENDER_STATE_END <= $54E4, lderror, "M3-H render state reaches STARFIELD"
@@ -5035,6 +5037,7 @@ draw_enemy:
     rts
 
 draw_enemy_member:
+    .assert * = HEAVY_DAMAGE_DRAW, lderror, "Heavy damage draw ABI moved"
     ; Accepted motion already clamps every mutable slot before drawing. Avoid a
     ; second scratch round-trip here: it cannot change an in-bounds position.
     ; A = the Y this member's plane was last published at (ENEMY_Y_NEVER forces

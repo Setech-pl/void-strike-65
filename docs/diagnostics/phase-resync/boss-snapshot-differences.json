@@ -1,0 +1,419 @@
+[
+  {
+    "mode": "single",
+    "frames": [
+      {
+        "frame": 869,
+        "addresses": [
+          "$18BD"
+        ]
+      },
+      {
+        "frame": 870,
+        "addresses": [
+          "$1FD2",
+          "$4E0B"
+        ]
+      },
+      {
+        "frame": 871,
+        "addresses": [
+          "$1FD2"
+        ]
+      }
+    ]
+  },
+  {
+    "mode": "repeat",
+    "frames": [
+      {
+        "frame": 869,
+        "addresses": [
+          "$18BD"
+        ]
+      },
+      {
+        "frame": 870,
+        "addresses": [
+          "$1FD2",
+          "$4E0B"
+        ]
+      },
+      {
+        "frame": 871,
+        "addresses": [
+          "$1FD2"
+        ]
+      },
+      {
+        "frame": 893,
+        "addresses": [
+          "$18BD"
+        ]
+      },
+      {
+        "frame": 894,
+        "addresses": [
+          "$1FD2",
+          "$4E0B"
+        ]
+      },
+      {
+        "frame": 895,
+        "addresses": [
+          "$1FD2"
+        ]
+      },
+      {
+        "frame": 917,
+        "addresses": [
+          "$18BD"
+        ]
+      },
+      {
+        "frame": 918,
+        "addresses": [
+          "$1FD2",
+          "$4E0B"
+        ]
+      },
+      {
+        "frame": 919,
+        "addresses": [
+          "$1FD2"
+        ]
+      },
+      {
+        "frame": 941,
+        "addresses": [
+          "$18BD"
+        ]
+      },
+      {
+        "frame": 942,
+        "addresses": [
+          "$1FD2",
+          "$4E0B"
+        ]
+      },
+      {
+        "frame": 943,
+        "addresses": [
+          "$1FD2"
+        ]
+      },
+      {
+        "frame": 965,
+        "addresses": [
+          "$18BD",
+          "$18BE",
+          "$18C0",
+          "$7F15",
+          "$7F18",
+          "$7F1B",
+          "$7F1E",
+          "$7F21"
+        ]
+      },
+      {
+        "frame": 966,
+        "addresses": [
+          "$1FD2",
+          "$4E0B"
+        ]
+      },
+      {
+        "frame": 967,
+        "addresses": [
+          "$1FD2"
+        ]
+      },
+      {
+        "frame": 989,
+        "addresses": [
+          "$18BD"
+        ]
+      },
+      {
+        "frame": 990,
+        "addresses": [
+          "$1FD2",
+          "$4E0B"
+        ]
+      },
+      {
+        "frame": 991,
+        "addresses": [
+          "$1FD2"
+        ]
+      },
+      {
+        "frame": 1013,
+        "addresses": [
+          "$18BD"
+        ]
+      },
+      {
+        "frame": 1014,
+        "addresses": [
+          "$1FD2",
+          "$4E0B"
+        ]
+      },
+      {
+        "frame": 1015,
+        "addresses": [
+          "$1FD2"
+        ]
+      },
+      {
+        "frame": 1037,
+        "addresses": [
+          "$18BD"
+        ]
+      },
+      {
+        "frame": 1038,
+        "addresses": [
+          "$1FD2",
+          "$4E0B"
+        ]
+      },
+      {
+        "frame": 1039,
+        "addresses": [
+          "$1FD2"
+        ]
+      },
+      {
+        "frame": 1061,
+        "addresses": [
+          "$18BD"
+        ]
+      },
+      {
+        "frame": 1062,
+        "addresses": [
+          "$1FD2",
+          "$4E0B"
+        ]
+      },
+      {
+        "frame": 1063,
+        "addresses": [
+          "$1FD2"
+        ]
+      },
+      {
+        "frame": 1085,
+        "addresses": [
+          "$18BD"
+        ]
+      },
+      {
+        "frame": 1086,
+        "addresses": [
+          "$1FD2",
+          "$4E0B"
+        ]
+      },
+      {
+        "frame": 1087,
+        "addresses": [
+          "$1FD2"
+        ]
+      },
+      {
+        "frame": 1109,
+        "addresses": [
+          "$18BD"
+        ]
+      },
+      {
+        "frame": 1110,
+        "addresses": [
+          "$1FD2",
+          "$4E0B"
+        ]
+      },
+      {
+        "frame": 1111,
+        "addresses": [
+          "$1FD2"
+        ]
+      },
+      {
+        "frame": 1133,
+        "addresses": [
+          "$18BD"
+        ]
+      },
+      {
+        "frame": 1134,
+        "addresses": [
+          "$1FD2",
+          "$4E0B"
+        ]
+      },
+      {
+        "frame": 1135,
+        "addresses": [
+          "$1FD2"
+        ]
+      },
+      {
+        "frame": 1157,
+        "addresses": [
+          "$18BD"
+        ]
+      },
+      {
+        "frame": 1158,
+        "addresses": [
+          "$1FD2",
+          "$4E0B",
+          "$5410"
+        ]
+      },
+      {
+        "frame": 1159,
+        "addresses": [
+          "$1FD2"
+        ]
+      },
+      {
+        "frame": 1181,
+        "addresses": [
+          "$18BD"
+        ]
+      },
+      {
+        "frame": 1182,
+        "addresses": [
+          "$1FD2",
+          "$4E0B"
+        ]
+      },
+      {
+        "frame": 1183,
+        "addresses": [
+          "$1FD2"
+        ]
+      },
+      {
+        "frame": 1205,
+        "addresses": [
+          "$18BD"
+        ]
+      },
+      {
+        "frame": 1206,
+        "addresses": [
+          "$1FD2",
+          "$4E0B"
+        ]
+      },
+      {
+        "frame": 1207,
+        "addresses": [
+          "$1FD2"
+        ]
+      },
+      {
+        "frame": 1229,
+        "addresses": [
+          "$18BD"
+        ]
+      },
+      {
+        "frame": 1230,
+        "addresses": [
+          "$1FD2",
+          "$4E0B"
+        ]
+      },
+      {
+        "frame": 1231,
+        "addresses": [
+          "$1FD2"
+        ]
+      },
+      {
+        "frame": 1253,
+        "addresses": [
+          "$18BD"
+        ]
+      },
+      {
+        "frame": 1254,
+        "addresses": [
+          "$1FD2",
+          "$4E0B"
+        ]
+      },
+      {
+        "frame": 1255,
+        "addresses": [
+          "$1FD2"
+        ]
+      },
+      {
+        "frame": 1277,
+        "addresses": [
+          "$18BD"
+        ]
+      },
+      {
+        "frame": 1278,
+        "addresses": [
+          "$1FD2",
+          "$4E0B"
+        ]
+      },
+      {
+        "frame": 1279,
+        "addresses": [
+          "$1FD2"
+        ]
+      },
+      {
+        "frame": 1301,
+        "addresses": [
+          "$18BD"
+        ]
+      },
+      {
+        "frame": 1302,
+        "addresses": [
+          "$1FD2",
+          "$4E0B"
+        ]
+      },
+      {
+        "frame": 1303,
+        "addresses": [
+          "$1FD2"
+        ]
+      },
+      {
+        "frame": 1325,
+        "addresses": [
+          "$18BD"
+        ]
+      },
+      {
+        "frame": 1326,
+        "addresses": [
+          "$1FD2",
+          "$4E0B"
+        ]
+      },
+      {
+        "frame": 1327,
+        "addresses": [
+          "$1FD2"
+        ]
+      }
+    ]
+  }
+]

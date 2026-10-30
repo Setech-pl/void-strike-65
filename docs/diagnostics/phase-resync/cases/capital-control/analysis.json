@@ -1,0 +1,114 @@
+{
+  "id": "capital-control",
+  "scene": "capital",
+  "mode": "control",
+  "forced": false,
+  "window": {
+    "event": "window",
+    "host": 1120,
+    "end_host": 1695,
+    "first_row": 200,
+    "scene": "capital",
+    "forced": 2,
+    "repeat": 0
+  },
+  "injections": [],
+  "physicalFrames": 575,
+  "sampledRows": 575,
+  "peakWall": 28764,
+  "missedFrames": 0,
+  "extraVbi": 0,
+  "dliViolations": 0,
+  "startScanlines": [
+    228,
+    229,
+    230
+  ],
+  "baselinePhaseShiftedRows": 0,
+  "staleL2": 0,
+  "worldHullMismatches": 0,
+  "audioCalls": [
+    1
+  ],
+  "audioIntervalCycles": [
+    26312,
+    47988
+  ],
+  "audioIntervalMs": [
+    14.836638798171881,
+    27.059160179639417
+  ],
+  "logicFieldChanges": {},
+  "firstLogicDifference": null,
+  "logicalSnapshotChanges": 0,
+  "firstSnapshotChange": null,
+  "raster": {
+    "differentPhysicalRasters": 0,
+    "first": null,
+    "maximumDifferentPixels": 0,
+    "unmatchedControlRasters": 0,
+    "unmatchedPhysicalFrames": [],
+    "firstUnmatched": null,
+    "exactMatchLagHistogram": {
+      "0": 575
+    }
+  },
+  "audit": {
+    "session": "capital-control",
+    "frames": 780,
+    "fence_bound_frames": 1,
+    "normal_start_scanline": {
+      "fighter": 17,
+      "capital": 230
+    },
+    "distinct_miss_events": 0,
+    "miss_events": [],
+    "overrun_rows": 0,
+    "fence_model_disagreements": 0,
+    "shifted_phase_rows": 0,
+    "worst_pre_wait_cycles": 14844,
+    "worst_pre_wait_frame": 0,
+    "worst_fence_margin_cycles": 10468,
+    "worst_fence_margin_frame": 0,
+    "maximum_wall_cycles": 28764,
+    "rows_over_target": 0,
+    "rows_over_hard_gate": 0,
+    "unreliable_counters": {
+      "missed_frames": 0,
+      "extra_vbi_boundaries": 0,
+      "dli_sequence_violations": 0
+    },
+    "fence_caught": true,
+    "gate_failures": [],
+    "passed": true
+  },
+  "provenance": {
+    "id": "capital-control",
+    "scene": "capital",
+    "mode": "control",
+    "forced": false,
+    "baseline": "a0660986a4c45d54ed7022d7fd0edd2206f17703",
+    "atr": "build/l2-capital-960/void-strike-65.atr",
+    "video": {
+      "path": "build/phase-resync/cases/capital-control/recording.mp4",
+      "sha256": "2b779c97c454c65f7d4a0fbc3b7d680eb6feb607392f198fcbe9f456fb15416e",
+      "width": 384,
+      "height": 240,
+      "fps": 49.8607597,
+      "physicalFrames": 575
+    },
+    "pcm": {
+      "sha256": "94af2d572d5b512ce8b5868e83cf9529a0df7315ff2f3b2b38cc170e2645803f",
+      "samples": 508566
+    },
+    "audioLossless": {
+      "path": "build/phase-resync/cases/capital-control/audio.flac",
+      "sha256": "444a35158926bf4595dc425c9da55478a464e52768c4298a1971990a9c014cbc",
+      "sampleRate": 44100,
+      "channels": 1
+    },
+    "guestBytesAdded": 0,
+    "guestBytesTemporarilyPatched": 0,
+    "atrSha256": "05b3be00a584e92f2e0e20f3cc38c92dc8ca4a954c0a0047d01b44668e25ecbd"
+  }
+}

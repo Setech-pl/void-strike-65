@@ -1,0 +1,82 @@
+[
+  {
+    "id": "space-single-forced",
+    "spikeMixed": 359,
+    "taskMixed": 1,
+    "spikeShiftedStarts": 543,
+    "taskShiftedStarts": 0,
+    "logicFieldChanges": {},
+    "snapshotChanges": 0,
+    "injections": 1
+  },
+  {
+    "id": "space-repeat-forced",
+    "spikeMixed": 370,
+    "taskMixed": 21,
+    "spikeShiftedStarts": 530,
+    "taskShiftedStarts": 0,
+    "logicFieldChanges": {},
+    "snapshotChanges": 0,
+    "injections": 20
+  },
+  {
+    "id": "capital-single-forced",
+    "spikeMixed": 2,
+    "taskMixed": 2,
+    "spikeShiftedStarts": 0,
+    "taskShiftedStarts": 0,
+    "logicFieldChanges": {},
+    "snapshotChanges": 0,
+    "injections": 1
+  },
+  {
+    "id": "capital-repeat-forced",
+    "spikeMixed": 41,
+    "taskMixed": 41,
+    "spikeShiftedStarts": 0,
+    "taskShiftedStarts": 0,
+    "logicFieldChanges": {},
+    "snapshotChanges": 0,
+    "injections": 20
+  },
+  {
+    "id": "boss-single-forced",
+    "spikeMixed": 504,
+    "taskMixed": 3,
+    "spikeShiftedStarts": 549,
+    "taskShiftedStarts": 0,
+    "logicFieldChanges": {},
+    "snapshotChanges": 3,
+    "injections": 1
+  },
+  {
+    "id": "boss-repeat-forced",
+    "spikeMixed": 507,
+    "taskMixed": 31,
+    "spikeShiftedStarts": 530,
+    "taskShiftedStarts": 0,
+    "logicFieldChanges": {},
+    "snapshotChanges": 60,
+    "injections": 20
+  },
+  {
+    "id": "hud-music-single-forced",
+    "spikeMixed": 0,
+    "taskMixed": 0,
+    "spikeShiftedStarts": 1,
+    "taskShiftedStarts": 0,
+    "logicFieldChanges": {},
+    "snapshotChanges": 0,
+    "injections": 1
+  },
+  {
+    "id": "hud-music-repeat-forced",
+    "spikeMixed": 8,
+    "taskMixed": 17,
+    "spikeShiftedStarts": 20,
+    "taskShiftedStarts": 0,
+    "logicFieldChanges": {},
+    "snapshotChanges": 0,
+    "injections": 20
+  }
+]

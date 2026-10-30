@@ -24,7 +24,7 @@ const FRAME_PEAK_VARIANT = /^frame-peak-(?:main|baseline|fixed|ab)-(480|960|camp
 // these allowances never qualify release evidence.
 const DIAGNOSTIC_FLAGS = ["--artifacts=", "--only-session=", "--atari800-source=",
   "--prepare", "--smoke-frames=", "--smoke-difficulty=", "--active-frames=",
-  "--force-overlay-restore", "--hit-trace", "--reuse-existing-traces", "--capital-entry-only"];
+  "--force-overlay-restore", "--hit-trace", "--reuse-existing-traces", "--capital-entry-only", "--export-launch="];
 
 export function traceArtifactLayout(rootDirectory, artifacts) {
   if (artifacts === undefined) {

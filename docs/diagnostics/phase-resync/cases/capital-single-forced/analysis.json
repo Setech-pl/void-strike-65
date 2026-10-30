@@ -1,0 +1,158 @@
+{
+  "id": "capital-single-forced",
+  "scene": "capital",
+  "mode": "single",
+  "forced": true,
+  "window": {
+    "event": "window",
+    "host": 1120,
+    "end_host": 1695,
+    "first_row": 200,
+    "scene": "capital",
+    "forced": 1,
+    "repeat": 0
+  },
+  "injections": [
+    {
+      "event": "injection",
+      "row": 225,
+      "host": 1145,
+      "pc": 24347,
+      "start": 40730597,
+      "deadline": 40751685,
+      "pad_end": 40751685,
+      "end": 40754305,
+      "jmps": 3931,
+      "cpu_cycles": 11793,
+      "extra_cpu_cycles": 1500,
+      "wall_cycles": 23708,
+      "restored": true
+    }
+  ],
+  "physicalFrames": 575,
+  "sampledRows": 574,
+  "peakWall": 40264,
+  "missedFrames": 1,
+  "extraVbi": 0,
+  "dliViolations": 0,
+  "startScanlines": [
+    228,
+    229,
+    230
+  ],
+  "baselinePhaseShiftedRows": 0,
+  "staleL2": 0,
+  "worldHullMismatches": 0,
+  "audioCalls": [
+    1
+  ],
+  "audioIntervalCycles": [
+    26312,
+    60211
+  ],
+  "audioIntervalMs": [
+    14.836638798171881,
+    33.951385629246246
+  ],
+  "logicFieldChanges": {},
+  "firstLogicDifference": null,
+  "logicalSnapshotChanges": 0,
+  "firstSnapshotChange": null,
+  "raster": {
+    "differentPhysicalRasters": 550,
+    "first": {
+      "videoFrame": 25,
+      "pixels": 52,
+      "bbox": [
+        132,
+        82,
+        267,
+        231
+      ]
+    },
+    "maximumDifferentPixels": 56614,
+    "unmatchedControlRasters": 2,
+    "unmatchedPhysicalFrames": [
+      25,
+      26
+    ],
+    "firstUnmatched": 25,
+    "exactMatchLagHistogram": {
+      "0": 25,
+      "1": 548
+    }
+  },
+  "audit": {
+    "session": "capital-single-forced",
+    "frames": 779,
+    "fence_bound_frames": 1,
+    "normal_start_scanline": {
+      "fighter": 17,
+      "capital": 230
+    },
+    "distinct_miss_events": 1,
+    "miss_events": [
+      {
+        "frame": 225,
+        "row_index": 225,
+        "host_frame": 1144,
+        "generation": 57062,
+        "path": "capital",
+        "wall_cycles": 40264,
+        "pre_wait_cycles": 38188,
+        "fence_margin_cycles": null,
+        "shifted_phase_rows_until_resync": 0
+      }
+    ],
+    "overrun_rows": 1,
+    "fence_model_disagreements": 0,
+    "shifted_phase_rows": 0,
+    "worst_pre_wait_cycles": 14844,
+    "worst_pre_wait_frame": 0,
+    "worst_fence_margin_cycles": 10468,
+    "worst_fence_margin_frame": 0,
+    "maximum_wall_cycles": 40264,
+    "rows_over_target": 1,
+    "rows_over_hard_gate": 1,
+    "unreliable_counters": {
+      "missed_frames": 1,
+      "extra_vbi_boundaries": 0,
+      "dli_sequence_violations": 0
+    },
+    "fence_caught": false,
+    "gate_failures": [
+      "1 distinct miss event(s)",
+      "DMA-on maximum 40264 > 32568"
+    ],
+    "passed": false
+  },
+  "provenance": {
+    "id": "capital-single-forced",
+    "scene": "capital",
+    "mode": "single",
+    "forced": true,
+    "baseline": "a0660986a4c45d54ed7022d7fd0edd2206f17703",
+    "atr": "build/l2-capital-960/void-strike-65.atr",
+    "video": {
+      "path": "build/phase-resync/cases/capital-single-forced/recording.mp4",
+      "sha256": "3da70b16e29a601fde48e74d18c66d40f85ee3a8a2e40638e01df15bc650b5e6",
+      "width": 384,
+      "height": 240,
+      "fps": 49.8607597,
+      "physicalFrames": 575
+    },
+    "pcm": {
+      "sha256": "89d70e12ae9b7380783422fbccc58bd64c8b2f66314ab470e5e0444b94097ece",
+      "samples": 508566
+    },
+    "audioLossless": {
+      "path": "build/phase-resync/cases/capital-single-forced/audio.flac",
+      "sha256": "c84ee6431ade5c4c27021d85bcb27efee8fc01d26be32f602f322028e614509b",
+      "sampleRate": 44100,
+      "channels": 1
+    },
+    "guestBytesAdded": 0,
+    "guestBytesTemporarilyPatched": 3,
+    "atrSha256": "05b3be00a584e92f2e0e20f3cc38c92dc8ca4a954c0a0047d01b44668e25ecbd"
+  }
+}

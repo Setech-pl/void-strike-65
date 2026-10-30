@@ -1,0 +1,1194 @@
+{
+  "controls": [
+    {
+      "scene": "space",
+      "mainTicks": 581,
+      "taskTicks": 581,
+      "logicalDifferences": 0,
+      "mainRasterSha256": "2d627c7c787ddf299535ebc5c407c6ba8d436abd3bc8af4c63e00daa58c9b6aa",
+      "taskRasterSha256": "2d627c7c787ddf299535ebc5c407c6ba8d436abd3bc8af4c63e00daa58c9b6aa",
+      "identicalRasters": true,
+      "physicalAdmissionDifferences": 0,
+      "startClockDeltaRange": [
+        0,
+        4
+      ]
+    },
+    {
+      "scene": "capital",
+      "mainTicks": 780,
+      "taskTicks": 780,
+      "logicalDifferences": 0,
+      "mainRasterSha256": "951cfcf18fe770a39f04269bf4880be92f3c4bb17c565f3c5725f80069ae40f3",
+      "taskRasterSha256": "951cfcf18fe770a39f04269bf4880be92f3c4bb17c565f3c5725f80069ae40f3",
+      "identicalRasters": true,
+      "physicalAdmissionDifferences": 0,
+      "startClockDeltaRange": [
+        -20,
+        18
+      ]
+    },
+    {
+      "scene": "boss",
+      "mainTicks": 1423,
+      "taskTicks": 1423,
+      "logicalDifferences": 0,
+      "mainRasterSha256": "35cd7d8c7c7e412150fa0cd7c052bee3f662e5b0f48c74f01c22f0f5aa851d3b",
+      "taskRasterSha256": "35cd7d8c7c7e412150fa0cd7c052bee3f662e5b0f48c74f01c22f0f5aa851d3b",
+      "identicalRasters": true,
+      "physicalAdmissionDifferences": 0,
+      "startClockDeltaRange": [
+        0,
+        0
+      ]
+    },
+    {
+      "scene": "hud-music",
+      "mainTicks": 581,
+      "taskTicks": 581,
+      "logicalDifferences": 0,
+      "mainRasterSha256": "2d627c7c787ddf299535ebc5c407c6ba8d436abd3bc8af4c63e00daa58c9b6aa",
+      "taskRasterSha256": "2d627c7c787ddf299535ebc5c407c6ba8d436abd3bc8af4c63e00daa58c9b6aa",
+      "identicalRasters": true,
+      "physicalAdmissionDifferences": 0,
+      "startClockDeltaRange": [
+        0,
+        4
+      ]
+    }
+  ],
+  "recovery": [
+    {
+      "id": "space-single-forced",
+      "normalStartScanline": 17,
+      "events": [
+        {
+          "mixedPhysicalFrames": [
+            26
+          ],
+          "mixedCount": 1,
+          "row": 27,
+          "host": 946,
+          "affectedFrame": 27,
+          "nextStartScanline": 17,
+          "lateIterationsBeforeRecovery": 0,
+          "physicalFramesFromMissStart": 2
+        }
+      ],
+      "persistentPhaseSlip": false,
+      "mixedRasters": 1,
+      "shiftedRows": 0,
+      "peakWall": 63940,
+      "dliViolations": 0,
+      "staleL2": 0
+    },
+    {
+      "id": "space-repeat-forced",
+      "normalStartScanline": 17,
+      "events": [
+        {
+          "mixedPhysicalFrames": [
+            26
+          ],
+          "mixedCount": 1,
+          "row": 27,
+          "host": 946,
+          "affectedFrame": 27,
+          "nextStartScanline": 17,
+          "lateIterationsBeforeRecovery": 0,
+          "physicalFramesFromMissStart": 2
+        },
+        {
+          "mixedPhysicalFrames": [
+            51
+          ],
+          "mixedCount": 1,
+          "row": 51,
+          "host": 971,
+          "affectedFrame": 51,
+          "nextStartScanline": 17,
+          "lateIterationsBeforeRecovery": 0,
+          "physicalFramesFromMissStart": 2
+        },
+        {
+          "mixedPhysicalFrames": [
+            76
+          ],
+          "mixedCount": 1,
+          "row": 75,
+          "host": 996,
+          "affectedFrame": 75,
+          "nextStartScanline": 18,
+          "lateIterationsBeforeRecovery": 0,
+          "physicalFramesFromMissStart": 2
+        },
+        {
+          "mixedPhysicalFrames": [
+            101
+          ],
+          "mixedCount": 1,
+          "row": 99,
+          "host": 1021,
+          "affectedFrame": 99,
+          "nextStartScanline": 18,
+          "lateIterationsBeforeRecovery": 0,
+          "physicalFramesFromMissStart": 2
+        },
+        {
+          "mixedPhysicalFrames": [
+            126
+          ],
+          "mixedCount": 1,
+          "row": 123,
+          "host": 1046,
+          "affectedFrame": 123,
+          "nextStartScanline": 17,
+          "lateIterationsBeforeRecovery": 0,
+          "physicalFramesFromMissStart": 2
+        },
+        {
+          "mixedPhysicalFrames": [
+            151
+          ],
+          "mixedCount": 1,
+          "row": 147,
+          "host": 1071,
+          "affectedFrame": 147,
+          "nextStartScanline": 17,
+          "lateIterationsBeforeRecovery": 0,
+          "physicalFramesFromMissStart": 2
+        },
+        {
+          "mixedPhysicalFrames": [
+            176
+          ],
+          "mixedCount": 1,
+          "row": 171,
+          "host": 1096,
+          "affectedFrame": 171,
+          "nextStartScanline": 17,
+          "lateIterationsBeforeRecovery": 0,
+          "physicalFramesFromMissStart": 2
+        },
+        {
+          "mixedPhysicalFrames": [
+            201
+          ],
+          "mixedCount": 1,
+          "row": 195,
+          "host": 1121,
+          "affectedFrame": 195,
+          "nextStartScanline": 17,
+          "lateIterationsBeforeRecovery": 0,
+          "physicalFramesFromMissStart": 2
+        },
+        {
+          "mixedPhysicalFrames": [
+            226
+          ],
+          "mixedCount": 1,
+          "row": 219,
+          "host": 1146,
+          "affectedFrame": 219,
+          "nextStartScanline": 17,
+          "lateIterationsBeforeRecovery": 0,
+          "physicalFramesFromMissStart": 2
+        },
+        {
+          "mixedPhysicalFrames": [
+            251
+          ],
+          "mixedCount": 1,
+          "row": 243,
+          "host": 1171,
+          "affectedFrame": 243,
+          "nextStartScanline": 17,
+          "lateIterationsBeforeRecovery": 0,
+          "physicalFramesFromMissStart": 2
+        },
+        {
+          "mixedPhysicalFrames": [
+            275,
+            276
+          ],
+          "mixedCount": 2,
+          "row": 267,
+          "host": 1196,
+          "affectedFrame": 267,
+          "nextStartScanline": 18,
+          "lateIterationsBeforeRecovery": 0,
+          "physicalFramesFromMissStart": 2
+        },
+        {
+          "mixedPhysicalFrames": [
+            301
+          ],
+          "mixedCount": 1,
+          "row": 291,
+          "host": 1221,
+          "affectedFrame": 291,
+          "nextStartScanline": 17,
+          "lateIterationsBeforeRecovery": 0,
+          "physicalFramesFromMissStart": 2
+        },
+        {
+          "mixedPhysicalFrames": [
+            326
+          ],
+          "mixedCount": 1,
+          "row": 315,
+          "host": 1246,
+          "affectedFrame": 315,
+          "nextStartScanline": 18,
+          "lateIterationsBeforeRecovery": 0,
+          "physicalFramesFromMissStart": 2
+        },
+        {
+          "mixedPhysicalFrames": [
+            351
+          ],
+          "mixedCount": 1,
+          "row": 339,
+          "host": 1271,
+          "affectedFrame": 339,
+          "nextStartScanline": 18,
+          "lateIterationsBeforeRecovery": 0,
+          "physicalFramesFromMissStart": 2
+        },
+        {
+          "mixedPhysicalFrames": [
+            376
+          ],
+          "mixedCount": 1,
+          "row": 363,
+          "host": 1296,
+          "affectedFrame": 363,
+          "nextStartScanline": 17,
+          "lateIterationsBeforeRecovery": 0,
+          "physicalFramesFromMissStart": 2
+        },
+        {
+          "mixedPhysicalFrames": [
+            401
+          ],
+          "mixedCount": 1,
+          "row": 387,
+          "host": 1321,
+          "affectedFrame": 387,
+          "nextStartScanline": 18,
+          "lateIterationsBeforeRecovery": 0,
+          "physicalFramesFromMissStart": 2
+        },
+        {
+          "mixedPhysicalFrames": [
+            426
+          ],
+          "mixedCount": 1,
+          "row": 411,
+          "host": 1346,
+          "affectedFrame": 411,
+          "nextStartScanline": 17,
+          "lateIterationsBeforeRecovery": 0,
+          "physicalFramesFromMissStart": 2
+        },
+        {
+          "mixedPhysicalFrames": [
+            451
+          ],
+          "mixedCount": 1,
+          "row": 435,
+          "host": 1371,
+          "affectedFrame": 435,
+          "nextStartScanline": 17,
+          "lateIterationsBeforeRecovery": 0,
+          "physicalFramesFromMissStart": 2
+        },
+        {
+          "mixedPhysicalFrames": [
+            476
+          ],
+          "mixedCount": 1,
+          "row": 459,
+          "host": 1396,
+          "affectedFrame": 459,
+          "nextStartScanline": 18,
+          "lateIterationsBeforeRecovery": 0,
+          "physicalFramesFromMissStart": 2
+        },
+        {
+          "mixedPhysicalFrames": [
+            501
+          ],
+          "mixedCount": 1,
+          "row": 483,
+          "host": 1421,
+          "affectedFrame": 483,
+          "nextStartScanline": 17,
+          "lateIterationsBeforeRecovery": 0,
+          "physicalFramesFromMissStart": 2
+        }
+      ],
+      "persistentPhaseSlip": false,
+      "mixedRasters": 21,
+      "shiftedRows": 0,
+      "peakWall": 65921,
+      "dliViolations": 0,
+      "staleL2": 0
+    },
+    {
+      "id": "capital-single-forced",
+      "normalStartScanline": 230,
+      "events": [
+        {
+          "mixedPhysicalFrames": [
+            25,
+            26
+          ],
+          "mixedCount": 2,
+          "row": 225,
+          "host": 1145,
+          "affectedFrame": 225,
+          "nextStartScanline": 230,
+          "lateIterationsBeforeRecovery": 0,
+          "physicalFramesFromMissStart": 2
+        }
+      ],
+      "persistentPhaseSlip": false,
+      "mixedRasters": 2,
+      "shiftedRows": 0,
+      "peakWall": 40264,
+      "dliViolations": 0,
+      "staleL2": 0
+    },
+    {
+      "id": "capital-repeat-forced",
+      "normalStartScanline": 230,
+      "events": [
+        {
+          "mixedPhysicalFrames": [
+            25,
+            26
+          ],
+          "mixedCount": 2,
+          "row": 225,
+          "host": 1145,
+          "affectedFrame": 225,
+          "nextStartScanline": 230,
+          "lateIterationsBeforeRecovery": 0,
+          "physicalFramesFromMissStart": 2
+        },
+        {
+          "mixedPhysicalFrames": [
+            50,
+            51
+          ],
+          "mixedCount": 2,
+          "row": 249,
+          "host": 1170,
+          "affectedFrame": 249,
+          "nextStartScanline": 229,
+          "lateIterationsBeforeRecovery": 0,
+          "physicalFramesFromMissStart": 2
+        },
+        {
+          "mixedPhysicalFrames": [
+            75,
+            76
+          ],
+          "mixedCount": 2,
+          "row": 273,
+          "host": 1195,
+          "affectedFrame": 273,
+          "nextStartScanline": 228,
+          "lateIterationsBeforeRecovery": 0,
+          "physicalFramesFromMissStart": 2
+        },
+        {
+          "mixedPhysicalFrames": [
+            100,
+            101
+          ],
+          "mixedCount": 2,
+          "row": 297,
+          "host": 1220,
+          "affectedFrame": 297,
+          "nextStartScanline": 229,
+          "lateIterationsBeforeRecovery": 0,
+          "physicalFramesFromMissStart": 2
+        },
+        {
+          "mixedPhysicalFrames": [
+            125,
+            126,
+            130
+          ],
+          "mixedCount": 3,
+          "row": 321,
+          "host": 1245,
+          "affectedFrame": 321,
+          "nextStartScanline": 228,
+          "lateIterationsBeforeRecovery": 0,
+          "physicalFramesFromMissStart": 2
+        },
+        {
+          "mixedPhysicalFrames": [
+            150,
+            151
+          ],
+          "mixedCount": 2,
+          "row": 345,
+          "host": 1270,
+          "affectedFrame": 345,
+          "nextStartScanline": 229,
+          "lateIterationsBeforeRecovery": 0,
+          "physicalFramesFromMissStart": 2
+        },
+        {
+          "mixedPhysicalFrames": [
+            175,
+            176
+          ],
+          "mixedCount": 2,
+          "row": 369,
+          "host": 1295,
+          "affectedFrame": 369,
+          "nextStartScanline": 230,
+          "lateIterationsBeforeRecovery": 0,
+          "physicalFramesFromMissStart": 2
+        },
+        {
+          "mixedPhysicalFrames": [
+            200,
+            201
+          ],
+          "mixedCount": 2,
+          "row": 393,
+          "host": 1320,
+          "affectedFrame": 393,
+          "nextStartScanline": 230,
+          "lateIterationsBeforeRecovery": 0,
+          "physicalFramesFromMissStart": 2
+        },
+        {
+          "mixedPhysicalFrames": [
+            225,
+            226
+          ],
+          "mixedCount": 2,
+          "row": 417,
+          "host": 1345,
+          "affectedFrame": 417,
+          "nextStartScanline": 230,
+          "lateIterationsBeforeRecovery": 0,
+          "physicalFramesFromMissStart": 2
+        },
+        {
+          "mixedPhysicalFrames": [
+            250,
+            251
+          ],
+          "mixedCount": 2,
+          "row": 441,
+          "host": 1370,
+          "affectedFrame": 441,
+          "nextStartScanline": 230,
+          "lateIterationsBeforeRecovery": 0,
+          "physicalFramesFromMissStart": 2
+        },
+        {
+          "mixedPhysicalFrames": [
+            275,
+            276
+          ],
+          "mixedCount": 2,
+          "row": 465,
+          "host": 1395,
+          "affectedFrame": 465,
+          "nextStartScanline": 230,
+          "lateIterationsBeforeRecovery": 0,
+          "physicalFramesFromMissStart": 2
+        },
+        {
+          "mixedPhysicalFrames": [
+            300,
+            301
+          ],
+          "mixedCount": 2,
+          "row": 489,
+          "host": 1420,
+          "affectedFrame": 489,
+          "nextStartScanline": 229,
+          "lateIterationsBeforeRecovery": 0,
+          "physicalFramesFromMissStart": 2
+        },
+        {
+          "mixedPhysicalFrames": [
+            325,
+            326
+          ],
+          "mixedCount": 2,
+          "row": 513,
+          "host": 1445,
+          "affectedFrame": 513,
+          "nextStartScanline": 230,
+          "lateIterationsBeforeRecovery": 0,
+          "physicalFramesFromMissStart": 2
+        },
+        {
+          "mixedPhysicalFrames": [
+            350,
+            351
+          ],
+          "mixedCount": 2,
+          "row": 537,
+          "host": 1470,
+          "affectedFrame": 537,
+          "nextStartScanline": 230,
+          "lateIterationsBeforeRecovery": 0,
+          "physicalFramesFromMissStart": 2
+        },
+        {
+          "mixedPhysicalFrames": [
+            375,
+            376
+          ],
+          "mixedCount": 2,
+          "row": 561,
+          "host": 1495,
+          "affectedFrame": 561,
+          "nextStartScanline": 230,
+          "lateIterationsBeforeRecovery": 0,
+          "physicalFramesFromMissStart": 2
+        },
+        {
+          "mixedPhysicalFrames": [
+            400,
+            401
+          ],
+          "mixedCount": 2,
+          "row": 585,
+          "host": 1520,
+          "affectedFrame": 585,
+          "nextStartScanline": 230,
+          "lateIterationsBeforeRecovery": 0,
+          "physicalFramesFromMissStart": 2
+        },
+        {
+          "mixedPhysicalFrames": [
+            425,
+            426
+          ],
+          "mixedCount": 2,
+          "row": 609,
+          "host": 1545,
+          "affectedFrame": 609,
+          "nextStartScanline": 230,
+          "lateIterationsBeforeRecovery": 0,
+          "physicalFramesFromMissStart": 2
+        },
+        {
+          "mixedPhysicalFrames": [
+            450,
+            451
+          ],
+          "mixedCount": 2,
+          "row": 633,
+          "host": 1570,
+          "affectedFrame": 633,
+          "nextStartScanline": 230,
+          "lateIterationsBeforeRecovery": 0,
+          "physicalFramesFromMissStart": 2
+        },
+        {
+          "mixedPhysicalFrames": [
+            475,
+            476
+          ],
+          "mixedCount": 2,
+          "row": 657,
+          "host": 1595,
+          "affectedFrame": 657,
+          "nextStartScanline": 230,
+          "lateIterationsBeforeRecovery": 0,
+          "physicalFramesFromMissStart": 2
+        },
+        {
+          "mixedPhysicalFrames": [
+            500,
+            501
+          ],
+          "mixedCount": 2,
+          "row": 681,
+          "host": 1620,
+          "affectedFrame": 681,
+          "nextStartScanline": 230,
+          "lateIterationsBeforeRecovery": 0,
+          "physicalFramesFromMissStart": 2
+        }
+      ],
+      "persistentPhaseSlip": false,
+      "mixedRasters": 41,
+      "shiftedRows": 0,
+      "peakWall": 40327,
+      "dliViolations": 0,
+      "staleL2": 0
+    },
+    {
+      "id": "boss-single-forced",
+      "normalStartScanline": 20,
+      "events": [
+        {
+          "mixedPhysicalFrames": [
+            26,
+            27,
+            29
+          ],
+          "mixedCount": 3,
+          "row": 869,
+          "host": 2112,
+          "affectedFrame": 869,
+          "nextStartScanline": 20,
+          "lateIterationsBeforeRecovery": 0,
+          "physicalFramesFromMissStart": 2
+        }
+      ],
+      "persistentPhaseSlip": false,
+      "mixedRasters": 3,
+      "shiftedRows": 0,
+      "peakWall": 63187,
+      "dliViolations": 0,
+      "staleL2": 0
+    },
+    {
+      "id": "boss-repeat-forced",
+      "normalStartScanline": 20,
+      "events": [
+        {
+          "mixedPhysicalFrames": [
+            26,
+            27,
+            29
+          ],
+          "mixedCount": 3,
+          "row": 869,
+          "host": 2112,
+          "affectedFrame": 869,
+          "nextStartScanline": 20,
+          "lateIterationsBeforeRecovery": 0,
+          "physicalFramesFromMissStart": 2
+        },
+        {
+          "mixedPhysicalFrames": [
+            51,
+            52
+          ],
+          "mixedCount": 2,
+          "row": 893,
+          "host": 2137,
+          "affectedFrame": 893,
+          "nextStartScanline": 20,
+          "lateIterationsBeforeRecovery": 0,
+          "physicalFramesFromMissStart": 2
+        },
+        {
+          "mixedPhysicalFrames": [
+            77
+          ],
+          "mixedCount": 1,
+          "row": 917,
+          "host": 2162,
+          "affectedFrame": 917,
+          "nextStartScanline": 20,
+          "lateIterationsBeforeRecovery": 0,
+          "physicalFramesFromMissStart": 2
+        },
+        {
+          "mixedPhysicalFrames": [
+            102
+          ],
+          "mixedCount": 1,
+          "row": 941,
+          "host": 2187,
+          "affectedFrame": 941,
+          "nextStartScanline": 20,
+          "lateIterationsBeforeRecovery": 0,
+          "physicalFramesFromMissStart": 2
+        },
+        {
+          "mixedPhysicalFrames": [
+            127,
+            128
+          ],
+          "mixedCount": 2,
+          "row": 965,
+          "host": 2212,
+          "affectedFrame": 965,
+          "nextStartScanline": 20,
+          "lateIterationsBeforeRecovery": 0,
+          "physicalFramesFromMissStart": 2
+        },
+        {
+          "mixedPhysicalFrames": [
+            151,
+            152
+          ],
+          "mixedCount": 2,
+          "row": 989,
+          "host": 2237,
+          "affectedFrame": 989,
+          "nextStartScanline": 20,
+          "lateIterationsBeforeRecovery": 0,
+          "physicalFramesFromMissStart": 2
+        },
+        {
+          "mixedPhysicalFrames": [
+            177
+          ],
+          "mixedCount": 1,
+          "row": 1013,
+          "host": 2262,
+          "affectedFrame": 1013,
+          "nextStartScanline": 20,
+          "lateIterationsBeforeRecovery": 0,
+          "physicalFramesFromMissStart": 2
+        },
+        {
+          "mixedPhysicalFrames": [
+            201,
+            202
+          ],
+          "mixedCount": 2,
+          "row": 1037,
+          "host": 2287,
+          "affectedFrame": 1037,
+          "nextStartScanline": 20,
+          "lateIterationsBeforeRecovery": 0,
+          "physicalFramesFromMissStart": 2
+        },
+        {
+          "mixedPhysicalFrames": [
+            227
+          ],
+          "mixedCount": 1,
+          "row": 1061,
+          "host": 2312,
+          "affectedFrame": 1061,
+          "nextStartScanline": 20,
+          "lateIterationsBeforeRecovery": 0,
+          "physicalFramesFromMissStart": 2
+        },
+        {
+          "mixedPhysicalFrames": [
+            252
+          ],
+          "mixedCount": 1,
+          "row": 1085,
+          "host": 2337,
+          "affectedFrame": 1085,
+          "nextStartScanline": 20,
+          "lateIterationsBeforeRecovery": 0,
+          "physicalFramesFromMissStart": 2
+        },
+        {
+          "mixedPhysicalFrames": [
+            277
+          ],
+          "mixedCount": 1,
+          "row": 1109,
+          "host": 2362,
+          "affectedFrame": 1109,
+          "nextStartScanline": 20,
+          "lateIterationsBeforeRecovery": 0,
+          "physicalFramesFromMissStart": 2
+        },
+        {
+          "mixedPhysicalFrames": [
+            301,
+            302
+          ],
+          "mixedCount": 2,
+          "row": 1133,
+          "host": 2387,
+          "affectedFrame": 1133,
+          "nextStartScanline": 20,
+          "lateIterationsBeforeRecovery": 0,
+          "physicalFramesFromMissStart": 2
+        },
+        {
+          "mixedPhysicalFrames": [
+            326,
+            327
+          ],
+          "mixedCount": 2,
+          "row": 1157,
+          "host": 2412,
+          "affectedFrame": 1157,
+          "nextStartScanline": 20,
+          "lateIterationsBeforeRecovery": 0,
+          "physicalFramesFromMissStart": 2
+        },
+        {
+          "mixedPhysicalFrames": [
+            351,
+            352
+          ],
+          "mixedCount": 2,
+          "row": 1181,
+          "host": 2437,
+          "affectedFrame": 1181,
+          "nextStartScanline": 20,
+          "lateIterationsBeforeRecovery": 0,
+          "physicalFramesFromMissStart": 2
+        },
+        {
+          "mixedPhysicalFrames": [
+            376,
+            377
+          ],
+          "mixedCount": 2,
+          "row": 1205,
+          "host": 2462,
+          "affectedFrame": 1205,
+          "nextStartScanline": 20,
+          "lateIterationsBeforeRecovery": 0,
+          "physicalFramesFromMissStart": 2
+        },
+        {
+          "mixedPhysicalFrames": [
+            402
+          ],
+          "mixedCount": 1,
+          "row": 1229,
+          "host": 2487,
+          "affectedFrame": 1229,
+          "nextStartScanline": 20,
+          "lateIterationsBeforeRecovery": 0,
+          "physicalFramesFromMissStart": 2
+        },
+        {
+          "mixedPhysicalFrames": [
+            427
+          ],
+          "mixedCount": 1,
+          "row": 1253,
+          "host": 2512,
+          "affectedFrame": 1253,
+          "nextStartScanline": 20,
+          "lateIterationsBeforeRecovery": 0,
+          "physicalFramesFromMissStart": 2
+        },
+        {
+          "mixedPhysicalFrames": [
+            452
+          ],
+          "mixedCount": 1,
+          "row": 1277,
+          "host": 2537,
+          "affectedFrame": 1277,
+          "nextStartScanline": 20,
+          "lateIterationsBeforeRecovery": 0,
+          "physicalFramesFromMissStart": 2
+        },
+        {
+          "mixedPhysicalFrames": [
+            477
+          ],
+          "mixedCount": 1,
+          "row": 1301,
+          "host": 2562,
+          "affectedFrame": 1301,
+          "nextStartScanline": 20,
+          "lateIterationsBeforeRecovery": 0,
+          "physicalFramesFromMissStart": 2
+        },
+        {
+          "mixedPhysicalFrames": [
+            501,
+            502
+          ],
+          "mixedCount": 2,
+          "row": 1325,
+          "host": 2587,
+          "affectedFrame": 1325,
+          "nextStartScanline": 20,
+          "lateIterationsBeforeRecovery": 0,
+          "physicalFramesFromMissStart": 2
+        }
+      ],
+      "persistentPhaseSlip": false,
+      "mixedRasters": 31,
+      "shiftedRows": 0,
+      "peakWall": 63949,
+      "dliViolations": 0,
+      "staleL2": 0
+    },
+    {
+      "id": "hud-music-single-forced",
+      "normalStartScanline": 17,
+      "events": [
+        {
+          "mixedPhysicalFrames": [],
+          "mixedCount": 0,
+          "row": 30,
+          "host": 949,
+          "affectedFrame": 30,
+          "nextStartScanline": 18,
+          "lateIterationsBeforeRecovery": 0,
+          "physicalFramesFromMissStart": 2
+        }
+      ],
+      "persistentPhaseSlip": false,
+      "mixedRasters": 0,
+      "shiftedRows": 0,
+      "peakWall": 39492,
+      "dliViolations": 0,
+      "staleL2": 0
+    },
+    {
+      "id": "hud-music-repeat-forced",
+      "normalStartScanline": 17,
+      "events": [
+        {
+          "mixedPhysicalFrames": [],
+          "mixedCount": 0,
+          "row": 27,
+          "host": 946,
+          "affectedFrame": 27,
+          "nextStartScanline": 18,
+          "lateIterationsBeforeRecovery": 0,
+          "physicalFramesFromMissStart": 2
+        },
+        {
+          "mixedPhysicalFrames": [
+            51
+          ],
+          "mixedCount": 1,
+          "row": 51,
+          "host": 971,
+          "affectedFrame": 51,
+          "nextStartScanline": 17,
+          "lateIterationsBeforeRecovery": 0,
+          "physicalFramesFromMissStart": 2
+        },
+        {
+          "mixedPhysicalFrames": [
+            76
+          ],
+          "mixedCount": 1,
+          "row": 75,
+          "host": 996,
+          "affectedFrame": 75,
+          "nextStartScanline": 17,
+          "lateIterationsBeforeRecovery": 0,
+          "physicalFramesFromMissStart": 2
+        },
+        {
+          "mixedPhysicalFrames": [
+            101
+          ],
+          "mixedCount": 1,
+          "row": 99,
+          "host": 1021,
+          "affectedFrame": 99,
+          "nextStartScanline": 17,
+          "lateIterationsBeforeRecovery": 0,
+          "physicalFramesFromMissStart": 2
+        },
+        {
+          "mixedPhysicalFrames": [
+            126
+          ],
+          "mixedCount": 1,
+          "row": 123,
+          "host": 1046,
+          "affectedFrame": 123,
+          "nextStartScanline": 18,
+          "lateIterationsBeforeRecovery": 0,
+          "physicalFramesFromMissStart": 2
+        },
+        {
+          "mixedPhysicalFrames": [
+            151
+          ],
+          "mixedCount": 1,
+          "row": 147,
+          "host": 1071,
+          "affectedFrame": 147,
+          "nextStartScanline": 17,
+          "lateIterationsBeforeRecovery": 0,
+          "physicalFramesFromMissStart": 2
+        },
+        {
+          "mixedPhysicalFrames": [
+            176
+          ],
+          "mixedCount": 1,
+          "row": 171,
+          "host": 1096,
+          "affectedFrame": 171,
+          "nextStartScanline": 18,
+          "lateIterationsBeforeRecovery": 0,
+          "physicalFramesFromMissStart": 2
+        },
+        {
+          "mixedPhysicalFrames": [
+            201
+          ],
+          "mixedCount": 1,
+          "row": 195,
+          "host": 1121,
+          "affectedFrame": 195,
+          "nextStartScanline": 18,
+          "lateIterationsBeforeRecovery": 0,
+          "physicalFramesFromMissStart": 2
+        },
+        {
+          "mixedPhysicalFrames": [
+            226
+          ],
+          "mixedCount": 1,
+          "row": 219,
+          "host": 1146,
+          "affectedFrame": 219,
+          "nextStartScanline": 18,
+          "lateIterationsBeforeRecovery": 0,
+          "physicalFramesFromMissStart": 2
+        },
+        {
+          "mixedPhysicalFrames": [
+            251
+          ],
+          "mixedCount": 1,
+          "row": 243,
+          "host": 1171,
+          "affectedFrame": 243,
+          "nextStartScanline": 18,
+          "lateIterationsBeforeRecovery": 0,
+          "physicalFramesFromMissStart": 2
+        },
+        {
+          "mixedPhysicalFrames": [],
+          "mixedCount": 0,
+          "row": 267,
+          "host": 1196,
+          "affectedFrame": 267,
+          "nextStartScanline": 17,
+          "lateIterationsBeforeRecovery": 0,
+          "physicalFramesFromMissStart": 2
+        },
+        {
+          "mixedPhysicalFrames": [],
+          "mixedCount": 0,
+          "row": 291,
+          "host": 1221,
+          "affectedFrame": 291,
+          "nextStartScanline": 17,
+          "lateIterationsBeforeRecovery": 0,
+          "physicalFramesFromMissStart": 2
+        },
+        {
+          "mixedPhysicalFrames": [
+            326
+          ],
+          "mixedCount": 1,
+          "row": 315,
+          "host": 1246,
+          "affectedFrame": 315,
+          "nextStartScanline": 17,
+          "lateIterationsBeforeRecovery": 0,
+          "physicalFramesFromMissStart": 2
+        },
+        {
+          "mixedPhysicalFrames": [
+            351
+          ],
+          "mixedCount": 1,
+          "row": 339,
+          "host": 1271,
+          "affectedFrame": 339,
+          "nextStartScanline": 17,
+          "lateIterationsBeforeRecovery": 0,
+          "physicalFramesFromMissStart": 2
+        },
+        {
+          "mixedPhysicalFrames": [
+            376
+          ],
+          "mixedCount": 1,
+          "row": 363,
+          "host": 1296,
+          "affectedFrame": 363,
+          "nextStartScanline": 17,
+          "lateIterationsBeforeRecovery": 0,
+          "physicalFramesFromMissStart": 2
+        },
+        {
+          "mixedPhysicalFrames": [
+            401
+          ],
+          "mixedCount": 1,
+          "row": 387,
+          "host": 1321,
+          "affectedFrame": 387,
+          "nextStartScanline": 18,
+          "lateIterationsBeforeRecovery": 0,
+          "physicalFramesFromMissStart": 2
+        },
+        {
+          "mixedPhysicalFrames": [
+            426
+          ],
+          "mixedCount": 1,
+          "row": 411,
+          "host": 1346,
+          "affectedFrame": 411,
+          "nextStartScanline": 17,
+          "lateIterationsBeforeRecovery": 0,
+          "physicalFramesFromMissStart": 2
+        },
+        {
+          "mixedPhysicalFrames": [
+            451
+          ],
+          "mixedCount": 1,
+          "row": 435,
+          "host": 1371,
+          "affectedFrame": 435,
+          "nextStartScanline": 17,
+          "lateIterationsBeforeRecovery": 0,
+          "physicalFramesFromMissStart": 2
+        },
+        {
+          "mixedPhysicalFrames": [
+            476
+          ],
+          "mixedCount": 1,
+          "row": 459,
+          "host": 1396,
+          "affectedFrame": 459,
+          "nextStartScanline": 17,
+          "lateIterationsBeforeRecovery": 0,
+          "physicalFramesFromMissStart": 2
+        },
+        {
+          "mixedPhysicalFrames": [
+            501
+          ],
+          "mixedCount": 1,
+          "row": 483,
+          "host": 1421,
+          "affectedFrame": 483,
+          "nextStartScanline": 18,
+          "lateIterationsBeforeRecovery": 0,
+          "physicalFramesFromMissStart": 2
+        }
+      ],
+      "persistentPhaseSlip": false,
+      "mixedRasters": 17,
+      "shiftedRows": 0,
+      "peakWall": 39327,
+      "dliViolations": 0,
+      "staleL2": 0
+    }
+  ]
+}

@@ -117,3 +117,19 @@ test("starfield observes but never owns world and hull accumulator clocks", () =
   assert.equal((world.match(/sta HULL_SCROLL_ACCUMULATOR/g) ?? []).length, 2);
   assert.match(world, /cmp #CAPITAL_HULL_STATE_OPEN[\s\S]+lda world_scroll_rates,x[\s\S]+asl[\s\S]+lda hull_scroll_rates,x/);
 });
+
+test("fighter tail drains stale tokens, including wrap; capital preserves its pending token", () => {
+  for (const [publication, produced, consumed] of [[0, 8, 7], [0, 0, 255], [0, 9, 9], [1, 8, 7]]) {
+    const memory = new Uint8Array(0x10000);
+    installRuntimeSegments(memory, root);
+    memory[labels.get("FIGHTER_PROJECTILE_PUBLICATION_FRAME")] = publication;
+    memory[labels.get("PHYSICAL_PAL_FRAME_ID")] = produced;
+    memory[labels.get("GAMEPLAY_PAL_FRAME_CONSUMED")] = consumed;
+    const cpu = new Nmos6502(memory);
+    cpu.pc = labels.get("main_loop_resync");
+    for (let steps = 0; steps < 20 && cpu.pc !== labels.get("main_loop"); steps++) cpu.step();
+    assert.equal(cpu.pc, labels.get("main_loop"));
+    assert.equal(memory[labels.get("GAMEPLAY_PAL_FRAME_CONSUMED")], publication ? consumed : produced);
+    assert.equal(cpu.cycles, publication ? 14 : 22);
+  }
+});

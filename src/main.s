@@ -2864,7 +2864,7 @@ profile_after_projectile_render = *
 profile_after_audio = *
     jsr tick_respawn_invulnerability
 
-    jmp main_loop
+    jmp main_loop_resync
 
 main_loop_option_pressed = *
     lda pause_option_latched
@@ -11730,7 +11730,27 @@ publish_light_record:
     bne @bad
 publish_light_record_end:
 
-    .res 128 - (publish_light_record_end - publish_light_record), $00
+; Fighter-only token drain after publication/audio. Capital must retain its
+; pending token: normal traversal intentionally crosses the next DLI token.
+; Fighter adds 22 cycles (two 11-cycle master-poll periods); capital adds
+; 14 (two 7-cycle VCOUNT-poll periods). Preserve normal polling phase. This 23-byte
+; tail reuses boot publication padding: no residency/RAM or entry ABI change.
+main_loop_resync = *
+    lda FIGHTER_PROJECTILE_PUBLICATION_FRAME
+    bne main_loop_resync_capital
+    lda PHYSICAL_PAL_FRAME_ID
+    sta GAMEPLAY_PAL_FRAME_CONSUMED
+    bit stick_value             ; 3 + 2 cycles: fighter added cost 22
+    nop
+main_loop_resync_done = *
+    jmp main_loop
+main_loop_resync_capital = *
+    bit FIGHTER_PROJECTILE_PUBLICATION_FRAME ; 4 cycles: capital added cost 14
+    jmp main_loop
+main_loop_resync_end = *
+    .assert >(main_loop_resync+5) = >main_loop_resync_capital, error, "resync branch must stay on page"
+    .res 128 - (main_loop_resync_end - publish_light_record), $00
+.export main_loop_resync, main_loop_resync_done, main_loop_resync_end
 
 ; Plasma FX: the growth glyphs (108-109) lead the bank, so one copy installs
 ; 108-119 in order.

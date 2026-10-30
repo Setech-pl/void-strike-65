@@ -4935,11 +4935,20 @@ function main() {
       const media = sessionMedia(atrPath, session.media?.id ?? session.id, {
         readOnly: session.media?.readOnly === true, reuse: session.media?.reuse === true,
       });
-      run(emulatorPath, [
+      const launchArguments = [
         TARGET_MACHINE, "-pal", ...atari800SioArguments(rootDirectory, { realSio: false }), "-nobasic",
         "-nosound", "-turbo", "-no-video-accel", "-no-vsync",
         media,
-      ], { env: environment });
+      ];
+      // Throwaway frame-overrun spike: export the existing native fixture's
+      // exact launch for the fault injector, without running release clauses.
+      const launchExport = process.argv.find(a => a.startsWith("--export-launch="));
+      if (launchExport) {
+        fs.writeFileSync(launchExport.slice(16), JSON.stringify({ emulatorPath,
+          args: launchArguments, env: environment }, null, 2) + "\n");
+        return;
+      }
+      run(emulatorPath, launchArguments, { env: environment });
     }
     const summaryRecords = readSummaryRecords(summaryOutput);
     const rows = parseCsv(fs.readFileSync(outputPath, "utf8"), session);

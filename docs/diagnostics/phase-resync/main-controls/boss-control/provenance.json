@@ -1,0 +1,29 @@
+{
+  "id": "boss-control",
+  "scene": "boss",
+  "mode": "control",
+  "forced": false,
+  "baseline": "a0660986a4c45d54ed7022d7fd0edd2206f17703",
+  "atr": "build/level-1-s4/void-strike-65.atr",
+  "video": {
+    "path": "docs/diagnostics/frame-overrun/boss-control/recording.mp4",
+    "sha256": "5d2915554bbcffff8a95aa5f0456a4cced8a20b48debea4bbeb1d5df65e2c378",
+    "width": 384,
+    "height": 240,
+    "fps": 49.8607597,
+    "physicalFrames": 575
+  },
+  "pcm": {
+    "sha256": "44a87e975bd0f2879aa0bf628a25d6647a6e63a2c1860d6423f973c69874f608",
+    "samples": 508567
+  },
+  "audioLossless": {
+    "path": "docs/diagnostics/frame-overrun/boss-control/audio.flac",
+    "sha256": "bc819244439909af4ac9644c5a8d105559dbf3ae1b6fac2e0b93c8034d05fe45",
+    "sampleRate": 44100,
+    "channels": 1
+  },
+  "guestBytesAdded": 0,
+  "guestBytesTemporarilyPatched": 0,
+  "atrSha256": "bc2e22f452ffe30a720c81ab07cb99be53ba2ef30b388bae6794f34bfe26b315"
+}

@@ -1,0 +1,114 @@
+{
+  "id": "space-control",
+  "scene": "space",
+  "mode": "control",
+  "forced": false,
+  "window": {
+    "event": "window",
+    "host": 921,
+    "end_host": 1496,
+    "first_row": 1,
+    "scene": "space",
+    "forced": 2,
+    "repeat": 0
+  },
+  "injections": [],
+  "physicalFrames": 575,
+  "sampledRows": 575,
+  "peakWall": 30650,
+  "missedFrames": 0,
+  "extraVbi": 0,
+  "dliViolations": 0,
+  "startScanlines": [
+    17,
+    18,
+    230
+  ],
+  "baselinePhaseShiftedRows": 0,
+  "staleL2": 0,
+  "worldHullMismatches": 0,
+  "audioCalls": [
+    1
+  ],
+  "audioIntervalCycles": [
+    29374,
+    44876
+  ],
+  "audioIntervalMs": [
+    16.56321936977428,
+    25.304385934431494
+  ],
+  "logicFieldChanges": {},
+  "firstLogicDifference": null,
+  "logicalSnapshotChanges": 0,
+  "firstSnapshotChange": null,
+  "raster": {
+    "differentPhysicalRasters": 0,
+    "first": null,
+    "maximumDifferentPixels": 0,
+    "unmatchedControlRasters": 0,
+    "unmatchedPhysicalFrames": [],
+    "firstUnmatched": null,
+    "exactMatchLagHistogram": {
+      "0": 575
+    }
+  },
+  "audit": {
+    "session": "space-control",
+    "frames": 581,
+    "fence_bound_frames": 571,
+    "normal_start_scanline": {
+      "fighter": 17,
+      "capital": 230
+    },
+    "distinct_miss_events": 0,
+    "miss_events": [],
+    "overrun_rows": 0,
+    "fence_model_disagreements": 0,
+    "shifted_phase_rows": 0,
+    "worst_pre_wait_cycles": 22002,
+    "worst_pre_wait_frame": 275,
+    "worst_fence_margin_cycles": 3298,
+    "worst_fence_margin_frame": 275,
+    "maximum_wall_cycles": 30650,
+    "rows_over_target": 0,
+    "rows_over_hard_gate": 0,
+    "unreliable_counters": {
+      "missed_frames": 0,
+      "extra_vbi_boundaries": 0,
+      "dli_sequence_violations": 0
+    },
+    "fence_caught": true,
+    "gate_failures": [],
+    "passed": true
+  },
+  "provenance": {
+    "id": "space-control",
+    "scene": "space",
+    "mode": "control",
+    "forced": false,
+    "baseline": "a0660986a4c45d54ed7022d7fd0edd2206f17703",
+    "atr": "dist/void-strike-65.atr",
+    "video": {
+      "path": "build/phase-resync/cases/space-control/recording.mp4",
+      "sha256": "fe4b2c25052273a9fff38134d811819fcfe19157f4c78ad1e9c336d094ef207d",
+      "width": 384,
+      "height": 240,
+      "fps": 49.8607597,
+      "physicalFrames": 575
+    },
+    "pcm": {
+      "sha256": "521d31e86e9ad6a0e897628db9ee41cb0682e054d370183ce2990793f2ed6dc5",
+      "samples": 508566
+    },
+    "audioLossless": {
+      "path": "build/phase-resync/cases/space-control/audio.flac",
+      "sha256": "e9fd34044effe3c6ed036881cb9a5b249b8ddd1ff71e3f80dc3a72b1ef9446cb",
+      "sampleRate": 44100,
+      "channels": 1
+    },
+    "guestBytesAdded": 0,
+    "guestBytesTemporarilyPatched": 0,
+    "atrSha256": "a125ec10f134ba9e9b8525a56b7c56f0d178095826b92235af989243b2676ac1"
+  }
+}

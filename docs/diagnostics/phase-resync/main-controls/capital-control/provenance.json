@@ -1,0 +1,29 @@
+{
+  "id": "capital-control",
+  "scene": "capital",
+  "mode": "control",
+  "forced": false,
+  "baseline": "a0660986a4c45d54ed7022d7fd0edd2206f17703",
+  "atr": "build/l2-capital-960/void-strike-65.atr",
+  "video": {
+    "path": "docs/diagnostics/frame-overrun/capital-control/recording.mp4",
+    "sha256": "ecc3e8f8bc52a00dbe36c2bfef8948356b778a856114a05ec9c9e13ecb8f457e",
+    "width": 384,
+    "height": 240,
+    "fps": 49.8607597,
+    "physicalFrames": 575
+  },
+  "pcm": {
+    "sha256": "87113c94b8ff4756e066b5f243c2139c01ca501327325baf36b5337c68773c9c",
+    "samples": 508566
+  },
+  "audioLossless": {
+    "path": "docs/diagnostics/frame-overrun/capital-control/audio.flac",
+    "sha256": "24a54d072cf63e9878b999c7703092938c87fd6f9387ad9e92c74f02604c6744",
+    "sampleRate": 44100,
+    "channels": 1
+  },
+  "guestBytesAdded": 0,
+  "guestBytesTemporarilyPatched": 0,
+  "atrSha256": "718aa2a0c6e02468793a78dd0375e7b25c0f0354b9e310d989709f55b55954a0"
+}

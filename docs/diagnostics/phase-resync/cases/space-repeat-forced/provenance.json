@@ -1,0 +1,29 @@
+{
+  "id": "space-repeat-forced",
+  "scene": "space",
+  "mode": "repeat",
+  "forced": true,
+  "baseline": "a0660986a4c45d54ed7022d7fd0edd2206f17703",
+  "atr": "dist/void-strike-65.atr",
+  "video": {
+    "path": "build/phase-resync/cases/space-repeat-forced/recording.mp4",
+    "sha256": "5a36dea82bbbb49e6b5132c4a39bd38e3201d393770560d64cdd40d83856d25b",
+    "width": 384,
+    "height": 240,
+    "fps": 49.8607597,
+    "physicalFrames": 575
+  },
+  "pcm": {
+    "sha256": "76f141f40ac67f78e866ef28d0f5c318ad682207f8f992959ab5d54a1ea49816",
+    "samples": 508566
+  },
+  "audioLossless": {
+    "path": "build/phase-resync/cases/space-repeat-forced/audio.flac",
+    "sha256": "1e8b608124282d51492b43e44a95ae9638853461dba88ee5c7721bb84228b6d0",
+    "sampleRate": 44100,
+    "channels": 1
+  },
+  "guestBytesAdded": 0,
+  "guestBytesTemporarilyPatched": 3,
+  "atrSha256": "a125ec10f134ba9e9b8525a56b7c56f0d178095826b92235af989243b2676ac1"
+}

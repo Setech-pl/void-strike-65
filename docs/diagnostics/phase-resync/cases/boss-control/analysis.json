@@ -1,0 +1,111 @@
+{
+  "id": "boss-control",
+  "scene": "boss",
+  "mode": "control",
+  "forced": false,
+  "window": {
+    "event": "window",
+    "host": 2087,
+    "end_host": 2662,
+    "first_row": 843,
+    "scene": "boss",
+    "forced": 2,
+    "repeat": 0
+  },
+  "injections": [],
+  "physicalFrames": 575,
+  "sampledRows": 575,
+  "peakWall": 29030,
+  "missedFrames": 0,
+  "extraVbi": 0,
+  "dliViolations": 0,
+  "startScanlines": [
+    20
+  ],
+  "baselinePhaseShiftedRows": 0,
+  "staleL2": 0,
+  "worldHullMismatches": 0,
+  "audioCalls": [
+    1
+  ],
+  "audioIntervalCycles": [
+    34825,
+    36000
+  ],
+  "audioIntervalMs": [
+    19.6368936662487,
+    20.299444995978558
+  ],
+  "logicFieldChanges": {},
+  "firstLogicDifference": null,
+  "logicalSnapshotChanges": 0,
+  "firstSnapshotChange": null,
+  "raster": {
+    "differentPhysicalRasters": 0,
+    "first": null,
+    "maximumDifferentPixels": 0,
+    "unmatchedControlRasters": 0,
+    "unmatchedPhysicalFrames": [],
+    "firstUnmatched": null,
+    "exactMatchLagHistogram": {
+      "0": 575
+    }
+  },
+  "audit": {
+    "session": "boss-control",
+    "frames": 1422,
+    "fence_bound_frames": 1422,
+    "normal_start_scanline": {
+      "fighter": 20
+    },
+    "distinct_miss_events": 0,
+    "miss_events": [],
+    "overrun_rows": 0,
+    "fence_model_disagreements": 0,
+    "shifted_phase_rows": 0,
+    "worst_pre_wait_cycles": 19372,
+    "worst_pre_wait_frame": 563,
+    "worst_fence_margin_cycles": 5937,
+    "worst_fence_margin_frame": 563,
+    "maximum_wall_cycles": 30532,
+    "rows_over_target": 0,
+    "rows_over_hard_gate": 0,
+    "unreliable_counters": {
+      "missed_frames": 0,
+      "extra_vbi_boundaries": 0,
+      "dli_sequence_violations": 0
+    },
+    "fence_caught": true,
+    "gate_failures": [],
+    "passed": true
+  },
+  "provenance": {
+    "id": "boss-control",
+    "scene": "boss",
+    "mode": "control",
+    "forced": false,
+    "baseline": "a0660986a4c45d54ed7022d7fd0edd2206f17703",
+    "atr": "build/level-1-s4/void-strike-65.atr",
+    "video": {
+      "path": "build/phase-resync/cases/boss-control/recording.mp4",
+      "sha256": "5d2915554bbcffff8a95aa5f0456a4cced8a20b48debea4bbeb1d5df65e2c378",
+      "width": 384,
+      "height": 240,
+      "fps": 49.8607597,
+      "physicalFrames": 575
+    },
+    "pcm": {
+      "sha256": "44a87e975bd0f2879aa0bf628a25d6647a6e63a2c1860d6423f973c69874f608",
+      "samples": 508567
+    },
+    "audioLossless": {
+      "path": "build/phase-resync/cases/boss-control/audio.flac",
+      "sha256": "bc819244439909af4ac9644c5a8d105559dbf3ae1b6fac2e0b93c8034d05fe45",
+      "sampleRate": 44100,
+      "channels": 1
+    },
+    "guestBytesAdded": 0,
+    "guestBytesTemporarilyPatched": 0,
+    "atrSha256": "9d96e5512ac5f8d3b4fb64fb5663491c56edeb831af73b3d3bea7cb6090223ab"
+  }
+}

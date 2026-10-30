@@ -1,0 +1,29 @@
+{
+  "id": "boss-single-forced",
+  "scene": "boss",
+  "mode": "single",
+  "forced": true,
+  "baseline": "a0660986a4c45d54ed7022d7fd0edd2206f17703",
+  "atr": "build/level-1-s4/void-strike-65.atr",
+  "video": {
+    "path": "build/phase-resync/cases/boss-single-forced/recording.mp4",
+    "sha256": "d69430601f11a3168f3fbfe3c2c8264619b62b437bd2ae2a287339a462b72102",
+    "width": 384,
+    "height": 240,
+    "fps": 49.8607597,
+    "physicalFrames": 575
+  },
+  "pcm": {
+    "sha256": "b1f2b7bf10de552fc202ce28df3b48c5bd0c294215c2837eea950ee2e491dc70",
+    "samples": 508567
+  },
+  "audioLossless": {
+    "path": "build/phase-resync/cases/boss-single-forced/audio.flac",
+    "sha256": "2df4b294ccc1878f9c93dcb11e75969dfe187f9c21116bf711e6e580c05a9a0e",
+    "sampleRate": 44100,
+    "channels": 1
+  },
+  "guestBytesAdded": 0,
+  "guestBytesTemporarilyPatched": 3,
+  "atrSha256": "9d96e5512ac5f8d3b4fb64fb5663491c56edeb831af73b3d3bea7cb6090223ab"
+}

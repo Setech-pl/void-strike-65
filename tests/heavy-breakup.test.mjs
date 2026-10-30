@@ -480,9 +480,9 @@ test("the rotate gate keeps its pin and M3-H preserves the initial block and are
   // RE-PINNED 2026-10-06, 13,621 -> 13,618: plasma FX B1.2 (docs/plans/plasma-fx.md §12): the break-up is main's again, its renderer one stage list with no per-fragment codes and no growth hold, so the initial block content is 13,618 B, 3 B under main's 13,621. The rotate gate still adds no byte.
   // RE-PINNED 2026-10-10, fix/hardware-audio (docs/diagnostics/hardware-audio.md, F2): `lda #SKCTL_AUDIO / sta SKCTL` before the first menu, 5 B in ENTITY_CODE's cold start: 13,618 -> 13,623. The rotate gate still adds no byte.
   // M3-H Phase 0 after L1: the Heavy package adds zero initial-content bytes.
-  // 2026-10-30 B1: solid-shot instructions replace inert padding, adding
-  // 18 packed bytes without growing a segment or the initial sector count.
-  assert.equal(manifest.transportCapacity.initialBootContentBytes, 12843);
+  // 2026-10-30 phase resync: 23 code bytes reuse padding, adding
+  // 22 packed bytes over B1 without changing segments or the sector count.
+  assert.equal(manifest.transportCapacity.initialBootContentBytes, 12865);
   assert.equal(manifest.bootSectors, 101);
   // BROADSIDE (extension record 1): the routine replaces zero-pin bytes, so
   // the segment's size, the pin's address and every label after it hold.

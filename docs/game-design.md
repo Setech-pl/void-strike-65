@@ -76,6 +76,12 @@ ten visible impulses; Spread uses four PairShots for eight. One PairShot is one
 movement/lifecycle object and produces one collision event, so the visual pair
 does not double damage.
 
+Player shots end on the next hull or island character cell, including a solid
+spawn cell. Existing turret, debris and enemy hit handling runs first, retaining
+its damage and score. Solid terrain itself awards no damage, score or effect;
+its backing cell remains intact. Enemy and turret shots keep their existing
+behavior.
+
 Ordinary fighter combat uses up to two Heavy Raiders, each a monochrome PMG body
 (P1/P2), admitted together as one formation by the Encounter Director. Raider is
 the first C `EnemyArchetype`: one hit point, sampled soft pursuit with a readable

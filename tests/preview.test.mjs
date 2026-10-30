@@ -454,8 +454,15 @@ test("Spread Shot hull owner sequences execute the ATR backing paths", () => {
     assert.equal(fields[8], 0, "owner sequence contains a backing mismatch");
     const activeIds = [fields[9], fields[14], fields[19]];
     assert.equal(activeIds.every((active, slot) => active === 0 || active === [65, 17, 33][slot]), true);
-    if (rowIndex % 12 === 0) assert.deepEqual(activeIds, [65, 17, 33]);
     const screenCodes = [fields[12], fields[17], fields[22]];
+    const backingCodes = [fields[13], fields[18], fields[23]];
+    // Owner B1: the old sequence flew over hulls. Solid cells now consume
+    // the shots and retain their exact screen codes, including hostile D7.
+    for (let slot=0;slot<3;slot++) if ((backingCodes[slot]&127)>=59&&(backingCodes[slot]&127)<90) {
+      assert.equal(activeIds[slot],0);
+      assert.equal(screenCodes[slot],backingCodes[slot]);
+    }
+    if (rowIndex % 12 === 0) assert.ok(backingCodes.some(code=>(code&127)>=59&&(code&127)<90), 'hull fixture needs a solid subject');
     assert.equal(screenCodes.every((code, slot) => activeIds[slot] === 0 || code < 128), true,
       "owner sequence contains a red/inverse Spread projectile");
   }

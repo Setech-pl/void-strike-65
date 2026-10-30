@@ -1,0 +1,197 @@
+{
+  "diagnosticOnly": true,
+  "complete": true,
+  "failures": [
+    {
+      "message": "Expected one complete smooth final-raster capsule sequence in COLPM3 $1c at x 56-72, found 0/11 (largest silhouette 144 px)",
+      "stack": "Error: Expected one complete smooth final-raster capsule sequence in COLPM3 $1c at x 56-72, found 0/11 (largest silhouette 144 px)\n    at invariant (file:///Users/marcinkrzetowski/Projects/dark-fighter-shot-impact/build/shot-solid-impact/release-main/scripts/runtime-wall-trace.mjs:1648:66)\n    at main (file:///Users/marcinkrzetowski/Projects/dark-fighter-shot-impact/build/shot-solid-impact/release-main/scripts/runtime-wall-trace.mjs:7813:5)\n    at file:///Users/marcinkrzetowski/Projects/dark-fighter-shot-impact/build/shot-solid-impact/release-main/scripts/runtime-wall-trace.mjs:9907:5\n    at ModuleJob.run (node:internal/modules/esm/module_job:569:25)\n    at async node:internal/modules/esm/loader:650:26\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:105:5)"
+    },
+    {
+      "message": "Native pickup did not remain one logical slot and one whole 16-row capsule",
+      "stack": "Error: Native pickup did not remain one logical slot and one whole 16-row capsule\n    at invariant (file:///Users/marcinkrzetowski/Projects/dark-fighter-shot-impact/build/shot-solid-impact/release-main/scripts/runtime-wall-trace.mjs:1648:66)\n    at main (file:///Users/marcinkrzetowski/Projects/dark-fighter-shot-impact/build/shot-solid-impact/release-main/scripts/runtime-wall-trace.mjs:7879:5)\n    at file:///Users/marcinkrzetowski/Projects/dark-fighter-shot-impact/build/shot-solid-impact/release-main/scripts/runtime-wall-trace.mjs:9907:5\n    at ModuleJob.run (node:internal/modules/esm/module_job:569:25)\n    at async node:internal/modules/esm/loader:650:26\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:105:5)"
+    },
+    {
+      "message": "Native pickup slot was not released cleanly at the lower boundary",
+      "stack": "Error: Native pickup slot was not released cleanly at the lower boundary\n    at invariant (file:///Users/marcinkrzetowski/Projects/dark-fighter-shot-impact/build/shot-solid-impact/release-main/scripts/runtime-wall-trace.mjs:1648:66)\n    at main (file:///Users/marcinkrzetowski/Projects/dark-fighter-shot-impact/build/shot-solid-impact/release-main/scripts/runtime-wall-trace.mjs:7895:5)\n    at file:///Users/marcinkrzetowski/Projects/dark-fighter-shot-impact/build/shot-solid-impact/release-main/scripts/runtime-wall-trace.mjs:9907:5\n    at ModuleJob.run (node:internal/modules/esm/module_job:569:25)\n    at async node:internal/modules/esm/loader:650:26\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:105:5)"
+    },
+    {
+      "message": "Lower-playfield replay is missing a selected native raster",
+      "stack": "Error: Lower-playfield replay is missing a selected native raster\n    at invariant (file:///Users/marcinkrzetowski/Projects/dark-fighter-shot-impact/build/shot-solid-impact/release-main/scripts/runtime-wall-trace.mjs:1648:66)\n    at main (file:///Users/marcinkrzetowski/Projects/dark-fighter-shot-impact/build/shot-solid-impact/release-main/scripts/runtime-wall-trace.mjs:7961:5)\n    at file:///Users/marcinkrzetowski/Projects/dark-fighter-shot-impact/build/shot-solid-impact/release-main/scripts/runtime-wall-trace.mjs:9907:5\n    at ModuleJob.run (node:internal/modules/esm/module_job:569:25)\n    at async node:internal/modules/esm/loader:650:26\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:105:5)"
+    },
+    {
+      "message": "Director completion trace measured 15927 frames and 0/3 level-end summaries",
+      "stack": "Error: Director completion trace measured 15927 frames and 0/3 level-end summaries\n    at invariant (file:///Users/marcinkrzetowski/Projects/dark-fighter-shot-impact/build/shot-solid-impact/release-main/scripts/runtime-wall-trace.mjs:1648:66)\n    at main (file:///Users/marcinkrzetowski/Projects/dark-fighter-shot-impact/build/shot-solid-impact/release-main/scripts/runtime-wall-trace.mjs:8282:3)\n    at file:///Users/marcinkrzetowski/Projects/dark-fighter-shot-impact/build/shot-solid-impact/release-main/scripts/runtime-wall-trace.mjs:9907:5\n    at ModuleJob.run (node:internal/modules/esm/module_job:569:25)\n    at async node:internal/modules/esm/loader:650:26\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:105:5)"
+    },
+    {
+      "message": "director-complete-0-natural-sweep-fire0 did not execute LAST-SECTOR ROW CLOCK -> DRAINED BOSS ENTRY -> FIGHT -> CHAIN -> HOLD (entered 3532, entry 3613, engaged 3614, chain undefined, hold undefined, states 1)",
+      "stack": "Error: director-complete-0-natural-sweep-fire0 did not execute LAST-SECTOR ROW CLOCK -> DRAINED BOSS ENTRY -> FIGHT -> CHAIN -> HOLD (entered 3532, entry 3613, engaged 3614, chain undefined, hold undefined, states 1)\n    at invariant (file:///Users/marcinkrzetowski/Projects/dark-fighter-shot-impact/build/shot-solid-impact/release-main/scripts/runtime-wall-trace.mjs:1648:66)\n    at file:///Users/marcinkrzetowski/Projects/dark-fighter-shot-impact/build/shot-solid-impact/release-main/scripts/runtime-wall-trace.mjs:8357:5\n    at Array.map (<anonymous>)\n    at main (file:///Users/marcinkrzetowski/Projects/dark-fighter-shot-impact/build/shot-solid-impact/release-main/scripts/runtime-wall-trace.mjs:8288:65)\n    at file:///Users/marcinkrzetowski/Projects/dark-fighter-shot-impact/build/shot-solid-impact/release-main/scripts/runtime-wall-trace.mjs:9907:5\n    at ModuleJob.run (node:internal/modules/esm/module_job:569:25)\n    at async node:internal/modules/esm/loader:650:26\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:105:5)"
+    },
+    {
+      "message": "director-complete-1-natural-sweep-fire0 did not execute LAST-SECTOR ROW CLOCK -> DRAINED BOSS ENTRY -> FIGHT -> CHAIN -> HOLD (entered 2913, entry 2981, engaged 2982, chain undefined, hold undefined, states 1)",
+      "stack": "Error: director-complete-1-natural-sweep-fire0 did not execute LAST-SECTOR ROW CLOCK -> DRAINED BOSS ENTRY -> FIGHT -> CHAIN -> HOLD (entered 2913, entry 2981, engaged 2982, chain undefined, hold undefined, states 1)\n    at invariant (file:///Users/marcinkrzetowski/Projects/dark-fighter-shot-impact/build/shot-solid-impact/release-main/scripts/runtime-wall-trace.mjs:1648:66)\n    at file:///Users/marcinkrzetowski/Projects/dark-fighter-shot-impact/build/shot-solid-impact/release-main/scripts/runtime-wall-trace.mjs:8357:5\n    at Array.map (<anonymous>)\n    at main (file:///Users/marcinkrzetowski/Projects/dark-fighter-shot-impact/build/shot-solid-impact/release-main/scripts/runtime-wall-trace.mjs:8288:65)\n    at file:///Users/marcinkrzetowski/Projects/dark-fighter-shot-impact/build/shot-solid-impact/release-main/scripts/runtime-wall-trace.mjs:9907:5\n    at ModuleJob.run (node:internal/modules/esm/module_job:569:25)\n    at async node:internal/modules/esm/loader:650:26\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:105:5)"
+    },
+    {
+      "message": "director-complete-2-natural-sweep-fire0 did not execute LAST-SECTOR ROW CLOCK -> DRAINED BOSS ENTRY -> FIGHT -> CHAIN -> HOLD (entered 2747, entry 2776, engaged 2777, chain undefined, hold undefined, states 1)",
+      "stack": "Error: director-complete-2-natural-sweep-fire0 did not execute LAST-SECTOR ROW CLOCK -> DRAINED BOSS ENTRY -> FIGHT -> CHAIN -> HOLD (entered 2747, entry 2776, engaged 2777, chain undefined, hold undefined, states 1)\n    at invariant (file:///Users/marcinkrzetowski/Projects/dark-fighter-shot-impact/build/shot-solid-impact/release-main/scripts/runtime-wall-trace.mjs:1648:66)\n    at file:///Users/marcinkrzetowski/Projects/dark-fighter-shot-impact/build/shot-solid-impact/release-main/scripts/runtime-wall-trace.mjs:8357:5\n    at Array.map (<anonymous>)\n    at main (file:///Users/marcinkrzetowski/Projects/dark-fighter-shot-impact/build/shot-solid-impact/release-main/scripts/runtime-wall-trace.mjs:8288:65)\n    at file:///Users/marcinkrzetowski/Projects/dark-fighter-shot-impact/build/shot-solid-impact/release-main/scripts/runtime-wall-trace.mjs:9907:5\n    at ModuleJob.run (node:internal/modules/esm/module_job:569:25)\n    at async node:internal/modules/esm/loader:650:26\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:105:5)"
+    },
+    {
+      "message": "engine-atr-a5-0-immediate did not save all 150 consecutive Atari800 screenshots",
+      "stack": "Error: engine-atr-a5-0-immediate did not save all 150 consecutive Atari800 screenshots\n    at invariant (file:///Users/marcinkrzetowski/Projects/dark-fighter-shot-impact/build/shot-solid-impact/release-main/scripts/runtime-wall-trace.mjs:1648:66)\n    at file:///Users/marcinkrzetowski/Projects/dark-fighter-shot-impact/build/shot-solid-impact/release-main/scripts/runtime-wall-trace.mjs:8444:5\n    at Array.map (<anonymous>)\n    at main (file:///Users/marcinkrzetowski/Projects/dark-fighter-shot-impact/build/shot-solid-impact/release-main/scripts/runtime-wall-trace.mjs:8439:58)\n    at file:///Users/marcinkrzetowski/Projects/dark-fighter-shot-impact/build/shot-solid-impact/release-main/scripts/runtime-wall-trace.mjs:9907:5\n    at ModuleJob.run (node:internal/modules/esm/module_job:569:25)\n    at async node:internal/modules/esm/loader:650:26\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:105:5)"
+    },
+    {
+      "message": "engine-atr-a5-0-delayed did not save all 150 consecutive Atari800 screenshots",
+      "stack": "Error: engine-atr-a5-0-delayed did not save all 150 consecutive Atari800 screenshots\n    at invariant (file:///Users/marcinkrzetowski/Projects/dark-fighter-shot-impact/build/shot-solid-impact/release-main/scripts/runtime-wall-trace.mjs:1648:66)\n    at file:///Users/marcinkrzetowski/Projects/dark-fighter-shot-impact/build/shot-solid-impact/release-main/scripts/runtime-wall-trace.mjs:8444:5\n    at Array.map (<anonymous>)\n    at main (file:///Users/marcinkrzetowski/Projects/dark-fighter-shot-impact/build/shot-solid-impact/release-main/scripts/runtime-wall-trace.mjs:8439:58)\n    at file:///Users/marcinkrzetowski/Projects/dark-fighter-shot-impact/build/shot-solid-impact/release-main/scripts/runtime-wall-trace.mjs:9907:5\n    at ModuleJob.run (node:internal/modules/esm/module_job:569:25)\n    at async node:internal/modules/esm/loader:650:26\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:105:5)"
+    },
+    {
+      "message": "engine-atr-a5-1-immediate did not save all 150 consecutive Atari800 screenshots",
+      "stack": "Error: engine-atr-a5-1-immediate did not save all 150 consecutive Atari800 screenshots\n    at invariant (file:///Users/marcinkrzetowski/Projects/dark-fighter-shot-impact/build/shot-solid-impact/release-main/scripts/runtime-wall-trace.mjs:1648:66)\n    at file:///Users/marcinkrzetowski/Projects/dark-fighter-shot-impact/build/shot-solid-impact/release-main/scripts/runtime-wall-trace.mjs:8444:5\n    at Array.map (<anonymous>)\n    at main (file:///Users/marcinkrzetowski/Projects/dark-fighter-shot-impact/build/shot-solid-impact/release-main/scripts/runtime-wall-trace.mjs:8439:58)\n    at file:///Users/marcinkrzetowski/Projects/dark-fighter-shot-impact/build/shot-solid-impact/release-main/scripts/runtime-wall-trace.mjs:9907:5\n    at ModuleJob.run (node:internal/modules/esm/module_job:569:25)\n    at async node:internal/modules/esm/loader:650:26\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:105:5)"
+    },
+    {
+      "message": "engine-atr-a5-1-delayed did not save all 150 consecutive Atari800 screenshots",
+      "stack": "Error: engine-atr-a5-1-delayed did not save all 150 consecutive Atari800 screenshots\n    at invariant (file:///Users/marcinkrzetowski/Projects/dark-fighter-shot-impact/build/shot-solid-impact/release-main/scripts/runtime-wall-trace.mjs:1648:66)\n    at file:///Users/marcinkrzetowski/Projects/dark-fighter-shot-impact/build/shot-solid-impact/release-main/scripts/runtime-wall-trace.mjs:8444:5\n    at Array.map (<anonymous>)\n    at main (file:///Users/marcinkrzetowski/Projects/dark-fighter-shot-impact/build/shot-solid-impact/release-main/scripts/runtime-wall-trace.mjs:8439:58)\n    at file:///Users/marcinkrzetowski/Projects/dark-fighter-shot-impact/build/shot-solid-impact/release-main/scripts/runtime-wall-trace.mjs:9907:5\n    at ModuleJob.run (node:internal/modules/esm/module_job:569:25)\n    at async node:internal/modules/esm/loader:650:26\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:105:5)"
+    },
+    {
+      "message": "engine-atr-a5-2-immediate did not save all 150 consecutive Atari800 screenshots",
+      "stack": "Error: engine-atr-a5-2-immediate did not save all 150 consecutive Atari800 screenshots\n    at invariant (file:///Users/marcinkrzetowski/Projects/dark-fighter-shot-impact/build/shot-solid-impact/release-main/scripts/runtime-wall-trace.mjs:1648:66)\n    at file:///Users/marcinkrzetowski/Projects/dark-fighter-shot-impact/build/shot-solid-impact/release-main/scripts/runtime-wall-trace.mjs:8444:5\n    at Array.map (<anonymous>)\n    at main (file:///Users/marcinkrzetowski/Projects/dark-fighter-shot-impact/build/shot-solid-impact/release-main/scripts/runtime-wall-trace.mjs:8439:58)\n    at file:///Users/marcinkrzetowski/Projects/dark-fighter-shot-impact/build/shot-solid-impact/release-main/scripts/runtime-wall-trace.mjs:9907:5\n    at ModuleJob.run (node:internal/modules/esm/module_job:569:25)\n    at async node:internal/modules/esm/loader:650:26\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:105:5)"
+    },
+    {
+      "message": "engine-atr-a5-2-delayed did not save all 150 consecutive Atari800 screenshots",
+      "stack": "Error: engine-atr-a5-2-delayed did not save all 150 consecutive Atari800 screenshots\n    at invariant (file:///Users/marcinkrzetowski/Projects/dark-fighter-shot-impact/build/shot-solid-impact/release-main/scripts/runtime-wall-trace.mjs:1648:66)\n    at file:///Users/marcinkrzetowski/Projects/dark-fighter-shot-impact/build/shot-solid-impact/release-main/scripts/runtime-wall-trace.mjs:8444:5\n    at Array.map (<anonymous>)\n    at main (file:///Users/marcinkrzetowski/Projects/dark-fighter-shot-impact/build/shot-solid-impact/release-main/scripts/runtime-wall-trace.mjs:8439:58)\n    at file:///Users/marcinkrzetowski/Projects/dark-fighter-shot-impact/build/shot-solid-impact/release-main/scripts/runtime-wall-trace.mjs:9907:5\n    at ModuleJob.run (node:internal/modules/esm/module_job:569:25)\n    at async node:internal/modules/esm/loader:650:26\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:105:5)"
+    },
+    {
+      "message": "engine-atr-5a-0-immediate did not save all 150 consecutive Atari800 screenshots",
+      "stack": "Error: engine-atr-5a-0-immediate did not save all 150 consecutive Atari800 screenshots\n    at invariant (file:///Users/marcinkrzetowski/Projects/dark-fighter-shot-impact/build/shot-solid-impact/release-main/scripts/runtime-wall-trace.mjs:1648:66)\n    at file:///Users/marcinkrzetowski/Projects/dark-fighter-shot-impact/build/shot-solid-impact/release-main/scripts/runtime-wall-trace.mjs:8444:5\n    at Array.map (<anonymous>)\n    at main (file:///Users/marcinkrzetowski/Projects/dark-fighter-shot-impact/build/shot-solid-impact/release-main/scripts/runtime-wall-trace.mjs:8439:58)\n    at file:///Users/marcinkrzetowski/Projects/dark-fighter-shot-impact/build/shot-solid-impact/release-main/scripts/runtime-wall-trace.mjs:9907:5\n    at ModuleJob.run (node:internal/modules/esm/module_job:569:25)\n    at async node:internal/modules/esm/loader:650:26\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:105:5)"
+    },
+    {
+      "message": "engine-atr-5a-0-delayed did not save all 150 consecutive Atari800 screenshots",
+      "stack": "Error: engine-atr-5a-0-delayed did not save all 150 consecutive Atari800 screenshots\n    at invariant (file:///Users/marcinkrzetowski/Projects/dark-fighter-shot-impact/build/shot-solid-impact/release-main/scripts/runtime-wall-trace.mjs:1648:66)\n    at file:///Users/marcinkrzetowski/Projects/dark-fighter-shot-impact/build/shot-solid-impact/release-main/scripts/runtime-wall-trace.mjs:8444:5\n    at Array.map (<anonymous>)\n    at main (file:///Users/marcinkrzetowski/Projects/dark-fighter-shot-impact/build/shot-solid-impact/release-main/scripts/runtime-wall-trace.mjs:8439:58)\n    at file:///Users/marcinkrzetowski/Projects/dark-fighter-shot-impact/build/shot-solid-impact/release-main/scripts/runtime-wall-trace.mjs:9907:5\n    at ModuleJob.run (node:internal/modules/esm/module_job:569:25)\n    at async node:internal/modules/esm/loader:650:26\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:105:5)"
+    },
+    {
+      "message": "engine-atr-5a-1-immediate did not save all 150 consecutive Atari800 screenshots",
+      "stack": "Error: engine-atr-5a-1-immediate did not save all 150 consecutive Atari800 screenshots\n    at invariant (file:///Users/marcinkrzetowski/Projects/dark-fighter-shot-impact/build/shot-solid-impact/release-main/scripts/runtime-wall-trace.mjs:1648:66)\n    at file:///Users/marcinkrzetowski/Projects/dark-fighter-shot-impact/build/shot-solid-impact/release-main/scripts/runtime-wall-trace.mjs:8444:5\n    at Array.map (<anonymous>)\n    at main (file:///Users/marcinkrzetowski/Projects/dark-fighter-shot-impact/build/shot-solid-impact/release-main/scripts/runtime-wall-trace.mjs:8439:58)\n    at file:///Users/marcinkrzetowski/Projects/dark-fighter-shot-impact/build/shot-solid-impact/release-main/scripts/runtime-wall-trace.mjs:9907:5\n    at ModuleJob.run (node:internal/modules/esm/module_job:569:25)\n    at async node:internal/modules/esm/loader:650:26\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:105:5)"
+    },
+    {
+      "message": "engine-atr-5a-1-delayed did not save all 150 consecutive Atari800 screenshots",
+      "stack": "Error: engine-atr-5a-1-delayed did not save all 150 consecutive Atari800 screenshots\n    at invariant (file:///Users/marcinkrzetowski/Projects/dark-fighter-shot-impact/build/shot-solid-impact/release-main/scripts/runtime-wall-trace.mjs:1648:66)\n    at file:///Users/marcinkrzetowski/Projects/dark-fighter-shot-impact/build/shot-solid-impact/release-main/scripts/runtime-wall-trace.mjs:8444:5\n    at Array.map (<anonymous>)\n    at main (file:///Users/marcinkrzetowski/Projects/dark-fighter-shot-impact/build/shot-solid-impact/release-main/scripts/runtime-wall-trace.mjs:8439:58)\n    at file:///Users/marcinkrzetowski/Projects/dark-fighter-shot-impact/build/shot-solid-impact/release-main/scripts/runtime-wall-trace.mjs:9907:5\n    at ModuleJob.run (node:internal/modules/esm/module_job:569:25)\n    at async node:internal/modules/esm/loader:650:26\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:105:5)"
+    },
+    {
+      "message": "engine-atr-5a-2-immediate did not save all 150 consecutive Atari800 screenshots",
+      "stack": "Error: engine-atr-5a-2-immediate did not save all 150 consecutive Atari800 screenshots\n    at invariant (file:///Users/marcinkrzetowski/Projects/dark-fighter-shot-impact/build/shot-solid-impact/release-main/scripts/runtime-wall-trace.mjs:1648:66)\n    at file:///Users/marcinkrzetowski/Projects/dark-fighter-shot-impact/build/shot-solid-impact/release-main/scripts/runtime-wall-trace.mjs:8444:5\n    at Array.map (<anonymous>)\n    at main (file:///Users/marcinkrzetowski/Projects/dark-fighter-shot-impact/build/shot-solid-impact/release-main/scripts/runtime-wall-trace.mjs:8439:58)\n    at file:///Users/marcinkrzetowski/Projects/dark-fighter-shot-impact/build/shot-solid-impact/release-main/scripts/runtime-wall-trace.mjs:9907:5\n    at ModuleJob.run (node:internal/modules/esm/module_job:569:25)\n    at async node:internal/modules/esm/loader:650:26\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:105:5)"
+    },
+    {
+      "message": "engine-atr-5a-2-delayed did not save all 150 consecutive Atari800 screenshots",
+      "stack": "Error: engine-atr-5a-2-delayed did not save all 150 consecutive Atari800 screenshots\n    at invariant (file:///Users/marcinkrzetowski/Projects/dark-fighter-shot-impact/build/shot-solid-impact/release-main/scripts/runtime-wall-trace.mjs:1648:66)\n    at file:///Users/marcinkrzetowski/Projects/dark-fighter-shot-impact/build/shot-solid-impact/release-main/scripts/runtime-wall-trace.mjs:8444:5\n    at Array.map (<anonymous>)\n    at main (file:///Users/marcinkrzetowski/Projects/dark-fighter-shot-impact/build/shot-solid-impact/release-main/scripts/runtime-wall-trace.mjs:8439:58)\n    at file:///Users/marcinkrzetowski/Projects/dark-fighter-shot-impact/build/shot-solid-impact/release-main/scripts/runtime-wall-trace.mjs:9907:5\n    at ModuleJob.run (node:internal/modules/esm/module_job:569:25)\n    at async node:internal/modules/esm/loader:650:26\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:105:5)"
+    },
+    {
+      "message": "engine-restart-atr-a5 did not reach a second game after GAME OVER",
+      "stack": "Error: engine-restart-atr-a5 did not reach a second game after GAME OVER\n    at invariant (file:///Users/marcinkrzetowski/Projects/dark-fighter-shot-impact/build/shot-solid-impact/release-main/scripts/runtime-wall-trace.mjs:1648:66)\n    at file:///Users/marcinkrzetowski/Projects/dark-fighter-shot-impact/build/shot-solid-impact/release-main/scripts/runtime-wall-trace.mjs:8516:5\n    at Array.map (<anonymous>)\n    at main (file:///Users/marcinkrzetowski/Projects/dark-fighter-shot-impact/build/shot-solid-impact/release-main/scripts/runtime-wall-trace.mjs:8510:55)\n    at file:///Users/marcinkrzetowski/Projects/dark-fighter-shot-impact/build/shot-solid-impact/release-main/scripts/runtime-wall-trace.mjs:9907:5\n    at ModuleJob.run (node:internal/modules/esm/module_job:569:25)\n    at async node:internal/modules/esm/loader:650:26\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:105:5)"
+    },
+    {
+      "message": "engine-restart-atr-a5 did not execute 150 frames of the restarted game",
+      "stack": "Error: engine-restart-atr-a5 did not execute 150 frames of the restarted game\n    at invariant (file:///Users/marcinkrzetowski/Projects/dark-fighter-shot-impact/build/shot-solid-impact/release-main/scripts/runtime-wall-trace.mjs:1648:66)\n    at file:///Users/marcinkrzetowski/Projects/dark-fighter-shot-impact/build/shot-solid-impact/release-main/scripts/runtime-wall-trace.mjs:8518:5\n    at Array.map (<anonymous>)\n    at main (file:///Users/marcinkrzetowski/Projects/dark-fighter-shot-impact/build/shot-solid-impact/release-main/scripts/runtime-wall-trace.mjs:8510:55)\n    at file:///Users/marcinkrzetowski/Projects/dark-fighter-shot-impact/build/shot-solid-impact/release-main/scripts/runtime-wall-trace.mjs:9907:5\n    at ModuleJob.run (node:internal/modules/esm/module_job:569:25)\n    at async node:internal/modules/esm/loader:650:26\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:105:5)"
+    },
+    {
+      "message": "The Director's heaviest measured frame does not fit the timing budget: its DMA-on 32792 is over 32568 (campaign-1-spread-capital frame 1142, 32792 cycles)",
+      "stack": "Error: The Director's heaviest measured frame does not fit the timing budget: its DMA-on 32792 is over 32568 (campaign-1-spread-capital frame 1142, 32792 cycles)\n    at invariant (file:///Users/marcinkrzetowski/Projects/dark-fighter-shot-impact/build/shot-solid-impact/release-main/scripts/runtime-wall-trace.mjs:1648:66)\n    at main (file:///Users/marcinkrzetowski/Projects/dark-fighter-shot-impact/build/shot-solid-impact/release-main/scripts/runtime-wall-trace.mjs:8621:3)\n    at file:///Users/marcinkrzetowski/Projects/dark-fighter-shot-impact/build/shot-solid-impact/release-main/scripts/runtime-wall-trace.mjs:9907:5\n    at ModuleJob.run (node:internal/modules/esm/module_job:569:25)\n    at async node:internal/modules/esm/loader:650:26\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:105:5)"
+    },
+    {
+      "message": "DLI phase/order violations observed: 92",
+      "stack": "Error: DLI phase/order violations observed: 92\n    at invariant (file:///Users/marcinkrzetowski/Projects/dark-fighter-shot-impact/build/shot-solid-impact/release-main/scripts/runtime-wall-trace.mjs:1648:66)\n    at main (file:///Users/marcinkrzetowski/Projects/dark-fighter-shot-impact/build/shot-solid-impact/release-main/scripts/runtime-wall-trace.mjs:8671:3)\n    at file:///Users/marcinkrzetowski/Projects/dark-fighter-shot-impact/build/shot-solid-impact/release-main/scripts/runtime-wall-trace.mjs:9907:5\n    at ModuleJob.run (node:internal/modules/esm/module_job:569:25)\n    at async node:internal/modules/esm/loader:650:26\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:105:5)"
+    },
+    {
+      "message": "Atari800 granted booster cycle was 3→3→4→3→4→4→5→3→4→3→4→3→4→3→4→0→5→3→4→3→4→5→0→3→4, expected a rotation of Rapid/Spread/Shield with no capsule repeating the previous one",
+      "stack": "Error: Atari800 granted booster cycle was 3→3→4→3→4→4→5→3→4→3→4→3→4→3→4→0→5→3→4→3→4→5→0→3→4, expected a rotation of Rapid/Spread/Shield with no capsule repeating the previous one\n    at invariant (file:///Users/marcinkrzetowski/Projects/dark-fighter-shot-impact/build/shot-solid-impact/release-main/scripts/runtime-wall-trace.mjs:1648:66)\n    at main (file:///Users/marcinkrzetowski/Projects/dark-fighter-shot-impact/build/shot-solid-impact/release-main/scripts/runtime-wall-trace.mjs:8951:3)\n    at file:///Users/marcinkrzetowski/Projects/dark-fighter-shot-impact/build/shot-solid-impact/release-main/scripts/runtime-wall-trace.mjs:9907:5\n    at ModuleJob.run (node:internal/modules/esm/module_job:569:25)\n    at async node:internal/modules/esm/loader:650:26\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:105:5)"
+    }
+  ],
+  "unavailable": [
+    {
+      "context": "lower-playfield-boundary",
+      "reason": "Lower-playfield replay is missing a selected native raster",
+      "recordedAssertion": true
+    },
+    {
+      "session": "director-complete-0-natural-sweep-fire0",
+      "reason": "director-complete-0-natural-sweep-fire0 did not execute LAST-SECTOR ROW CLOCK -> DRAINED BOSS ENTRY -> FIGHT -> CHAIN -> HOLD (entered 3532, entry 3613, engaged 3614, chain undefined, hold undefined, states 1)",
+      "recordedAssertion": true
+    },
+    {
+      "session": "director-complete-1-natural-sweep-fire0",
+      "reason": "director-complete-1-natural-sweep-fire0 did not execute LAST-SECTOR ROW CLOCK -> DRAINED BOSS ENTRY -> FIGHT -> CHAIN -> HOLD (entered 2913, entry 2981, engaged 2982, chain undefined, hold undefined, states 1)",
+      "recordedAssertion": true
+    },
+    {
+      "session": "director-complete-2-natural-sweep-fire0",
+      "reason": "director-complete-2-natural-sweep-fire0 did not execute LAST-SECTOR ROW CLOCK -> DRAINED BOSS ENTRY -> FIGHT -> CHAIN -> HOLD (entered 2747, entry 2776, engaged 2777, chain undefined, hold undefined, states 1)",
+      "recordedAssertion": true
+    },
+    {
+      "context": "engine-startup",
+      "session": "engine-atr-a5-0-immediate",
+      "reason": "ENOENT: no such file or directory, open '/Users/marcinkrzetowski/Projects/dark-fighter-shot-impact/build/shot-solid-impact/release-main/build/runtime-wall-trace/engine-atr-a5-0-immediate-000.png'"
+    },
+    {
+      "context": "engine-startup",
+      "session": "engine-atr-a5-0-delayed",
+      "reason": "ENOENT: no such file or directory, open '/Users/marcinkrzetowski/Projects/dark-fighter-shot-impact/build/shot-solid-impact/release-main/build/runtime-wall-trace/engine-atr-a5-0-delayed-000.png'"
+    },
+    {
+      "context": "engine-startup",
+      "session": "engine-atr-a5-1-immediate",
+      "reason": "ENOENT: no such file or directory, open '/Users/marcinkrzetowski/Projects/dark-fighter-shot-impact/build/shot-solid-impact/release-main/build/runtime-wall-trace/engine-atr-a5-1-immediate-000.png'"
+    },
+    {
+      "context": "engine-startup",
+      "session": "engine-atr-a5-1-delayed",
+      "reason": "ENOENT: no such file or directory, open '/Users/marcinkrzetowski/Projects/dark-fighter-shot-impact/build/shot-solid-impact/release-main/build/runtime-wall-trace/engine-atr-a5-1-delayed-000.png'"
+    },
+    {
+      "context": "engine-startup",
+      "session": "engine-atr-a5-2-immediate",
+      "reason": "ENOENT: no such file or directory, open '/Users/marcinkrzetowski/Projects/dark-fighter-shot-impact/build/shot-solid-impact/release-main/build/runtime-wall-trace/engine-atr-a5-2-immediate-000.png'"
+    },
+    {
+      "context": "engine-startup",
+      "session": "engine-atr-a5-2-delayed",
+      "reason": "ENOENT: no such file or directory, open '/Users/marcinkrzetowski/Projects/dark-fighter-shot-impact/build/shot-solid-impact/release-main/build/runtime-wall-trace/engine-atr-a5-2-delayed-000.png'"
+    },
+    {
+      "context": "engine-startup",
+      "session": "engine-atr-5a-0-immediate",
+      "reason": "ENOENT: no such file or directory, open '/Users/marcinkrzetowski/Projects/dark-fighter-shot-impact/build/shot-solid-impact/release-main/build/runtime-wall-trace/engine-atr-5a-0-immediate-000.png'"
+    },
+    {
+      "context": "engine-startup",
+      "session": "engine-atr-5a-0-delayed",
+      "reason": "ENOENT: no such file or directory, open '/Users/marcinkrzetowski/Projects/dark-fighter-shot-impact/build/shot-solid-impact/release-main/build/runtime-wall-trace/engine-atr-5a-0-delayed-000.png'"
+    },
+    {
+      "context": "engine-startup",
+      "session": "engine-atr-5a-1-immediate",
+      "reason": "ENOENT: no such file or directory, open '/Users/marcinkrzetowski/Projects/dark-fighter-shot-impact/build/shot-solid-impact/release-main/build/runtime-wall-trace/engine-atr-5a-1-immediate-000.png'"
+    },
+    {
+      "context": "engine-startup",
+      "session": "engine-atr-5a-1-delayed",
+      "reason": "ENOENT: no such file or directory, open '/Users/marcinkrzetowski/Projects/dark-fighter-shot-impact/build/shot-solid-impact/release-main/build/runtime-wall-trace/engine-atr-5a-1-delayed-000.png'"
+    },
+    {
+      "context": "engine-startup",
+      "session": "engine-atr-5a-2-immediate",
+      "reason": "ENOENT: no such file or directory, open '/Users/marcinkrzetowski/Projects/dark-fighter-shot-impact/build/shot-solid-impact/release-main/build/runtime-wall-trace/engine-atr-5a-2-immediate-000.png'"
+    },
+    {
+      "context": "engine-startup",
+      "session": "engine-atr-5a-2-delayed",
+      "reason": "ENOENT: no such file or directory, open '/Users/marcinkrzetowski/Projects/dark-fighter-shot-impact/build/shot-solid-impact/release-main/build/runtime-wall-trace/engine-atr-5a-2-delayed-000.png'"
+    },
+    {
+      "context": "engine-restart",
+      "session": "engine-restart-atr-a5",
+      "reason": "Cannot read properties of undefined (reading 'engine_phase')"
+    },
+    {
+      "context": "engine-media-publication",
+      "reason": "ENOENT: no such file or directory, open '/Users/marcinkrzetowski/Projects/dark-fighter-shot-impact/build/shot-solid-impact/release-main/build/runtime-wall-trace/engine-atr-a5-0-immediate-000.png'"
+    }
+  ]
+}

@@ -68,7 +68,8 @@ Duże oderwane fragmenty okrętów blokują korytarz. Mają barwy obu stron. Omi
 je slalomem — kolejne fragmenty leżą po lewej i prawej stronie. Krótkie
 przeloty zaczynają się od fragmentu z boku, dłuższe od fragmentu na środku.
 Zderzenie zabiera 20% HULL i odpycha na bliższą stronę. Twoje pociski
-przelatują nad fragmentami. Wieżyczki strzelają z obu kadłubów.
+kończą lot po trafieniu we fragment lub kadłub któregoś z okrętów. Wieżyczki
+strzelają z obu kadłubów.
 
 Przy dolnej krawędzi przytrzymaj DÓŁ, aby zwolnić przelot korytarzem do połowy
 prędkości. Po puszczeniu płynnie wraca zwykła prędkość. Blisko dołu ekranu

@@ -109,7 +109,9 @@ test('M3-H placement: appended H2, thirteen BSS bytes and unchanged protected ca
   const r=m.transportCapacity.manifest.parsed.records;
   assert.equal(r[0].sectorCount,44);assert.equal(r[6].sectorCount,6);
   assert.ok(r[7].sectorCount<=14);assert.equal(r[8].sectorCount,9);assert.equal(r[10].sectorCount,3);
-  assert.equal(m.transportCapacity.initialBootContentBytes,12825);assert.equal(m.l2.usedBytes,1290);
+  // B1 solid impact uses existing CODE/alignment padding. Packed content is
+  // +18 B; protected segment capacities and transport sectors stay unchanged.
+  assert.equal(m.transportCapacity.initialBootContentBytes,12843);assert.equal(m.l2.usedBytes,1290);
 });
 
 

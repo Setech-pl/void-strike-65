@@ -1,0 +1,24 @@
+{
+  "measurement": "MEASURED NMOS6502 instruction cycles for existing l2_interval only, captured main state, no DMA; no turret cover implementation",
+  "max": {
+    "cycles": 286,
+    "row": 704,
+    "difficulty": 0,
+    "active": true
+  },
+  "minimumReject": 53,
+  "activeSamples": 432,
+  "scope": "1024 world rows x 3 difficulties; shell-row mapping, X overlap, priority and caller overhead not included",
+  "perThreeShellResolverOnly": 858,
+  "extraWallCycles": "Not measured; native margin feasibility must be proved before implementation",
+  "fallbackExtraCodeEstimate": "40\u201370 B including geometry/cell guard and shell retirement; unmeasured placement, no state expected",
+  "preferredUnimplementedOption": {
+    "method": "Test the two backing bytes already captured by turret shell publication, with a central-column guard. Current hull art is in columns 0..7 and 32..39; island drawing is central (9..30). Codes plus the column distinguish island cover from the firing hull.",
+    "codeBytesEstimate": "30\u201350 B; placement not proved",
+    "cpuCyclesEstimate": "Approximately 5 cycles for a blank fast path, 40\u201350 instruction cycles per two-cell shell classification, up to about 150 for three shells; not measured and excludes DMA",
+    "stateBytesEstimate": 0,
+    "extraScreenReadsEstimate": 0,
+    "limitations": "Requires proof for moving overlay backing and collision priority. Stops shells at islands only; firing hull must remain transparent to its own shells. Does not affect enemy shots. No implementation or native feasibility claim."
+  },
+  "geometryFallback": "The measured l2_interval resolver below can classify geometry if the captured-byte/column guard proves insufficient; its row mapping and overlap/caller work remain extra."
+}

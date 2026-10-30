@@ -4695,9 +4695,8 @@ render_fighter_projectile_slot_loop:
     bne :+
     jmp render_fighter_projectile_next
 :
-    ; Every PairShot claims exactly one character cell. Its fixed glyph carries
-    ; both impulses; logical scanline Y remains authoritative for collision.
-    jsr claim_fighter_projectile_visual
+    ; Claim only after the backing test: a shot entering solid art publishes
+    ; nothing. Existing enemy/debris/boss target handling has already run.
     lda FIGHTER_PROJECTILE_Y,x
     sta FIGHTER_PROJECTILE_PREV_Y,x
     cpx #INTERCEPTOR_PROJECTILE_SLOT_BASE
@@ -4776,6 +4775,8 @@ enemy_projectile_effect_backing_resolve = *
     bcs @draw_top
     cmp #CH_SPACE
     beq @draw_top
+    jsr player_projectile_solid_backing
+    bcs render_fighter_projectile_next
     lda FIGHTER_PROJECTILE_ACTIVE,x
     and #FIGHTER_PROJECTILE_SPREAD_TYPE_MASK
     beq @draw_top
@@ -4787,6 +4788,7 @@ enemy_projectile_effect_backing_resolve = *
     sta dst_ptr+1
     ldy #$00
 @draw_top:
+    jsr claim_fighter_projectile_visual
     lda loader_repeat_value
     sta (dst_ptr),y
 @rendered:
@@ -6798,7 +6800,27 @@ hud_ascii:
     .byte "L  H                         SCORE"
     .byte $00
     .assert * - hud_ascii = 35, error, "hud_ascii: SCORE at cells 29-33"
-    .res 58-35,$EA               ; preserve reviewed following CODE addresses
+; Hot cell collision, fed by the overlay's already-resolved backing byte.
+; X is a player slot; Y/dst_ptr stay intact. Both island palettes reuse hull
+; glyphs. ASL drops the inverse attribute; only codes 59..89 are solid.
+; No extra screen read, state, score or effect. Space bypasses this call.
+player_projectile_solid_backing:
+    asl
+    cmp #(CAPITAL_HULL_GLYPH_BASE*2)
+    bcc @pass
+    cmp #((CAPITAL_HULL_GLYPH_BASE+CAPITAL_HULL_GLYPH_COUNT)*2)
+    bcs @pass
+    lda #FIGHTER_PROJECTILE_FREE
+    sta FIGHTER_PROJECTILE_ACTIVE,x
+    sec
+    rts
+@pass:
+    clc
+    rts
+player_projectile_solid_backing_end:
+    .assert player_projectile_solid_backing_end-player_projectile_solid_backing <= 58-35, error, "solid shot test exceeds inert CODE tail"
+    .res 58-35-(player_projectile_solid_backing_end-player_projectile_solid_backing),$EA
+.export player_projectile_solid_backing, player_projectile_solid_backing_end
 
 .segment "BROADSIDE"
 

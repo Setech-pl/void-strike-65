@@ -1,0 +1,13 @@
+✔ the rotate gate keeps its pin and M3-H preserves the initial block and arena sector count (3.248959ms)
+✔ M3-H placement: appended H2, thirteen BSS bytes and unchanged protected capacities (2.94325ms)
+✔ Spread Shot hull owner sequences execute the ATR backing paths (5651.882083ms)
+✔ all three yellow projectiles preserve both capital hulls at sections, A2 heads and wrap (4401.117708ms)
+✔ overlapping Spread shots both end on the Hostile hull without drawing or erasing it (25.799125ms)
+ℹ tests 5
+ℹ suites 0
+ℹ pass 5
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 5736.096167

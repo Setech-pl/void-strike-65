@@ -1,0 +1,57 @@
+{
+  "measurement": "Fresh normal builds; every ATR SHA matches all corresponding passing native route artifacts",
+  "artifacts": [
+    {
+      "variant": "campaign",
+      "source": "dist/void-strike-65.atr",
+      "bytes": 133136,
+      "sha256": "717b9b7fa303fddfd7034960d9b6ee49969de1cc9b84172b9cecb37d1edd841b",
+      "nativeRoutesBound": [
+        "campaign-0-flight",
+        "campaign-1-flight",
+        "campaign-1-spread-capital",
+        "campaign-2-brake"
+      ],
+      "delivery": "build/play/shot-solid-impact/campaign.atr",
+      "buildExitCode": 0,
+      "normalComputedGatesPassed": true,
+      "buildCommand": "npm run build -- --quiet"
+    },
+    {
+      "variant": "480",
+      "source": "build/level-1-s1/void-strike-65.atr",
+      "bytes": 133136,
+      "sha256": "3967503e79e7bd685c86692fbbaf6f04c717f4b03e4109d9b4885c0152608fdd",
+      "nativeRoutesBound": [
+        "l2-480-0-brake",
+        "l2-480-0-flight",
+        "l2-480-1-brake",
+        "l2-480-1-flight",
+        "l2-480-2-brake",
+        "l2-480-2-flight"
+      ],
+      "delivery": "build/play/shot-solid-impact/capital-480.atr",
+      "buildExitCode": 0,
+      "normalComputedGatesPassed": true,
+      "buildCommand": "node scripts/build.mjs --quiet --level=1:sector=1"
+    },
+    {
+      "variant": "960",
+      "source": "build/l2-capital-960/void-strike-65.atr",
+      "bytes": 133136,
+      "sha256": "718aa2a0c6e02468793a78dd0375e7b25c0f0354b9e310d989709f55b55954a0",
+      "nativeRoutesBound": [
+        "l2-960-0-brake",
+        "l2-960-0-flight",
+        "l2-960-1-brake",
+        "l2-960-1-flight",
+        "l2-960-2-brake",
+        "l2-960-2-flight"
+      ],
+      "delivery": "build/play/shot-solid-impact/capital-960.atr",
+      "buildExitCode": 0,
+      "normalComputedGatesPassed": true,
+      "buildCommand": "node scripts/build.mjs --quiet --level=1:sector=1 --l2-long-capital"
+    }
+  ]
+}

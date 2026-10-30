@@ -23,7 +23,7 @@ import { atari800ArtifactLaunches, validateAtari800Launch } from "./artifact-lau
 import { assertTraceEmulatorFresh } from "./atari800-trace-freshness.mjs";
 import { focusedPalAcceptance } from "./focused-pal-acceptance.mjs";
 import { assertDiagnosticRun, traceArtifactLayout } from "./trace-artifacts.mjs";
-import {capitalEntrySessions,validateCapitalEntry,validateCapitalObservers} from './frame-peak-routes.mjs';
+import {capitalEntrySessions,spreadCapitalSessions,validateCapitalEntry,validateCapitalObservers,validateSpreadCapital} from './frame-peak-routes.mjs';
 import {
   acceptedShotsStartFireSound,
   capitalContactHitboxes,
@@ -2004,8 +2004,9 @@ function levelSummaryClauses(session, records, rows, publishedAtrPath) {
   const hits = word(2);
   const kills = word(4);
   // A shot is a PairShot still in its slot when its frame publishes: the
-  // observer counts every FREE -> ACTIVE write and, apart, the ones freed in
-  // the same main-loop iteration (wiped by the player's death before they flew).
+  // observer counts every FREE -> ACTIVE write and, apart, the ones freed
+  // before that iteration's stats scan. Solid retirement after the scan has
+  // already been counted by the unchanged guest, unlike a pre-scan death wipe.
   invariant(shots === end.observer_shots - end.observer_cancelled &&
     kills === end.observer_kills,
   `${session.id} level-end stats: shots ${shots} / kills ${kills}; the observer counted ` +
@@ -2872,6 +2873,11 @@ function sessionSummary(session, rows) {
     difficulty: session.difficulty,
     policy: session.policy,
     fire_delay: session.fireDelay,
+    ...(session.forcedBooster===undefined?{}:{registered_host_fixture:{
+      forced_booster:session.forcedBooster,timer_bytes:255,held_lives:session.holdPlayerLives,
+      hp_or_invulnerability_seed:false,projectile_state_seed:false,
+    }}),
+    ...(session.spreadCapital===undefined?{}:{spread_capital:session.spreadCapital}),
     measured_frames: rows.length,
     maximum_wall_cycles: maximum.wall_cycles,
     deadline_overrun_frames: rows.filter((row) => row.missed_frames > 0).length,
@@ -4275,7 +4281,7 @@ function main() {
   invariant(layout.variant !== null || ["candidate", "release"].includes(manifest.buildVariant),
     "Runtime trace requires candidate or final release artifacts");
   assertDiagnosticRun(layout, manifest, process.argv.slice(2));
-  const permanentEntryRun=capitalEntryOnly||capitalEntrySessions.some(s=>s.id===onlySession)||
+  const permanentEntryRun=capitalEntryOnly||[...capitalEntrySessions,...spreadCapitalSessions].some(s=>s.id===onlySession)||
     (onlySession===undefined&&smokeFrames===null&&!process.argv.some(a=>a.endsWith('-only')));
   if(permanentEntryRun)run(process.execPath,[path.join(scriptDirectory,'l2-observer-images.mjs'),layout.inputDirectory]);
   const runtimeArtifacts = runtimeArtifactSet({
@@ -4653,7 +4659,7 @@ function main() {
       ...weaponPickupTraversalSessions, ...weaponPickupContactSessions,
       ...capitalMuzzleSessions, ...provisionalCapitalSessions, ...capitalContactSessions,
       ...memoryIntegritySessions, ...lowerPlayfieldSessions, ...slotEPathSessions, ...bossEdgeGuardSessions,
-      ...capitalEntrySessions]
+      ...spreadCapitalSessions,...capitalEntrySessions]
       .concat(engineDiagnosticSessions, engineRestartSessions,
         onlySession?.startsWith("pickup-fence-") ? pickupFenceSessions : [],
         layout.variant !== null ? laserFixtureSessions : [],
@@ -4672,6 +4678,7 @@ function main() {
       bossPath: process.env.VS65_L2_BOSS_PATH }];
   if(capitalEntryOnly)sessionsToRun=[...capitalEntrySessions];
   if(capitalEntrySessions.some(s=>s.id===onlySession))sessionsToRun=capitalEntrySessions.filter(s=>s.id===onlySession);
+  if(spreadCapitalSessions.some(s=>s.id===onlySession))sessionsToRun=spreadCapitalSessions.filter(s=>s.id===onlySession);
   if (onlySession?.startsWith("pmg-lab-"))
     sessionsToRun = pmgLabSessions;
   // M6 (the owner's smoke of 97e1e6f): lance-script-X-MODE - diagnostic only,
@@ -4848,6 +4855,9 @@ function main() {
       ...(session.holdPlayerLives === undefined ? {} : {
         DFTRACE_HOLD_PLAYER_LIVES: String(session.holdPlayerLives),
       }),
+      ...(session.forcedBooster === undefined ? {} : {
+        DFTRACE_FORCED_BOOSTER: String(session.forcedBooster),
+      }),
       ...(session.contactPreambleRow === undefined ? {} : {
         DFTRACE_CONTACT_PREAMBLE_ROW: String(session.contactPreambleRow),
       }),
@@ -4952,6 +4962,7 @@ function main() {
     // The body is deliberately left at its original indentation — reindenting
     // ~670 lines would bury the change in whitespace.
     try {
+    if(session.kind==='spread-capital')session.spreadCapital=validateSpreadCapital(session.id,rows);
     if(session.kind==='natural-capital-entry') {
       session.capitalEntry=validateCapitalEntry(session.id,rows,session.bossEntry);
       const clockLines=fs.readFileSync(environment.DFTRACE_L2_OUTPUT,'utf8').trim().split('\n');
@@ -7612,12 +7623,14 @@ function main() {
   if (onlySession !== undefined || capitalEntryOnly) {
     const focusedReportPath = path.join(buildDirectory, `${onlySession??'capital-entry'}-focused-run.json`);
     const acceptance = focusedPalAcceptance(allRows);
-    const entryFailures=sessionFailures.filter(f=>capitalEntrySessions.some(s=>s.id===f.session));
+    const entryFailures=sessionFailures.filter(f=>[...capitalEntrySessions,...spreadCapitalSessions].some(s=>s.id===f.session));
     fs.writeFileSync(focusedReportPath, `${JSON.stringify({
       emulator: "Atari800 7.1.2 PAL/XL",
       guest_instrumentation_bytes: 0, // guest CODE bytes only, not host fixture writes
       diagnostic_allowances: {release_evidence:false, reuse_existing_traces:reuseExistingTraces,
-        host_lives_top_up:process.env.DFTRACE_HOLD_PLAYER_LIVES ?? null,
+        host_lives_top_up:sessionsToRun.length===1&&sessionsToRun[0].holdPlayerLives!==undefined
+          ? String(sessionsToRun[0].holdPlayerLives) : process.env.DFTRACE_HOLD_PLAYER_LIVES ?? null,
+        forced_booster_fixture:spreadCapitalSessions.find(s=>s.id===onlySession)?.forcedBooster ?? null,
         l2_exit_fixture:process.env.DFTRACE_L2_EXIT ?? null,
         terminal_state_seed:["game-over","level-end"].includes(process.env.DFTRACE_L2_EXIT),
         l2_variant_alias:["l2-capital-960","l2-main-control"].includes(layout.variant)},

@@ -211,7 +211,12 @@ test("all three yellow projectiles preserve both capital hulls at sections, A2 h
             `${faction} phase ${topPhase} slot ${selectedSlot} left a screen scar`);
           assert.equal(record.backingPixelsPreserved, true,
             `${faction} phase ${topPhase} slot ${selectedSlot} punched a hull hole`);
-          assert.equal(record.inverse, 0, "a Spread projectile selected the Hostile colour bank");
+          const solid=(record.backingCode&127)>=59&&(record.backingCode&127)<90;
+          if(solid) {
+            assert.equal(record.activeAfterRender,0,'a shot over solid hull must end');
+            assert.equal(record.projectileCode,record.backingCode,'the solid cell must remain intact');
+            assert.deepEqual(record.during,record.reference,'solid impact must publish no overlay');
+          } else assert.equal(record.inverse, 0, "a surviving Spread projectile selected the Hostile colour bank");
           assert.equal(record.changedOffsets.every((offset) => offset >= 80), true,
             "projectile overlay changed the protected HUD/divider rows");
         }
@@ -250,12 +255,14 @@ test("all three yellow projectiles preserve both capital hulls at sections, A2 h
   }
 });
 
-test("overlapping Spread shots compose without erasing the remaining shot or Hostile hull", () => {
+test("overlapping Spread shots both end on the Hostile hull without drawing or erasing it", () => {
   const atr = executeSpreadShotOverlapTrace({ root, artifact: "atr", head: 21 });
   assert.ok(atr.reference[atr.displayOffset] & 0x80, "fixture must use a red Hostile hull cell");
-  assert.deepEqual([atr.bothCode, atr.oneCode], [48, 48]);
-  assert.notDeepEqual(atr.bothGlyph, atr.oneGlyph,
-    "two shots in one cell must retain both masks until one leaves");
+  assert.deepEqual(atr.activeAfterBoth,[0,0]);
+  assert.deepEqual([atr.bothCode, atr.oneCode], [atr.reference[atr.displayOffset],atr.reference[atr.displayOffset]]);
+  assert.deepEqual(atr.both,atr.reference);
+  assert.deepEqual(atr.oneRemaining,atr.reference);
+  assert.deepEqual(atr.finalCharset,atr.initialCharset,'solid impacts allocate no composite glyph');
   assert.deepEqual(atr.afterBothErase, atr.reference);
   assert.deepEqual(atr.afterFinalErase, atr.reference);
   for (const glyph of [atr.bothGlyph, atr.oneGlyph]) {

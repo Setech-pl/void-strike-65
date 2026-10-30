@@ -1467,6 +1467,8 @@ static unsigned dfsummary_stats[12], dfsummary_kills, dfsummary_shots, dfsummary
 static unsigned dfsummary_entry_kills, dfsummary_entry_shots, dfsummary_failures;
 static UBYTE dfsummary_slots[5];
 static unsigned dfsummary_slot_frame[5], dfsummary_frame_counter, dfsummary_cancelled;
+static unsigned dfsummary_slot_scanned[5];
+static FILE *dfsummary_projectile_edges;
 /* fix/interceptor-speed (the owner's answer Q6a of 2026-10-14): the level-end
  * summary's shots are counted where the game counts them - the game's
  * stats_scan, once a frame on the publication path (src/hybrid/sector-reader.s).
@@ -1598,16 +1600,28 @@ static void dfsummary_observe(unsigned pc)
 		if (dfsummary_slots[slot] == 0u && active != 0u) {
 			++dfsummary_shots;
 			dfsummary_slot_frame[slot] = now;
+			dfsummary_slot_scanned[slot] = 0u;
 		}
-		/* A shot freed in the main-loop iteration that allocated it never
-		 * left the gun (the player's death wipes the pool); the summary does
-		 * not count it, and neither does this counter's "flown" figure. */
+		/* Only a same-iteration retirement BEFORE the real stats boundary
+		 * cancels the allocation. B1 adds solid retirement after that scan;
+		 * the existing guest scan has already counted such a fired shot. */
 		else if (dfsummary_slots[slot] != 0u && active == 0u &&
-			dfsummary_slot_frame[slot] == now)
-			++dfsummary_cancelled;
+			dfsummary_slot_frame[slot] == now) {
+            if (!dfsummary_slot_scanned[slot]) ++dfsummary_cancelled;
+            if (getenv("DFSUMMARY_PROJECTILE_EDGES") != NULL) {
+                if (!dfsummary_projectile_edges) dfsummary_projectile_edges=fopen(getenv("DFSUMMARY_PROJECTILE_EDGES"),"w");
+                if (!dfsummary_projectile_edges) exit(2);
+                fprintf(dfsummary_projectile_edges,"{\"host\":%u,\"iteration\":%u,\"pc\":%u,\"slot\":%u,\"afterStatsScan\":%u}\n",
+                    frame,now,pc,slot,dfsummary_slot_scanned[slot]);
+                fflush(dfsummary_projectile_edges);
+            }
+        }
 		dfsummary_slots[slot] = active;
 	}
 	if (pc == dfsummary_stats_scan) {
+        for (slot=0u;slot<5u;slot++) if (dfsummary_slots[slot] != 0u &&
+            dfsummary_slot_frame[slot] == MEMORY_mem[dfsummary_frame_counter & 0xffffu])
+            dfsummary_slot_scanned[slot]=1u;
 		dfsummary_scan_shots = dfsummary_shots;
 		dfsummary_scan_cancelled = dfsummary_cancelled;
 	}
@@ -4316,6 +4330,7 @@ static void dftrace_set_gameplay_input(unsigned frame)
         unsigned local = phase - (axis - (MEMORY_mem[0xAC00u] | ((unsigned)MEMORY_mem[0xAC01u]<<8)));
         unsigned target = capital ? (((local / 112u) & 1u) ? 152u : 92u) : 124u;
         if (strcmp(dftrace_policy, "l2-contact") == 0 && capital) target = 124u;
+        if (strcmp(dftrace_policy, "l2-spread-capital") == 0) target = 92u;
         if (strncmp(dftrace_policy,"l2-matrix",9)==0 && capital && local>=112u && local<208u) target=124u;
         stick = x < target ? 0x07u : x > target ? 0x0bu : 0x0fu;
         /* Ordinary DOWN/release windows; no guest speed or coordinate writes. */
@@ -8987,6 +9002,13 @@ static void DFTrace_Observe(unsigned pc, unsigned a_register, unsigned x_registe
 		dftrace_hull_pending_dirty_reads = 0u;
 		dftrace_hull_pending_rebuilds = 0u;
 		dftrace_current.boss_path_stage = dftrace_boss_path_stage;
+        /* Registered Spread capital gate: named host fixture, no guest code
+         * patch and no HP/invulnerability/projectile-state injection. */
+        if (getenv("DFTRACE_FORCED_BOOSTER") != NULL) {
+            MEMORY_mem[dftrace_entity_state + 2u] = (UBYTE)atoi(getenv("DFTRACE_FORCED_BOOSTER"));
+            MEMORY_mem[dftrace_entity_timer + 2u] = 255u;
+            MEMORY_mem[dftrace_entity_move_accumulator + 2u] = 255u;
+        }
 		dftrace_set_gameplay_input(dftrace_count);
 		dftrace_player_pairshot_frame_begin();
 		dftrace_prepare_broadside_proof();

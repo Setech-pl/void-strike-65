@@ -1,0 +1,253 @@
+{
+  "measurement": "MEASURED Atari800 PAL DMA on; exclusive PC wall/CPU costs; no nested-call double counting",
+  "routes": [
+    {
+      "revision": "main",
+      "worstFrame": 1142,
+      "peak": 32792,
+      "capitalPeak": 32792,
+      "capitalWorstFrame": 1142,
+      "sha256": "37780a7f163786c461f7987bcb2d64d03bbba512782ef139cac1cc5e93460f57"
+    },
+    {
+      "revision": "5053697",
+      "worstFrame": 1433,
+      "peak": 31422,
+      "capitalPeak": 31422,
+      "capitalWorstFrame": 1433,
+      "sha256": "095c18831fbced4c41f273f81a4fd24323a8f8168bad2bca5c45d336202b8519"
+    },
+    {
+      "revision": "fixed",
+      "worstFrame": 246,
+      "peak": 30443,
+      "capitalPeak": 29528,
+      "capitalWorstFrame": 1442,
+      "sha256": "05586c9564bafde7bd83ccc1d8aa818a21f162d643df3864ffde0d106a37a716"
+    }
+  ],
+  "failedFrames": [
+    {
+      "frame": 1137,
+      "total": 32720,
+      "groups": {
+        "Other loop, collisions, world, backing, audio and IRQ work": {
+          "cpu": 6684,
+          "wall": 10053
+        },
+        "L2 phase and island contact": {
+          "cpu": 8093,
+          "wall": 14239
+        },
+        "Inactive fighter/capital explosion bookkeeping": {
+          "cpu": 125,
+          "wall": 259
+        },
+        "Turret shells, warnings, muzzle and flash bookkeeping": {
+          "cpu": 2343,
+          "wall": 2696
+        },
+        "PairShot overlay body, excluding callees": {
+          "cpu": 905,
+          "wall": 1968
+        },
+        "Spread solid composites": {
+          "cpu": 1566,
+          "wall": 3225
+        },
+        "Music player": {
+          "cpu": 138,
+          "wall": 280
+        }
+      },
+      "exclusiveSum": 32720,
+      "musicRowAdvanced": false,
+      "liveEffects": 0,
+      "capitalExplosion": 0,
+      "playerExplosion": 0,
+      "shots": [
+        {
+          "slot": 0,
+          "kind": 65,
+          "x": 88,
+          "y": 127,
+          "backing": 0
+        },
+        {
+          "slot": 1,
+          "kind": 17,
+          "x": 100,
+          "y": 55,
+          "backing": 198
+        },
+        {
+          "slot": 2,
+          "kind": 33,
+          "x": 112,
+          "y": 127,
+          "backing": 198
+        },
+        {
+          "slot": 3,
+          "kind": 17,
+          "x": 100,
+          "y": 127,
+          "backing": 198
+        }
+      ]
+    },
+    {
+      "frame": 1139,
+      "total": 32707,
+      "groups": {
+        "Other loop, collisions, world, backing, audio and IRQ work": {
+          "cpu": 6672,
+          "wall": 10064
+        },
+        "L2 phase and island contact": {
+          "cpu": 8093,
+          "wall": 14257
+        },
+        "Inactive fighter/capital explosion bookkeeping": {
+          "cpu": 125,
+          "wall": 250
+        },
+        "Turret shells, warnings, muzzle and flash bookkeeping": {
+          "cpu": 2331,
+          "wall": 2672
+        },
+        "PairShot overlay body, excluding callees": {
+          "cpu": 918,
+          "wall": 1970
+        },
+        "Spread solid composites": {
+          "cpu": 1566,
+          "wall": 3237
+        },
+        "Music player": {
+          "cpu": 138,
+          "wall": 257
+        }
+      },
+      "exclusiveSum": 32707,
+      "musicRowAdvanced": false,
+      "liveEffects": 0,
+      "capitalExplosion": 0,
+      "playerExplosion": 0,
+      "shots": [
+        {
+          "slot": 0,
+          "kind": 65,
+          "x": 87,
+          "y": 115,
+          "backing": 0
+        },
+        {
+          "slot": 1,
+          "kind": 17,
+          "x": 100,
+          "y": 43,
+          "backing": 198
+        },
+        {
+          "slot": 2,
+          "kind": 33,
+          "x": 113,
+          "y": 115,
+          "backing": 198
+        },
+        {
+          "slot": 3,
+          "kind": 17,
+          "x": 100,
+          "y": 115,
+          "backing": 198
+        }
+      ]
+    },
+    {
+      "frame": 1142,
+      "total": 32792,
+      "groups": {
+        "Other loop, collisions, world, backing, audio and IRQ work": {
+          "cpu": 6723,
+          "wall": 10059
+        },
+        "L2 phase and island contact": {
+          "cpu": 8093,
+          "wall": 14311
+        },
+        "Inactive fighter/capital explosion bookkeeping": {
+          "cpu": 125,
+          "wall": 254
+        },
+        "Turret shells, warnings, muzzle and flash bookkeeping": {
+          "cpu": 2312,
+          "wall": 2711
+        },
+        "PairShot overlay body, excluding callees": {
+          "cpu": 906,
+          "wall": 1910
+        },
+        "Spread solid composites": {
+          "cpu": 1566,
+          "wall": 3228
+        },
+        "Music player": {
+          "cpu": 165,
+          "wall": 319
+        }
+      },
+      "exclusiveSum": 32792,
+      "musicRowAdvanced": false,
+      "liveEffects": 0,
+      "capitalExplosion": 0,
+      "playerExplosion": 0,
+      "shots": [
+        {
+          "slot": 0,
+          "kind": 65,
+          "x": 85,
+          "y": 97,
+          "backing": 0
+        },
+        {
+          "slot": 1,
+          "kind": 17,
+          "x": 100,
+          "y": 25,
+          "backing": 198
+        },
+        {
+          "slot": 2,
+          "kind": 33,
+          "x": 115,
+          "y": 97,
+          "backing": 198
+        },
+        {
+          "slot": 3,
+          "kind": 17,
+          "x": 100,
+          "y": 97,
+          "backing": 198
+        }
+      ]
+    }
+  ],
+  "composeBoundaryCorrection": "Includes the final RTS at profile_projectile_compose_end ($9CB8); its exclusive raw PC costs are transferred from Other to Spread composites.",
+  "composeFinalRTSCostByFrame": {
+    "1137": [
+      18,
+      18
+    ],
+    "1139": [
+      18,
+      30
+    ],
+    "1142": [
+      18,
+      28
+    ]
+  }
+}

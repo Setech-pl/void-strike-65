@@ -44,7 +44,7 @@
     "boot:smoke": "node scripts/runtime-wall-trace.mjs --boot-smoke-only",
     "runtime:wall-trace": "node scripts/runtime-wall-trace.mjs",
     "test": "node scripts/build.mjs --quiet && node --test tests/*.test.mjs",
-    "test:frame-peaks": "node scripts/frame-peak-native.mjs fixed --snapshot=current --gate",
+    "test:frame-peaks": "node scripts/frame-peak-native.mjs fixed --snapshot=current --gate --capital-budget=31200",
     "verify": "node scripts/verify-build.mjs",
     "memory-map": "node scripts/memory-map-report.mjs",
     "failures:reconcile": "node scripts/reconcile-failures.mjs"

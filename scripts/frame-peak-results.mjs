@@ -5,7 +5,7 @@ import assert from 'node:assert/strict';
 import crypto from 'node:crypto';
 import {pathToFileURL} from 'node:url';
 import {auditSession} from './pal-timing-audit.mjs';
-import {validatePeakCoverage} from './frame-peak-routes.mjs';
+import {validatePeakCoverage,validateSpreadCapital} from './frame-peak-routes.mjs';
 export const read=p=>JSON.parse(fs.readFileSync(p,'utf8'));
 export const sha=p=>crypto.createHash('sha256').update(fs.readFileSync(p)).digest('hex');
 export function csv(p) {
@@ -75,18 +75,23 @@ if(out&&process.argv[1]&&import.meta.url===pathToFileURL(process.argv[1]).href) 
   const clocks=csv(`${out}/${run.id}-clock.csv`).filter(r=>r.state<7);
   const life=fs.readFileSync(`${out}/${run.id}-lifetime.jsonl`,'utf8').trim().split('\n').map(JSON.parse);
   const stale=life.filter(x=>['stale_access','resident_entry','rate_read','partial_l2_execution'].includes(x.event));
-  const entry=raw.find(r=>r.boss_entry);assert.ok(entry,`${run.id} boss entry`);
+  const entry=raw.find(r=>r.boss_entry);if(!run.spread)assert.ok(entry,`${run.id} boss entry`);
   assert.equal(stale.length,0);assert.equal(clocks.filter(r=>r.world!==r.hull).length,0);
-  const bossEntryFrames=entry.next_start_host_frame-entry.start_host_frame;assert.ok(bossEntryFrames<=350);
+  const bossEntryFrames=entry?entry.next_start_host_frame-entry.start_host_frame:null;
+  if(!run.spread)assert.ok(bossEntryFrames<=350);
   const cap=rows.filter(r=>sector(r)==='capital'),space=rows.filter(r=>sector(r)==='SPACE'),boss=rows.filter(r=>sector(r)==='boss');
   const peak=a=>Math.max(...a.map(r=>r.wall_cycles));
+  const capitalWithoutAudio=Math.max(...cap.map(r=>r.wall_cycles-(r.profile_clock21-r.profile_clock20)));
+  const composedCapital=capitalWithoutAudio+1187; // accepted two-note music reservation
   if(!baseline) {
-   assert.ok(peak(rows)<=31500,`${run.id}: peak ${peak(rows)} > 31500`);
+   if(run.spread)validateSpreadCapital(run.id,rows);
+   else assert.ok(peak(rows)<=31500,`${run.id}: peak ${peak(rows)} > 31500`);
    // capital max is a sampled replay maximum; 2026-10-27 M3-H moved kill timing and exposed an audio coincidence reachable on main
    // Main-image native state transplant reproduces 30025 exactly; proof:
    // docs/diagnostics/m3h-step1/continuation8-audio-summary.json (owner amendment 5).
    const limit=capitalBudget(process.argv);
-   assert.ok(peak(cap)<=limit,`${run.id}: capital peak ${peak(cap)} > ${limit}`);
+   if(!run.spread)assert.ok(peak(cap)<=limit,`${run.id}: capital peak ${peak(cap)} > ${limit}`);
+   if(!run.spread)assert.ok(composedCapital<=31200,`${run.id}: composed capital ${composedCapital} > 31200`);
    assert.equal(report.acceptance.missed_frames,0,`${run.id}: missed frames`);
    assert.equal(report.acceptance.extra_vbi_boundaries,0,`${run.id}: extra VBI`);
    assert.equal(report.acceptance.dli_ordering_errors,0,`${run.id}: DLI errors`);
@@ -100,7 +105,7 @@ if(out&&process.argv[1]&&import.meta.url===pathToFileURL(process.argv[1]).href) 
     coincidence:{playerShots:r.player_fighter_projectiles,enemyShots:r.enemy_projectiles,lights:[0,1,2,3].filter(i=>[1,2].includes(r[`light_state${i}`])).length,heavy:r.enemy_live_count,effects:r.effect_active_count,entity:r.entity_active_mask,events:r.events,phase:r.corridor_phase}});
   }
   const coincidence=space.filter(r=>r.player_fighter_projectiles===4&&r.enemy_projectiles===4&&[0,1,2,3].filter(i=>[1,2].includes(r[`light_state${i}`])).length===3&&(r.events&1));
-  results.push({...run,passed:report.passed&&audit.passed,gateFailures:audit.gate_failures,frames:rows.length,capitalFrames:cap.length,spaceFrames:space.length,bossFrames:boss.length,peak:peak(rows),capitalPeak:peak(cap),spacePeak:peak(space),bossPeak:peak(boss),targetOverruns:audit.rows_over_target,fence:audit.worst_fence_margin_cycles,misses:audit.distinct_miss_events,extraVbi:report.acceptance.extra_vbi_boundaries,dliErrors:report.acceptance.dli_ordering_errors,shifted:audit.shifted_phase_rows,staleL2:stale.length,bossEntryFrames,coincidenceFrames:coincidence.length,artifact:report.artifact_sha256['void-strike-65.atr'].sha256,stateFileSha256:sha(`${out}/${run.id}-states.csv`),traceSha256:sha(`${run.dir}/runtime-wall-trace/${run.id}.csv`)});
+  results.push({...run,passed:report.passed&&audit.passed,gateFailures:audit.gate_failures,frames:rows.length,capitalFrames:cap.length,spaceFrames:space.length,bossFrames:boss.length,peak:peak(rows),capitalPeak:peak(cap),capitalWithoutAudio,composedCapital,spacePeak:peak(space),bossPeak:peak(boss),targetOverruns:audit.rows_over_target,fence:audit.worst_fence_margin_cycles,misses:audit.distinct_miss_events,extraVbi:report.acceptance.extra_vbi_boundaries,dliErrors:report.acceptance.dli_ordering_errors,shifted:audit.shifted_phase_rows,staleL2:stale.length,bossEntryFrames,coincidenceFrames:coincidence.length,artifact:report.artifact_sha256['void-strike-65.atr'].sha256,stateFileSha256:sha(`${out}/${run.id}-states.csv`),traceSha256:sha(`${run.dir}/runtime-wall-trace/${run.id}.csv`)});
  }
  results.sort((a,b)=>a.id.localeCompare(b.id));overruns.sort((a,b)=>b.cycles-a.cycles);
  if(process.argv.includes('--require-routes'))validatePeakCoverage(results.map(r=>r.id));

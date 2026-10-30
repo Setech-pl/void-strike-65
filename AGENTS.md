@@ -166,6 +166,66 @@ The detailed boundary, ABI and placement contract is
 
 ---
 
+## Gate policy
+
+Owner decision, 2026-10-30. This section takes precedence over conflicting
+validation, STOP and commit instructions elsewhere in this file or in older
+workflow documents.
+
+### Per task (every branch)
+
+* Build with byte gates, run task-focused tests and the full `npm test`, and
+  report the A/B/C diff against `main`, matched by test name and first failing
+  assertion: **A** = failures shared with `main`, **B** = task-only failures,
+  **C** = failures on `main` cleared by the task. **B must be empty** after
+  the self-resolved cases below are corrected and audited.
+* The owner smokes the delivered play ATRs before merging. Only the owner
+  records smoke acceptance.
+* When the task touches rendering, shots, scrolling, capital or the scheduler,
+  run a quick frame check on the two heaviest registered native routes:
+  **capital Spread NORMAL** and **capital-960**. Report the worst frame.
+  Stop only if a frame exceeds **32,568 cycles**.
+* Do not run the full native matrix, home observer matrix, boss stress,
+  release trace or strict release as per-task validation.
+
+### Per milestone (before each release tag, as its own task)
+
+Run the full native route matrix, home observer, boot frontend **<= 1,402 host
+frames**, boss stress, complete release trace, strict release and debt
+reconciliation. If a frame gate fails, bisect the merges since the previous
+milestone to attribute the failure.
+
+### Failure handling and audit
+
+Hard STOP only for:
+
+* a byte gate overflow;
+* a behaviour regression against `main`;
+* a new test failure that is not a stale expectation of an accepted change;
+* a frame **> 32,568 cycles** in the quick check.
+
+Component gates (including per-row Director CPU and per-feature budgets) and
+frames between the **31,500-cycle target** and the **32,568-cycle hard gate**
+are report-only.
+
+Self-resolve without asking, recording each case in the task audit:
+
+* stale expectations caused by accepted changes: correct the expectations
+  and give one justification line for each;
+* harness, fixture or setup failures: repair the cause and rerun the affected
+  checks;
+* failures that also occur on `main`: add them as debt to
+  `docs/recorded-gate-failures.json`.
+
+### Git and artifacts
+
+The agent commits its own work on its task branch, never `main`, with a
+message beginning **`[codex] `**. The owner merges and pushes. Keep `dist/`
+clean except during milestone release work; per-task play ATRs belong under
+`build/`.
+
+---
+
 ## Implementation process
 
 **Reversible high-level gameplay work** (C archetypes, AI, waves, rules):

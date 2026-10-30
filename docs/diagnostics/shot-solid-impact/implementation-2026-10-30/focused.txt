@@ -1,0 +1,34 @@
+✔ natural entry routes remain in the standard native suite and registered test gate (1.980209ms)
+✔ natural entry gate requires entry, exit and boss subject and accepts parser-set-aside boss entry (1.563792ms)
+✔ natural entry gate rejects a target excess below the hard gate and the measured missed-fence pattern (0.332209ms)
+✔ frame-peak snapshots stay worktree-local and must match their exact source variant (0.78775ms)
+✔ the native gate cannot drop old routes or accept stale L2 and mismatched world/hull clocks (0.276167ms)
+✔ Spread capital failing inputs are permanent and retain the hard gate with an explicit soft target (4.320458ms)
+✔ shot entering island ends without writing or damaging its backing cell (25.944459ms)
+✔ shot entering allied hull ends without writing or damaging its backing cell (15.961125ms)
+✔ shot entering hostile hull ends without writing or damaging its backing cell (11.932041ms)
+✔ spawn into a solid cell ends immediately with no drawing, for every player shot kind (138.811166ms)
+✔ a shot passing beside an island reaches the top (12.616ms)
+✔ stars remain passable and enemy PairShots retain their existing solid-cell overdraw (74.997916ms)
+✔ first-DLI selection is counted when it fires after the frame's end hook (0.573834ms)
+✔ first-DLI clause still fails on a wrong byte, a double selection, or no selection (0.09ms)
+✔ booster release counts the erase that clears the plane, not the empty re-entry (0.06275ms)
+✔ traversal frame reads the pickup's own slot, not the debris slot beside it (0.066ms)
+✔ one Spread fan killing both Raiders in one frame accounts for two explosions (0.1265ms)
+✔ kill accounting still fails when a kill frame shows no explosion (0.071375ms)
+✔ every accepted shot starts the fire sound (0.289042ms)
+✔ fire-sound clause fails when an accepted shot leaves the channel silent (0.074125ms)
+✔ capital contact hitboxes intersect in final-raster scanlines (0.174042ms)
+✔ capital contact hitbox clause still fails without an intersection (0.105167ms)
+✔ Director clause: the heaviest Director frame is chosen among Director frames, not the global worst (0.108875ms)
+✔ Director clause: rows with no Director request, event or world-row tick fail it (0.087541ms)
+✔ Director clause: a heaviest Director frame under the 500-cycle fence margin fails it (0.057416ms)
+✔ Director clause: a heaviest Director frame over the 32,568 DMA-on gate fails it (0.042875ms)
+ℹ tests 26
+ℹ suites 0
+ℹ pass 26
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 365.369167

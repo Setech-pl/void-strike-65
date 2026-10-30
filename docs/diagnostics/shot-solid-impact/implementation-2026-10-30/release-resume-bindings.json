@@ -1,0 +1,300 @@
+{
+  "release-main": {
+    "completed": 36,
+    "files": [
+      {
+        "path": "/Users/marcinkrzetowski/Projects/dark-fighter-shot-impact/build/shot-solid-impact/release-main/build/runtime-wall-trace/2-sweep-fire2.csv",
+        "sha256": "063791eddc9faebe5e1725ce44b7662d7ab011271f75c757dcc61ff6b065030f"
+      },
+      {
+        "path": "/Users/marcinkrzetowski/Projects/dark-fighter-shot-impact/build/shot-solid-impact/release-main/build/runtime-wall-trace/weapon-pickup-traversal-2-observe-fire8.csv",
+        "sha256": "bd8c1269e0cf9a04cdedc335c86bb9dec379583143b562d678714fb2c5ed44a5"
+      },
+      {
+        "path": "/Users/marcinkrzetowski/Projects/dark-fighter-shot-impact/build/shot-solid-impact/release-main/build/runtime-wall-trace/cadence-1-sweep-nofire.csv",
+        "sha256": "aaef97dbe04ad0d0e5707203b5c32c16b3ca56fb01245e4d759749b57d6b1c05"
+      },
+      {
+        "path": "/Users/marcinkrzetowski/Projects/dark-fighter-shot-impact/build/shot-solid-impact/release-main/build/runtime-wall-trace/2-sweep-fire0.csv",
+        "sha256": "d38a615d8c09634ad0b9c266be89603d110352b0b13748bc89f2184d23cc7cc9"
+      },
+      {
+        "path": "/Users/marcinkrzetowski/Projects/dark-fighter-shot-impact/build/shot-solid-impact/release-main/build/runtime-wall-trace/2-sweep-fire4.csv",
+        "sha256": "198faa66fbb21bda121bf0a6b185065fa7d70942604f4538b1e6ec200885f579"
+      },
+      {
+        "path": "/Users/marcinkrzetowski/Projects/dark-fighter-shot-impact/build/shot-solid-impact/release-main/build/runtime-wall-trace/director-complete-1-natural-sweep-fire0.csv",
+        "sha256": "8bfd2c26d78a4880e9bde08e9ee022e7e16aaedcf14c4b808f09bf84cc6e3b0d"
+      },
+      {
+        "path": "/Users/marcinkrzetowski/Projects/dark-fighter-shot-impact/build/shot-solid-impact/release-main/build/runtime-wall-trace/weapon-pickup-contact-2-hunt-fire4.csv",
+        "sha256": "1f1e92455e6d91a556f5381d8007b9f9b7a94d802c1a7888db72f9cbe778ca9c"
+      },
+      {
+        "path": "/Users/marcinkrzetowski/Projects/dark-fighter-shot-impact/build/shot-solid-impact/release-main/build/runtime-wall-trace/targeted-2-sweep-fire4.csv",
+        "sha256": "d72c7edf0f93b669cbcac5b1dc1ddcf468ae1aa67241f937da9032d64c4bdc1f"
+      },
+      {
+        "path": "/Users/marcinkrzetowski/Projects/dark-fighter-shot-impact/build/shot-solid-impact/release-main/build/runtime-wall-trace/2-sweep-fire5.csv",
+        "sha256": "9e734cdc0ec31682351a30ec3555be8834555d5964396c5e369bdd0e089696fa"
+      },
+      {
+        "path": "/Users/marcinkrzetowski/Projects/dark-fighter-shot-impact/build/shot-solid-impact/release-main/build/runtime-wall-trace/capital-contact-allied-medium.csv",
+        "sha256": "83c4f4833d5ceb494e726930405174e04cc44399f337bb0700fad37db18ea893"
+      },
+      {
+        "path": "/Users/marcinkrzetowski/Projects/dark-fighter-shot-impact/build/shot-solid-impact/release-main/build/runtime-wall-trace/1-evasive-fire3.csv",
+        "sha256": "58da1cb9f4cac853275306ceaa2e2fe5b92ea372d2c9075fab9665ceede1982e"
+      },
+      {
+        "path": "/Users/marcinkrzetowski/Projects/dark-fighter-shot-impact/build/shot-solid-impact/release-main/build/runtime-wall-trace/2-sweep-fire6.csv",
+        "sha256": "23af2ed78086694839554eb314d9c4d19077ba18ca6cb6b165f7cb23126a09b2"
+      },
+      {
+        "path": "/Users/marcinkrzetowski/Projects/dark-fighter-shot-impact/build/shot-solid-impact/release-main/build/runtime-wall-trace/early-enemy-atr-0-cold-hunt-fire4.csv",
+        "sha256": "2afe6fae2d48d72b3d9c567f7eb613c89ad2b4da90f2ddeb9d4abb50ab9aeb50"
+      },
+      {
+        "path": "/Users/marcinkrzetowski/Projects/dark-fighter-shot-impact/build/shot-solid-impact/release-main/build/runtime-wall-trace/2-evasive-fire1.csv",
+        "sha256": "45ed78254cb4f52340ef463ca6a973eb76d647d9b65180028ef99dcdf696816d"
+      },
+      {
+        "path": "/Users/marcinkrzetowski/Projects/dark-fighter-shot-impact/build/shot-solid-impact/release-main/build/runtime-wall-trace/early-enemy-atr-1-cold-hunt-fire4.csv",
+        "sha256": "d0d955c1b62d61d7e91379418e878a5b3fed942877eb4a31405d3e2d3f28f007"
+      },
+      {
+        "path": "/Users/marcinkrzetowski/Projects/dark-fighter-shot-impact/build/shot-solid-impact/release-main/build/runtime-wall-trace/weapon-pickup-overlap-2-hunt-fire5.csv",
+        "sha256": "654551117ab7885c97d0a1e9a52d604e1e6d74fe5e83adf41a64399ec2bb2707"
+      },
+      {
+        "path": "/Users/marcinkrzetowski/Projects/dark-fighter-shot-impact/build/shot-solid-impact/release-main/build/runtime-wall-trace/early-enemy-atr-2-cold-hunt-fire4.csv",
+        "sha256": "2565bbf7eeee0ae982514583f64722b75baee797423d18f405cb9126393e9ead"
+      },
+      {
+        "path": "/Users/marcinkrzetowski/Projects/dark-fighter-shot-impact/build/shot-solid-impact/release-main/build/runtime-wall-trace/director-complete-2-natural-sweep-fire0.csv",
+        "sha256": "8c8566cf61bfb11791fb2a6fee009e0f8ccb3df47ccd640703050725ef7d1f1a"
+      },
+      {
+        "path": "/Users/marcinkrzetowski/Projects/dark-fighter-shot-impact/build/shot-solid-impact/release-main/build/runtime-wall-trace/cadence-0-sweep-nofire.csv",
+        "sha256": "ac6ca281c7652fd49b744f325713198bee3c76c270286676e3e80dea3b36a6fc"
+      },
+      {
+        "path": "/Users/marcinkrzetowski/Projects/dark-fighter-shot-impact/build/shot-solid-impact/release-main/build/runtime-wall-trace/2-evasive-fire3.csv",
+        "sha256": "5d768411b3da09e029b5fac9f0dc7b8bffa32d3240671ed7d185f0fc70eb0fa0"
+      },
+      {
+        "path": "/Users/marcinkrzetowski/Projects/dark-fighter-shot-impact/build/shot-solid-impact/release-main/build/runtime-wall-trace/2-evasive-fire7.csv",
+        "sha256": "33076b758f07f92af8156487b1963f83b04765f10b039230c391a4fbcd983b7f"
+      },
+      {
+        "path": "/Users/marcinkrzetowski/Projects/dark-fighter-shot-impact/build/shot-solid-impact/release-main/build/runtime-wall-trace/2-neutral-fire0.csv",
+        "sha256": "d1febcf57684868a0d2d228ec0463d09e3c18eeba1778c15409fc8364911475f"
+      },
+      {
+        "path": "/Users/marcinkrzetowski/Projects/dark-fighter-shot-impact/build/shot-solid-impact/release-main/build/runtime-wall-trace/weapon-pickup-sequence-2-hunt-fire3.csv",
+        "sha256": "52161add138108bf3a070b60ab4f9ea9d9aa9bff80bcce216b8816f42368278e"
+      },
+      {
+        "path": "/Users/marcinkrzetowski/Projects/dark-fighter-shot-impact/build/shot-solid-impact/release-main/build/runtime-wall-trace/debris-effects-2-sweep-fire4.csv",
+        "sha256": "0719afdb8e0c28617209569703b7ab38f48b6e11005b7add6848fac9ac96f487"
+      },
+      {
+        "path": "/Users/marcinkrzetowski/Projects/dark-fighter-shot-impact/build/shot-solid-impact/release-main/build/runtime-wall-trace/capital-muzzle-ring-2-sweep-fire4.csv",
+        "sha256": "48d791244ffb5003c4830f379425c6bcc47418dba02a10a8c2a85f2de6c63c8b"
+      },
+      {
+        "path": "/Users/marcinkrzetowski/Projects/dark-fighter-shot-impact/build/shot-solid-impact/release-main/build/runtime-wall-trace/flash-2-neutral-nofire.csv",
+        "sha256": "5a9b88843a958ab975d370db2650f065e0926a6a3f03aedf64c1ef6ea65a87dc"
+      },
+      {
+        "path": "/Users/marcinkrzetowski/Projects/dark-fighter-shot-impact/build/shot-solid-impact/release-main/build/runtime-wall-trace/capital-contact-hostile-medium.csv",
+        "sha256": "1b00dc9b2d636182724b59004978944562c069e5832d82be67e71ec1b5efa0ed"
+      },
+      {
+        "path": "/Users/marcinkrzetowski/Projects/dark-fighter-shot-impact/build/shot-solid-impact/release-main/build/runtime-wall-trace/director-complete-0-natural-sweep-fire0.csv",
+        "sha256": "c70c51833bb1ecea95bc7455ef72df416e1134141870f196ba4287e5a5131fdd"
+      },
+      {
+        "path": "/Users/marcinkrzetowski/Projects/dark-fighter-shot-impact/build/shot-solid-impact/release-main/build/runtime-wall-trace/memory-integrity-atr-2-hunt-fire6.csv",
+        "sha256": "310ca0219ad42e795c5725c4d1d93aca690abdc8d7300c676922991c2533c7a6"
+      },
+      {
+        "path": "/Users/marcinkrzetowski/Projects/dark-fighter-shot-impact/build/shot-solid-impact/release-main/build/runtime-wall-trace/memory-integrity-atr-2-evasive-fire4.csv",
+        "sha256": "a76b1b7c4f4dfb95b257104292e1d9ebf6a688869414a6bbf5094e387ad70cd4"
+      },
+      {
+        "path": "/Users/marcinkrzetowski/Projects/dark-fighter-shot-impact/build/shot-solid-impact/release-main/build/runtime-wall-trace/cadence-2-sweep-nofire.csv",
+        "sha256": "3ad9dc18c9ac78e9b13717d650b169ac37b5867834ed4a56b3e443af94123c97"
+      },
+      {
+        "path": "/Users/marcinkrzetowski/Projects/dark-fighter-shot-impact/build/shot-solid-impact/release-main/build/runtime-wall-trace/director-complete-2-write-protected.csv",
+        "sha256": "e1ffc9f7c5b2562dbd3b824b54272c17b5748efce399dee14c4f97e5f8757720"
+      },
+      {
+        "path": "/Users/marcinkrzetowski/Projects/dark-fighter-shot-impact/build/shot-solid-impact/release-main/build/runtime-wall-trace/memory-integrity-atr-2-hunt-fire5.csv",
+        "sha256": "a601ba6cb6ea7e4ebb871128e5049cce79b5c9436d7a658c1ca2cb54145df4c8"
+      },
+      {
+        "path": "/Users/marcinkrzetowski/Projects/dark-fighter-shot-impact/build/shot-solid-impact/release-main/build/runtime-wall-trace/weapon-pickup-2-hunt-fire4.csv",
+        "sha256": "a6bea9c3044e16d5059683601230ef7c5a390a496b7a1f2f6073df68fb987d26"
+      },
+      {
+        "path": "/Users/marcinkrzetowski/Projects/dark-fighter-shot-impact/build/shot-solid-impact/release-main/build/runtime-wall-trace/weapon-pickup-spread-0-hunt-fire4.csv",
+        "sha256": "aabc6511ba60f606ffa89efaa8a3cd35e032a891b6aed85b44dbbc0d2bd93f5a"
+      },
+      {
+        "path": "/Users/marcinkrzetowski/Projects/dark-fighter-shot-impact/build/shot-solid-impact/release-main/build/runtime-wall-trace/summary-record-readback-1.csv",
+        "sha256": "e33f167860f407c7bb3a93c4624934b5db1a3d12074ef7612d2ef61914ae1e52"
+      }
+    ]
+  },
+  "release-fixed": {
+    "completed": 36,
+    "files": [
+      {
+        "path": "/Users/marcinkrzetowski/Projects/dark-fighter-shot-impact/build/shot-solid-impact/release-fixed/build/runtime-wall-trace/2-sweep-fire2.csv",
+        "sha256": "d09f0aa7687b878ddd2cb312cad3caa37a0fba29bb5510713884ded8adb5365e"
+      },
+      {
+        "path": "/Users/marcinkrzetowski/Projects/dark-fighter-shot-impact/build/shot-solid-impact/release-fixed/build/runtime-wall-trace/weapon-pickup-traversal-2-observe-fire8.csv",
+        "sha256": "dd2a8c5714050f9cb7d8efdffd90b5dae59ee6ab5ee937c37369c16dd823ada1"
+      },
+      {
+        "path": "/Users/marcinkrzetowski/Projects/dark-fighter-shot-impact/build/shot-solid-impact/release-fixed/build/runtime-wall-trace/cadence-1-sweep-nofire.csv",
+        "sha256": "0d01924d5e0364945255a2d3045080b3eb47a32fb4a7873188abdd3352030630"
+      },
+      {
+        "path": "/Users/marcinkrzetowski/Projects/dark-fighter-shot-impact/build/shot-solid-impact/release-fixed/build/runtime-wall-trace/2-sweep-fire0.csv",
+        "sha256": "1c469c9d38a9390b5d61c8aef1e2537aec709beb645567ac4db1d2f3bc224aa7"
+      },
+      {
+        "path": "/Users/marcinkrzetowski/Projects/dark-fighter-shot-impact/build/shot-solid-impact/release-fixed/build/runtime-wall-trace/2-sweep-fire4.csv",
+        "sha256": "da70d13361a653213023ed98380b442cd80213fc26ea751f9541167c014b5399"
+      },
+      {
+        "path": "/Users/marcinkrzetowski/Projects/dark-fighter-shot-impact/build/shot-solid-impact/release-fixed/build/runtime-wall-trace/director-complete-1-natural-sweep-fire0.csv",
+        "sha256": "b226b930f8b3fe2e1cf4a6841b7b9919c28002e13fd9e354765b15bfdfeb8f0e"
+      },
+      {
+        "path": "/Users/marcinkrzetowski/Projects/dark-fighter-shot-impact/build/shot-solid-impact/release-fixed/build/runtime-wall-trace/weapon-pickup-contact-2-hunt-fire4.csv",
+        "sha256": "6fb0ee84e84662f294d88c731b3e9da349a021bb6631cc03119a10aaa31f87e5"
+      },
+      {
+        "path": "/Users/marcinkrzetowski/Projects/dark-fighter-shot-impact/build/shot-solid-impact/release-fixed/build/runtime-wall-trace/targeted-2-sweep-fire4.csv",
+        "sha256": "c71715f713c7ba2d7cc050d0c3ddbe5f787562215fa5e549a30a258808ba0532"
+      },
+      {
+        "path": "/Users/marcinkrzetowski/Projects/dark-fighter-shot-impact/build/shot-solid-impact/release-fixed/build/runtime-wall-trace/2-sweep-fire5.csv",
+        "sha256": "de1c8202a0618732e31bbc50426d8ff6de7c269eb66170f54f691314c387ec4d"
+      },
+      {
+        "path": "/Users/marcinkrzetowski/Projects/dark-fighter-shot-impact/build/shot-solid-impact/release-fixed/build/runtime-wall-trace/capital-contact-allied-medium.csv",
+        "sha256": "b90b090e1deb174c5f37b4542fa3d2aa135e95e7c49634d64eda9845eb7f2010"
+      },
+      {
+        "path": "/Users/marcinkrzetowski/Projects/dark-fighter-shot-impact/build/shot-solid-impact/release-fixed/build/runtime-wall-trace/1-evasive-fire3.csv",
+        "sha256": "37e3d1df02724467b1837d1519396547c21beaf60380f4e3385ad5e68be867aa"
+      },
+      {
+        "path": "/Users/marcinkrzetowski/Projects/dark-fighter-shot-impact/build/shot-solid-impact/release-fixed/build/runtime-wall-trace/2-sweep-fire6.csv",
+        "sha256": "8208dd49288660aa22635e4a29ff798943729cb231c285e678653074b6d9cfe1"
+      },
+      {
+        "path": "/Users/marcinkrzetowski/Projects/dark-fighter-shot-impact/build/shot-solid-impact/release-fixed/build/runtime-wall-trace/early-enemy-atr-0-cold-hunt-fire4.csv",
+        "sha256": "7506884a5e9f707bacf3cad970e11e22cb034d0c1c7ec1d3d8e11ad2227193da"
+      },
+      {
+        "path": "/Users/marcinkrzetowski/Projects/dark-fighter-shot-impact/build/shot-solid-impact/release-fixed/build/runtime-wall-trace/2-evasive-fire1.csv",
+        "sha256": "e482fda327ff1b92dbb7e8852f6d2ab1d153297371bfb5a0f514e4a6fb801379"
+      },
+      {
+        "path": "/Users/marcinkrzetowski/Projects/dark-fighter-shot-impact/build/shot-solid-impact/release-fixed/build/runtime-wall-trace/early-enemy-atr-1-cold-hunt-fire4.csv",
+        "sha256": "df7c2fab9ab9772c98fc61591e7b0c716e8e5adec1e6ca6477be404841c5168a"
+      },
+      {
+        "path": "/Users/marcinkrzetowski/Projects/dark-fighter-shot-impact/build/shot-solid-impact/release-fixed/build/runtime-wall-trace/weapon-pickup-overlap-2-hunt-fire5.csv",
+        "sha256": "7f9734ac7c122fb2b5bb427dda781fb9dafbfcacc423e3a2c5676dce9ff686c9"
+      },
+      {
+        "path": "/Users/marcinkrzetowski/Projects/dark-fighter-shot-impact/build/shot-solid-impact/release-fixed/build/runtime-wall-trace/early-enemy-atr-2-cold-hunt-fire4.csv",
+        "sha256": "44e8fbe0afee8417914e68110859130898b48a699a40246c320be9d7e8a3e80e"
+      },
+      {
+        "path": "/Users/marcinkrzetowski/Projects/dark-fighter-shot-impact/build/shot-solid-impact/release-fixed/build/runtime-wall-trace/director-complete-2-natural-sweep-fire0.csv",
+        "sha256": "1292bae687a52aa2a872f1d10327c202551a0705daa8f1191b1bd231fb3cf746"
+      },
+      {
+        "path": "/Users/marcinkrzetowski/Projects/dark-fighter-shot-impact/build/shot-solid-impact/release-fixed/build/runtime-wall-trace/cadence-0-sweep-nofire.csv",
+        "sha256": "0a51dbe7b66f77141be3570607c9543bbc1bb2653c31bf1ff49e61a5bf15dc11"
+      },
+      {
+        "path": "/Users/marcinkrzetowski/Projects/dark-fighter-shot-impact/build/shot-solid-impact/release-fixed/build/runtime-wall-trace/2-evasive-fire3.csv",
+        "sha256": "63c4099ee1f686ceb7809c1660e44671ad062bc4abe00bd3fc491149500f4e50"
+      },
+      {
+        "path": "/Users/marcinkrzetowski/Projects/dark-fighter-shot-impact/build/shot-solid-impact/release-fixed/build/runtime-wall-trace/2-evasive-fire7.csv",
+        "sha256": "f4ea0f20880bf3a440347728b9dfa93e95e993fb5cbb612a232805fe070042fc"
+      },
+      {
+        "path": "/Users/marcinkrzetowski/Projects/dark-fighter-shot-impact/build/shot-solid-impact/release-fixed/build/runtime-wall-trace/2-neutral-fire0.csv",
+        "sha256": "b8382bf316a7bb6a59e78985d4cff00c5d0ac521e5fc9576cb8941f59d961dd7"
+      },
+      {
+        "path": "/Users/marcinkrzetowski/Projects/dark-fighter-shot-impact/build/shot-solid-impact/release-fixed/build/runtime-wall-trace/weapon-pickup-sequence-2-hunt-fire3.csv",
+        "sha256": "5ff28a041a2c905b1d259f9a7aec05c601404b21a9bee751efffa6e410a1680b"
+      },
+      {
+        "path": "/Users/marcinkrzetowski/Projects/dark-fighter-shot-impact/build/shot-solid-impact/release-fixed/build/runtime-wall-trace/debris-effects-2-sweep-fire4.csv",
+        "sha256": "224aa5babb66c135987d490155ed9ebcbca1c151526bc4c0c781b06bbb8bae3e"
+      },
+      {
+        "path": "/Users/marcinkrzetowski/Projects/dark-fighter-shot-impact/build/shot-solid-impact/release-fixed/build/runtime-wall-trace/capital-muzzle-ring-2-sweep-fire4.csv",
+        "sha256": "fbb89f2719f2ec2e7670140076474f2bedc0c96d53b8a73eab6f2416ca6045aa"
+      },
+      {
+        "path": "/Users/marcinkrzetowski/Projects/dark-fighter-shot-impact/build/shot-solid-impact/release-fixed/build/runtime-wall-trace/flash-2-neutral-nofire.csv",
+        "sha256": "f028081ceca63d3c760204d44d101657bb7f186f4a1564ebc92e6bc2cd7406bf"
+      },
+      {
+        "path": "/Users/marcinkrzetowski/Projects/dark-fighter-shot-impact/build/shot-solid-impact/release-fixed/build/runtime-wall-trace/capital-contact-hostile-medium.csv",
+        "sha256": "756b80f6e87f2a74625ba0c1c2dae595c1eca7ff4f0b77113686174ff1cad70e"
+      },
+      {
+        "path": "/Users/marcinkrzetowski/Projects/dark-fighter-shot-impact/build/shot-solid-impact/release-fixed/build/runtime-wall-trace/director-complete-0-natural-sweep-fire0.csv",
+        "sha256": "7969415aecd38ee8664111eb5e84f67718483e034edb119e20201042e2ec7303"
+      },
+      {
+        "path": "/Users/marcinkrzetowski/Projects/dark-fighter-shot-impact/build/shot-solid-impact/release-fixed/build/runtime-wall-trace/memory-integrity-atr-2-hunt-fire6.csv",
+        "sha256": "39ce6b07ba6ef0d23ce97bfcd4e15e1d31e699b5c612e25706d800cc168b8e63"
+      },
+      {
+        "path": "/Users/marcinkrzetowski/Projects/dark-fighter-shot-impact/build/shot-solid-impact/release-fixed/build/runtime-wall-trace/memory-integrity-atr-2-evasive-fire4.csv",
+        "sha256": "4a87d0e0253e05f56182c8f03adf96088d7461373fd1bd5acae26520347e5488"
+      },
+      {
+        "path": "/Users/marcinkrzetowski/Projects/dark-fighter-shot-impact/build/shot-solid-impact/release-fixed/build/runtime-wall-trace/cadence-2-sweep-nofire.csv",
+        "sha256": "e6cd37f22559cf28111a45bfa636e48ad29d82e560cf99e1be14c4d00a7918f1"
+      },
+      {
+        "path": "/Users/marcinkrzetowski/Projects/dark-fighter-shot-impact/build/shot-solid-impact/release-fixed/build/runtime-wall-trace/director-complete-2-write-protected.csv",
+        "sha256": "3b817cb4ae50b7d3cdd5a19ea88b3a52d8839c9c3b509cf402e039f222428284"
+      },
+      {
+        "path": "/Users/marcinkrzetowski/Projects/dark-fighter-shot-impact/build/shot-solid-impact/release-fixed/build/runtime-wall-trace/memory-integrity-atr-2-hunt-fire5.csv",
+        "sha256": "259eed01b120d852a4f14d148ce6d01caca0711c218096f14f0b0e5185f3fee5"
+      },
+      {
+        "path": "/Users/marcinkrzetowski/Projects/dark-fighter-shot-impact/build/shot-solid-impact/release-fixed/build/runtime-wall-trace/weapon-pickup-2-hunt-fire4.csv",
+        "sha256": "051d19f4187525c2754d00fc14069e384251fda69cdcbc88c29e9035feb81f0c"
+      },
+      {
+        "path": "/Users/marcinkrzetowski/Projects/dark-fighter-shot-impact/build/shot-solid-impact/release-fixed/build/runtime-wall-trace/weapon-pickup-spread-0-hunt-fire4.csv",
+        "sha256": "85031f38833048f1a1ce8fb002ea9d639c55f418d6165c844c502e1dc718b98a"
+      },
+      {
+        "path": "/Users/marcinkrzetowski/Projects/dark-fighter-shot-impact/build/shot-solid-impact/release-fixed/build/runtime-wall-trace/summary-record-readback-1.csv",
+        "sha256": "7a12d70cb7efa78ee330c97f6e441a9ad263be0a87059115a8ea5c6963df4ddb"
+      }
+    ]
+  }
+}

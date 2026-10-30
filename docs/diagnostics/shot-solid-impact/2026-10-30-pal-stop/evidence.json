@@ -1,0 +1,2137 @@
+{
+  "status": "BLOCKED_PAL_BASELINE; stopped before production changes",
+  "head": "e14af63",
+  "main": "8c0c2ed",
+  "failedGate": "PAL DMA-on maximum <= 32568",
+  "maximum": 32792,
+  "excess": 224,
+  "failedFrameCount": 3,
+  "failedRows": [
+    {
+      "frame": "1137",
+      "wall_cycles": "32720",
+      "sector_state": "2",
+      "player_lifecycle": "0",
+      "player_x": "88",
+      "player_y": "225",
+      "pickup_booster_state": "4",
+      "player_fighter_projectiles": "4",
+      "corridor_phase": "207"
+    },
+    {
+      "frame": "1139",
+      "wall_cycles": "32707",
+      "sector_state": "2",
+      "player_lifecycle": "0",
+      "player_x": "88",
+      "player_y": "225",
+      "pickup_booster_state": "4",
+      "player_fighter_projectiles": "4",
+      "corridor_phase": "208"
+    },
+    {
+      "frame": "1142",
+      "wall_cycles": "32792",
+      "sector_state": "2",
+      "player_lifecycle": "0",
+      "player_x": "88",
+      "player_y": "225",
+      "pickup_booster_state": "4",
+      "player_fighter_projectiles": "4",
+      "corridor_phase": "209"
+    }
+  ],
+  "shotsAtFailedFrames": [
+    {
+      "frame": 1137,
+      "slots": [
+        {
+          "slot": 0,
+          "kind": 65,
+          "x": 88,
+          "y": 127,
+          "backing": 0
+        },
+        {
+          "slot": 1,
+          "kind": 17,
+          "x": 100,
+          "y": 55,
+          "backing": 198
+        },
+        {
+          "slot": 2,
+          "kind": 33,
+          "x": 112,
+          "y": 127,
+          "backing": 198
+        },
+        {
+          "slot": 3,
+          "kind": 17,
+          "x": 100,
+          "y": 127,
+          "backing": 198
+        }
+      ]
+    },
+    {
+      "frame": 1139,
+      "slots": [
+        {
+          "slot": 0,
+          "kind": 65,
+          "x": 87,
+          "y": 115,
+          "backing": 0
+        },
+        {
+          "slot": 1,
+          "kind": 17,
+          "x": 100,
+          "y": 43,
+          "backing": 198
+        },
+        {
+          "slot": 2,
+          "kind": 33,
+          "x": 113,
+          "y": 115,
+          "backing": 198
+        },
+        {
+          "slot": 3,
+          "kind": 17,
+          "x": 100,
+          "y": 115,
+          "backing": 198
+        }
+      ]
+    },
+    {
+      "frame": 1142,
+      "slots": [
+        {
+          "slot": 0,
+          "kind": 65,
+          "x": 85,
+          "y": 97,
+          "backing": 0
+        },
+        {
+          "slot": 1,
+          "kind": 17,
+          "x": 100,
+          "y": 25,
+          "backing": 198
+        },
+        {
+          "slot": 2,
+          "kind": 33,
+          "x": 115,
+          "y": 97,
+          "backing": 198
+        },
+        {
+          "slot": 3,
+          "kind": 17,
+          "x": 100,
+          "y": 97,
+          "backing": 198
+        }
+      ]
+    }
+  ],
+  "b2Attribution": "Not reproduced in completed cases; bounded comparison incomplete because the hard PAL gate failed on main before baseline jobs started",
+  "runs": [
+    {
+      "id": "l2-b2-main-0-0",
+      "frames": 1800,
+      "acceptance": {
+        "measured_frames": 1800,
+        "maximum_wall_cycles": 30294,
+        "wall_ceiling": 32568,
+        "physical_headroom": 5274,
+        "missed_frames": 0,
+        "extra_vbi_boundaries": 0,
+        "physical_overruns": 0,
+        "deadline_overruns": 0,
+        "dli_ordering_errors": 0,
+        "passed": true
+      },
+      "liveCapitalFrames": 843,
+      "playerShotCountRange": [
+        3,
+        4
+      ],
+      "unexplainedEarlyCapitalRetirements": [],
+      "ownedCellsNotContainingShotGlyph": [],
+      "capture": "build/shot-solid-impact/continuation/b2/l2-b2-main-0-0.bin",
+      "captureSha256": "da350fbb439acbcd3579f6ec0d51e85ff9959ddd7d7db4b8adbcc64e249ee58d",
+      "report": "build/frame-peak-main-campaign/runtime-wall-trace/l2-b2-main-0-0-focused-run.json",
+      "reportSha256": "deed2f1cb1076dad1faeb04606bb4de6fcb2337340901184a8aaaf35989ac828"
+    },
+    {
+      "id": "l2-b2-main-1-0",
+      "frames": 1800,
+      "acceptance": {
+        "measured_frames": 1800,
+        "maximum_wall_cycles": 30211,
+        "wall_ceiling": 32568,
+        "physical_headroom": 5357,
+        "missed_frames": 0,
+        "extra_vbi_boundaries": 0,
+        "physical_overruns": 0,
+        "deadline_overruns": 0,
+        "dli_ordering_errors": 0,
+        "passed": true
+      },
+      "liveCapitalFrames": 829,
+      "playerShotCountRange": [
+        3,
+        4
+      ],
+      "unexplainedEarlyCapitalRetirements": [],
+      "ownedCellsNotContainingShotGlyph": [],
+      "capture": "build/shot-solid-impact/continuation/b2/l2-b2-main-1-0.bin",
+      "captureSha256": "0e568a482efb2e6f25ce5accc7b0c512d45ef3dde24bfd7763bd0f57b6e7f35b",
+      "report": "build/frame-peak-main-campaign/runtime-wall-trace/l2-b2-main-1-0-focused-run.json",
+      "reportSha256": "d9659c3d3a39558311be4100ec62f61de42d42688b06db994f4c654b337bac7a"
+    },
+    {
+      "id": "l2-b2-main-0-3",
+      "frames": 1800,
+      "acceptance": {
+        "measured_frames": 1800,
+        "maximum_wall_cycles": 30908,
+        "wall_ceiling": 32568,
+        "physical_headroom": 4660,
+        "missed_frames": 0,
+        "extra_vbi_boundaries": 0,
+        "physical_overruns": 0,
+        "deadline_overruns": 0,
+        "dli_ordering_errors": 0,
+        "passed": true
+      },
+      "liveCapitalFrames": 843,
+      "playerShotCountRange": [
+        4,
+        5
+      ],
+      "unexplainedEarlyCapitalRetirements": [],
+      "ownedCellsNotContainingShotGlyph": [],
+      "capture": "build/shot-solid-impact/continuation/b2/l2-b2-main-0-3.bin",
+      "captureSha256": "e32294c21d56e83de94fcf30297f3af14d2cf994dbb43d13ffee89caab29e463",
+      "report": "build/frame-peak-main-campaign/runtime-wall-trace/l2-b2-main-0-3-focused-run.json",
+      "reportSha256": "ef7e956ddce1f1e1d8bbf4a29d125df8bb9365331063716121900f777e6fd7a3"
+    },
+    {
+      "id": "l2-b2-main-1-3",
+      "frames": 1800,
+      "acceptance": {
+        "measured_frames": 1800,
+        "maximum_wall_cycles": 30828,
+        "wall_ceiling": 32568,
+        "physical_headroom": 4740,
+        "missed_frames": 0,
+        "extra_vbi_boundaries": 0,
+        "physical_overruns": 0,
+        "deadline_overruns": 0,
+        "dli_ordering_errors": 0,
+        "passed": true
+      },
+      "liveCapitalFrames": 894,
+      "playerShotCountRange": [
+        4,
+        5
+      ],
+      "unexplainedEarlyCapitalRetirements": [],
+      "ownedCellsNotContainingShotGlyph": [],
+      "capture": "build/shot-solid-impact/continuation/b2/l2-b2-main-1-3.bin",
+      "captureSha256": "99931bb24d785338ec1a4cad7083d354bbf5efa82b17b51a3e8dabd30357a5e0",
+      "report": "build/frame-peak-main-campaign/runtime-wall-trace/l2-b2-main-1-3-focused-run.json",
+      "reportSha256": "b396a9b4feb72abb20141f781de6a3e7b9de7a3ab38b22f4f5c84c54637cd569"
+    },
+    {
+      "id": "l2-b2-main-0-4",
+      "frames": 1800,
+      "acceptance": {
+        "measured_frames": 1800,
+        "maximum_wall_cycles": 32469,
+        "wall_ceiling": 32568,
+        "physical_headroom": 3099,
+        "missed_frames": 0,
+        "extra_vbi_boundaries": 0,
+        "physical_overruns": 0,
+        "deadline_overruns": 0,
+        "dli_ordering_errors": 0,
+        "passed": true
+      },
+      "liveCapitalFrames": 843,
+      "playerShotCountRange": [
+        1,
+        4
+      ],
+      "unexplainedEarlyCapitalRetirements": [],
+      "ownedCellsNotContainingShotGlyph": [
+        {
+          "frame": 786,
+          "slot": 1,
+          "address": 33736,
+          "code": 48
+        },
+        {
+          "frame": 815,
+          "slot": 2,
+          "address": 33583,
+          "code": 49
+        },
+        {
+          "frame": 946,
+          "slot": 1,
+          "address": 33336,
+          "code": 48
+        },
+        {
+          "frame": 952,
+          "slot": 2,
+          "address": 34106,
+          "code": 49
+        },
+        {
+          "frame": 953,
+          "slot": 2,
+          "address": 34066,
+          "code": 49
+        },
+        {
+          "frame": 954,
+          "slot": 2,
+          "address": 34026,
+          "code": 49
+        },
+        {
+          "frame": 955,
+          "slot": 2,
+          "address": 16442,
+          "code": 49
+        },
+        {
+          "frame": 975,
+          "slot": 2,
+          "address": 33183,
+          "code": 49
+        },
+        {
+          "frame": 984,
+          "slot": 2,
+          "address": 33825,
+          "code": 49
+        },
+        {
+          "frame": 985,
+          "slot": 2,
+          "address": 33785,
+          "code": 49
+        },
+        {
+          "frame": 986,
+          "slot": 1,
+          "address": 33776,
+          "code": 48
+        },
+        {
+          "frame": 986,
+          "slot": 2,
+          "address": 33785,
+          "code": 49
+        },
+        {
+          "frame": 987,
+          "slot": 2,
+          "address": 33705,
+          "code": 49
+        },
+        {
+          "frame": 988,
+          "slot": 2,
+          "address": 33665,
+          "code": 49
+        },
+        {
+          "frame": 989,
+          "slot": 2,
+          "address": 33585,
+          "code": 49
+        },
+        {
+          "frame": 990,
+          "slot": 2,
+          "address": 33585,
+          "code": 49
+        },
+        {
+          "frame": 991,
+          "slot": 2,
+          "address": 33545,
+          "code": 49
+        },
+        {
+          "frame": 992,
+          "slot": 2,
+          "address": 33466,
+          "code": 49
+        },
+        {
+          "frame": 993,
+          "slot": 2,
+          "address": 33426,
+          "code": 49
+        },
+        {
+          "frame": 994,
+          "slot": 2,
+          "address": 33386,
+          "code": 49
+        },
+        {
+          "frame": 995,
+          "slot": 2,
+          "address": 16442,
+          "code": 49
+        },
+        {
+          "frame": 1112,
+          "slot": 1,
+          "address": 33696,
+          "code": 48
+        },
+        {
+          "frame": 1114,
+          "slot": 1,
+          "address": 33615,
+          "code": 48
+        },
+        {
+          "frame": 1115,
+          "slot": 1,
+          "address": 16431,
+          "code": 48
+        },
+        {
+          "frame": 1135,
+          "slot": 2,
+          "address": 33863,
+          "code": 49
+        },
+        {
+          "frame": 1251,
+          "slot": 2,
+          "address": 33223,
+          "code": 49
+        },
+        {
+          "frame": 1252,
+          "slot": 2,
+          "address": 33143,
+          "code": 49
+        },
+        {
+          "frame": 1253,
+          "slot": 2,
+          "address": 33103,
+          "code": 49
+        },
+        {
+          "frame": 1254,
+          "slot": 2,
+          "address": 34143,
+          "code": 49
+        },
+        {
+          "frame": 1255,
+          "slot": 2,
+          "address": 34103,
+          "code": 49
+        },
+        {
+          "frame": 1257,
+          "slot": 0,
+          "address": 33621,
+          "code": 47
+        },
+        {
+          "frame": 1258,
+          "slot": 0,
+          "address": 33621,
+          "code": 47
+        },
+        {
+          "frame": 1259,
+          "slot": 0,
+          "address": 33541,
+          "code": 47
+        },
+        {
+          "frame": 1260,
+          "slot": 0,
+          "address": 33501,
+          "code": 47
+        },
+        {
+          "frame": 1261,
+          "slot": 0,
+          "address": 33461,
+          "code": 47
+        },
+        {
+          "frame": 1262,
+          "slot": 0,
+          "address": 33421,
+          "code": 47
+        },
+        {
+          "frame": 1263,
+          "slot": 0,
+          "address": 16437,
+          "code": 47
+        },
+        {
+          "frame": 1264,
+          "slot": 2,
+          "address": 33665,
+          "code": 49
+        },
+        {
+          "frame": 1264,
+          "slot": 3,
+          "address": 33661,
+          "code": 50
+        },
+        {
+          "frame": 1265,
+          "slot": 2,
+          "address": 33625,
+          "code": 49
+        },
+        {
+          "frame": 1265,
+          "slot": 3,
+          "address": 33621,
+          "code": 50
+        },
+        {
+          "frame": 1266,
+          "slot": 1,
+          "address": 33616,
+          "code": 48
+        },
+        {
+          "frame": 1266,
+          "slot": 2,
+          "address": 33625,
+          "code": 49
+        },
+        {
+          "frame": 1266,
+          "slot": 3,
+          "address": 33621,
+          "code": 50
+        },
+        {
+          "frame": 1267,
+          "slot": 2,
+          "address": 33545,
+          "code": 49
+        },
+        {
+          "frame": 1267,
+          "slot": 3,
+          "address": 33541,
+          "code": 50
+        },
+        {
+          "frame": 1268,
+          "slot": 2,
+          "address": 33505,
+          "code": 49
+        },
+        {
+          "frame": 1268,
+          "slot": 3,
+          "address": 33501,
+          "code": 50
+        },
+        {
+          "frame": 1269,
+          "slot": 2,
+          "address": 33425,
+          "code": 49
+        },
+        {
+          "frame": 1269,
+          "slot": 3,
+          "address": 33421,
+          "code": 50
+        },
+        {
+          "frame": 1270,
+          "slot": 2,
+          "address": 33425,
+          "code": 49
+        },
+        {
+          "frame": 1270,
+          "slot": 3,
+          "address": 33421,
+          "code": 50
+        },
+        {
+          "frame": 1271,
+          "slot": 2,
+          "address": 33385,
+          "code": 49
+        },
+        {
+          "frame": 1271,
+          "slot": 3,
+          "address": 33381,
+          "code": 50
+        },
+        {
+          "frame": 1272,
+          "slot": 3,
+          "address": 33301,
+          "code": 50
+        },
+        {
+          "frame": 1273,
+          "slot": 3,
+          "address": 33261,
+          "code": 50
+        },
+        {
+          "frame": 1274,
+          "slot": 3,
+          "address": 33221,
+          "code": 50
+        },
+        {
+          "frame": 1275,
+          "slot": 3,
+          "address": 16437,
+          "code": 50
+        },
+        {
+          "frame": 1283,
+          "slot": 0,
+          "address": 33661,
+          "code": 47
+        },
+        {
+          "frame": 1284,
+          "slot": 0,
+          "address": 33581,
+          "code": 47
+        },
+        {
+          "frame": 1284,
+          "slot": 2,
+          "address": 33942,
+          "code": 49
+        },
+        {
+          "frame": 1285,
+          "slot": 0,
+          "address": 33541,
+          "code": 47
+        },
+        {
+          "frame": 1285,
+          "slot": 2,
+          "address": 33902,
+          "code": 49
+        },
+        {
+          "frame": 1286,
+          "slot": 0,
+          "address": 33541,
+          "code": 47
+        },
+        {
+          "frame": 1286,
+          "slot": 2,
+          "address": 33902,
+          "code": 49
+        },
+        {
+          "frame": 1287,
+          "slot": 0,
+          "address": 33461,
+          "code": 47
+        },
+        {
+          "frame": 1287,
+          "slot": 2,
+          "address": 33822,
+          "code": 49
+        },
+        {
+          "frame": 1288,
+          "slot": 0,
+          "address": 33421,
+          "code": 47
+        },
+        {
+          "frame": 1288,
+          "slot": 2,
+          "address": 33782,
+          "code": 49
+        },
+        {
+          "frame": 1289,
+          "slot": 0,
+          "address": 33341,
+          "code": 47
+        },
+        {
+          "frame": 1289,
+          "slot": 2,
+          "address": 33702,
+          "code": 49
+        },
+        {
+          "frame": 1290,
+          "slot": 0,
+          "address": 33341,
+          "code": 47
+        },
+        {
+          "frame": 1290,
+          "slot": 2,
+          "address": 33702,
+          "code": 49
+        },
+        {
+          "frame": 1291,
+          "slot": 0,
+          "address": 33301,
+          "code": 47
+        },
+        {
+          "frame": 1291,
+          "slot": 2,
+          "address": 33662,
+          "code": 49
+        },
+        {
+          "frame": 1291,
+          "slot": 3,
+          "address": 33660,
+          "code": 50
+        },
+        {
+          "frame": 1292,
+          "slot": 0,
+          "address": 33221,
+          "code": 47
+        },
+        {
+          "frame": 1292,
+          "slot": 2,
+          "address": 33583,
+          "code": 49
+        },
+        {
+          "frame": 1292,
+          "slot": 3,
+          "address": 33580,
+          "code": 50
+        },
+        {
+          "frame": 1293,
+          "slot": 0,
+          "address": 33181,
+          "code": 47
+        },
+        {
+          "frame": 1293,
+          "slot": 2,
+          "address": 33543,
+          "code": 49
+        },
+        {
+          "frame": 1293,
+          "slot": 3,
+          "address": 33540,
+          "code": 50
+        },
+        {
+          "frame": 1294,
+          "slot": 0,
+          "address": 33141,
+          "code": 47
+        },
+        {
+          "frame": 1294,
+          "slot": 2,
+          "address": 33503,
+          "code": 49
+        },
+        {
+          "frame": 1294,
+          "slot": 3,
+          "address": 33500,
+          "code": 50
+        },
+        {
+          "frame": 1295,
+          "slot": 0,
+          "address": 33101,
+          "code": 47
+        },
+        {
+          "frame": 1295,
+          "slot": 2,
+          "address": 33463,
+          "code": 49
+        },
+        {
+          "frame": 1295,
+          "slot": 3,
+          "address": 33460,
+          "code": 50
+        },
+        {
+          "frame": 1296,
+          "slot": 0,
+          "address": 34141,
+          "code": 47
+        },
+        {
+          "frame": 1296,
+          "slot": 2,
+          "address": 33423,
+          "code": 49
+        },
+        {
+          "frame": 1296,
+          "slot": 3,
+          "address": 33420,
+          "code": 50
+        },
+        {
+          "frame": 1297,
+          "slot": 0,
+          "address": 34061,
+          "code": 47
+        },
+        {
+          "frame": 1297,
+          "slot": 2,
+          "address": 33343,
+          "code": 49
+        },
+        {
+          "frame": 1297,
+          "slot": 3,
+          "address": 33340,
+          "code": 50
+        },
+        {
+          "frame": 1298,
+          "slot": 0,
+          "address": 34061,
+          "code": 47
+        },
+        {
+          "frame": 1298,
+          "slot": 2,
+          "address": 33343,
+          "code": 49
+        },
+        {
+          "frame": 1298,
+          "slot": 3,
+          "address": 33340,
+          "code": 50
+        },
+        {
+          "frame": 1299,
+          "slot": 0,
+          "address": 33981,
+          "code": 47
+        },
+        {
+          "frame": 1299,
+          "slot": 2,
+          "address": 33263,
+          "code": 49
+        },
+        {
+          "frame": 1299,
+          "slot": 3,
+          "address": 33260,
+          "code": 50
+        },
+        {
+          "frame": 1300,
+          "slot": 0,
+          "address": 33941,
+          "code": 47
+        },
+        {
+          "frame": 1300,
+          "slot": 2,
+          "address": 33224,
+          "code": 49
+        },
+        {
+          "frame": 1300,
+          "slot": 3,
+          "address": 33220,
+          "code": 50
+        },
+        {
+          "frame": 1301,
+          "slot": 0,
+          "address": 33901,
+          "code": 47
+        },
+        {
+          "frame": 1301,
+          "slot": 2,
+          "address": 33184,
+          "code": 49
+        },
+        {
+          "frame": 1301,
+          "slot": 3,
+          "address": 33180,
+          "code": 50
+        },
+        {
+          "frame": 1302,
+          "slot": 0,
+          "address": 33861,
+          "code": 47
+        },
+        {
+          "frame": 1302,
+          "slot": 2,
+          "address": 33144,
+          "code": 49
+        },
+        {
+          "frame": 1302,
+          "slot": 3,
+          "address": 33140,
+          "code": 50
+        },
+        {
+          "frame": 1303,
+          "slot": 0,
+          "address": 16437,
+          "code": 47
+        },
+        {
+          "frame": 1303,
+          "slot": 2,
+          "address": 33104,
+          "code": 49
+        },
+        {
+          "frame": 1303,
+          "slot": 3,
+          "address": 33100,
+          "code": 50
+        },
+        {
+          "frame": 1304,
+          "slot": 2,
+          "address": 34104,
+          "code": 49
+        },
+        {
+          "frame": 1305,
+          "slot": 2,
+          "address": 34064,
+          "code": 49
+        },
+        {
+          "frame": 1306,
+          "slot": 2,
+          "address": 34064,
+          "code": 49
+        },
+        {
+          "frame": 1307,
+          "slot": 2,
+          "address": 33984,
+          "code": 49
+        },
+        {
+          "frame": 1309,
+          "slot": 0,
+          "address": 33620,
+          "code": 47
+        },
+        {
+          "frame": 1310,
+          "slot": 0,
+          "address": 33620,
+          "code": 47
+        },
+        {
+          "frame": 1310,
+          "slot": 1,
+          "address": 33855,
+          "code": 48
+        },
+        {
+          "frame": 1311,
+          "slot": 0,
+          "address": 33580,
+          "code": 47
+        },
+        {
+          "frame": 1311,
+          "slot": 1,
+          "address": 33815,
+          "code": 48
+        },
+        {
+          "frame": 1312,
+          "slot": 0,
+          "address": 33500,
+          "code": 47
+        },
+        {
+          "frame": 1313,
+          "slot": 0,
+          "address": 33460,
+          "code": 47
+        },
+        {
+          "frame": 1314,
+          "slot": 0,
+          "address": 33420,
+          "code": 47
+        },
+        {
+          "frame": 1315,
+          "slot": 0,
+          "address": 33380,
+          "code": 47
+        },
+        {
+          "frame": 1316,
+          "slot": 0,
+          "address": 33340,
+          "code": 47
+        },
+        {
+          "frame": 1317,
+          "slot": 0,
+          "address": 33260,
+          "code": 47
+        },
+        {
+          "frame": 1318,
+          "slot": 0,
+          "address": 33260,
+          "code": 47
+        },
+        {
+          "frame": 1654,
+          "slot": 0,
+          "address": 33696,
+          "code": 47
+        },
+        {
+          "frame": 1657,
+          "slot": 0,
+          "address": 33575,
+          "code": 47
+        },
+        {
+          "frame": 1734,
+          "slot": 0,
+          "address": 33496,
+          "code": 47
+        },
+        {
+          "frame": 1737,
+          "slot": 0,
+          "address": 33375,
+          "code": 47
+        }
+      ],
+      "capture": "build/shot-solid-impact/continuation/b2/l2-b2-main-0-4.bin",
+      "captureSha256": "e80a0589e4b479f321efab60c1931b54dba5f03250e4ce8415802676377d8ef5",
+      "report": "build/frame-peak-main-campaign/runtime-wall-trace/l2-b2-main-0-4-focused-run.json",
+      "reportSha256": "b62f742560666e5b3503d77b942315146171de6f903114a5fe08eefc7c831877"
+    },
+    {
+      "id": "l2-b2-main-1-4",
+      "frames": 1800,
+      "acceptance": {
+        "measured_frames": 1800,
+        "maximum_wall_cycles": 32792,
+        "wall_ceiling": 32568,
+        "physical_headroom": 2776,
+        "missed_frames": 0,
+        "extra_vbi_boundaries": 0,
+        "physical_overruns": 0,
+        "deadline_overruns": 3,
+        "dli_ordering_errors": 0,
+        "passed": false
+      },
+      "liveCapitalFrames": 919,
+      "playerShotCountRange": [
+        1,
+        4
+      ],
+      "unexplainedEarlyCapitalRetirements": [],
+      "ownedCellsNotContainingShotGlyph": [
+        {
+          "frame": 715,
+          "slot": 0,
+          "address": 16431,
+          "code": 47
+        },
+        {
+          "frame": 754,
+          "slot": 0,
+          "address": 33575,
+          "code": 47
+        },
+        {
+          "frame": 755,
+          "slot": 0,
+          "address": 16431,
+          "code": 47
+        },
+        {
+          "frame": 772,
+          "slot": 3,
+          "address": 33901,
+          "code": 50
+        },
+        {
+          "frame": 794,
+          "slot": 0,
+          "address": 33935,
+          "code": 47
+        },
+        {
+          "frame": 795,
+          "slot": 0,
+          "address": 16431,
+          "code": 47
+        },
+        {
+          "frame": 831,
+          "slot": 0,
+          "address": 33336,
+          "code": 47
+        },
+        {
+          "frame": 834,
+          "slot": 0,
+          "address": 33215,
+          "code": 47
+        },
+        {
+          "frame": 868,
+          "slot": 2,
+          "address": 33825,
+          "code": 49
+        },
+        {
+          "frame": 869,
+          "slot": 0,
+          "address": 33776,
+          "code": 47
+        },
+        {
+          "frame": 869,
+          "slot": 2,
+          "address": 33785,
+          "code": 49
+        },
+        {
+          "frame": 870,
+          "slot": 0,
+          "address": 33776,
+          "code": 47
+        },
+        {
+          "frame": 870,
+          "slot": 2,
+          "address": 33785,
+          "code": 49
+        },
+        {
+          "frame": 871,
+          "slot": 2,
+          "address": 33705,
+          "code": 49
+        },
+        {
+          "frame": 872,
+          "slot": 2,
+          "address": 33666,
+          "code": 49
+        },
+        {
+          "frame": 873,
+          "slot": 2,
+          "address": 33586,
+          "code": 49
+        },
+        {
+          "frame": 874,
+          "slot": 2,
+          "address": 33586,
+          "code": 49
+        },
+        {
+          "frame": 875,
+          "slot": 2,
+          "address": 16442,
+          "code": 49
+        },
+        {
+          "frame": 896,
+          "slot": 2,
+          "address": 33704,
+          "code": 49
+        },
+        {
+          "frame": 897,
+          "slot": 2,
+          "address": 33624,
+          "code": 49
+        },
+        {
+          "frame": 898,
+          "slot": 2,
+          "address": 33624,
+          "code": 49
+        },
+        {
+          "frame": 899,
+          "slot": 2,
+          "address": 33544,
+          "code": 49
+        },
+        {
+          "frame": 900,
+          "slot": 2,
+          "address": 33504,
+          "code": 49
+        },
+        {
+          "frame": 901,
+          "slot": 2,
+          "address": 33464,
+          "code": 49
+        },
+        {
+          "frame": 902,
+          "slot": 2,
+          "address": 33424,
+          "code": 49
+        },
+        {
+          "frame": 903,
+          "slot": 2,
+          "address": 33384,
+          "code": 49
+        },
+        {
+          "frame": 904,
+          "slot": 2,
+          "address": 33305,
+          "code": 49
+        },
+        {
+          "frame": 905,
+          "slot": 2,
+          "address": 33265,
+          "code": 49
+        },
+        {
+          "frame": 906,
+          "slot": 2,
+          "address": 33225,
+          "code": 49
+        },
+        {
+          "frame": 912,
+          "slot": 2,
+          "address": 34026,
+          "code": 49
+        },
+        {
+          "frame": 914,
+          "slot": 0,
+          "address": 33935,
+          "code": 47
+        },
+        {
+          "frame": 915,
+          "slot": 0,
+          "address": 16431,
+          "code": 47
+        },
+        {
+          "frame": 991,
+          "slot": 0,
+          "address": 33696,
+          "code": 47
+        },
+        {
+          "frame": 994,
+          "slot": 0,
+          "address": 33575,
+          "code": 47
+        },
+        {
+          "frame": 1029,
+          "slot": 0,
+          "address": 34136,
+          "code": 47
+        },
+        {
+          "frame": 1030,
+          "slot": 0,
+          "address": 34136,
+          "code": 47
+        },
+        {
+          "frame": 1112,
+          "slot": 2,
+          "address": 33666,
+          "code": 49
+        },
+        {
+          "frame": 1112,
+          "slot": 3,
+          "address": 33661,
+          "code": 50
+        },
+        {
+          "frame": 1113,
+          "slot": 2,
+          "address": 33586,
+          "code": 49
+        },
+        {
+          "frame": 1113,
+          "slot": 3,
+          "address": 33581,
+          "code": 50
+        },
+        {
+          "frame": 1114,
+          "slot": 0,
+          "address": 33575,
+          "code": 47
+        },
+        {
+          "frame": 1114,
+          "slot": 2,
+          "address": 33586,
+          "code": 49
+        },
+        {
+          "frame": 1114,
+          "slot": 3,
+          "address": 33581,
+          "code": 50
+        },
+        {
+          "frame": 1115,
+          "slot": 0,
+          "address": 16431,
+          "code": 47
+        },
+        {
+          "frame": 1115,
+          "slot": 2,
+          "address": 16442,
+          "code": 49
+        },
+        {
+          "frame": 1115,
+          "slot": 3,
+          "address": 16437,
+          "code": 50
+        },
+        {
+          "frame": 1124,
+          "slot": 2,
+          "address": 33182,
+          "code": 49
+        },
+        {
+          "frame": 1125,
+          "slot": 2,
+          "address": 33142,
+          "code": 49
+        },
+        {
+          "frame": 1126,
+          "slot": 2,
+          "address": 33102,
+          "code": 49
+        },
+        {
+          "frame": 1127,
+          "slot": 2,
+          "address": 34142,
+          "code": 49
+        },
+        {
+          "frame": 1128,
+          "slot": 2,
+          "address": 34063,
+          "code": 49
+        },
+        {
+          "frame": 1129,
+          "slot": 1,
+          "address": 33661,
+          "code": 48
+        },
+        {
+          "frame": 1129,
+          "slot": 2,
+          "address": 34023,
+          "code": 49
+        },
+        {
+          "frame": 1130,
+          "slot": 1,
+          "address": 33661,
+          "code": 48
+        },
+        {
+          "frame": 1130,
+          "slot": 2,
+          "address": 34023,
+          "code": 49
+        },
+        {
+          "frame": 1131,
+          "slot": 1,
+          "address": 33581,
+          "code": 48
+        },
+        {
+          "frame": 1131,
+          "slot": 2,
+          "address": 33943,
+          "code": 49
+        },
+        {
+          "frame": 1132,
+          "slot": 1,
+          "address": 33541,
+          "code": 48
+        },
+        {
+          "frame": 1132,
+          "slot": 2,
+          "address": 33903,
+          "code": 49
+        },
+        {
+          "frame": 1133,
+          "slot": 1,
+          "address": 33461,
+          "code": 48
+        },
+        {
+          "frame": 1133,
+          "slot": 2,
+          "address": 33823,
+          "code": 49
+        },
+        {
+          "frame": 1134,
+          "slot": 1,
+          "address": 33461,
+          "code": 48
+        },
+        {
+          "frame": 1134,
+          "slot": 2,
+          "address": 33823,
+          "code": 49
+        },
+        {
+          "frame": 1135,
+          "slot": 1,
+          "address": 33381,
+          "code": 48
+        },
+        {
+          "frame": 1135,
+          "slot": 2,
+          "address": 33743,
+          "code": 49
+        },
+        {
+          "frame": 1136,
+          "slot": 1,
+          "address": 33341,
+          "code": 48
+        },
+        {
+          "frame": 1137,
+          "slot": 1,
+          "address": 33261,
+          "code": 48
+        },
+        {
+          "frame": 1137,
+          "slot": 2,
+          "address": 33624,
+          "code": 49
+        },
+        {
+          "frame": 1137,
+          "slot": 3,
+          "address": 33621,
+          "code": 50
+        },
+        {
+          "frame": 1138,
+          "slot": 1,
+          "address": 33261,
+          "code": 48
+        },
+        {
+          "frame": 1138,
+          "slot": 2,
+          "address": 33624,
+          "code": 49
+        },
+        {
+          "frame": 1138,
+          "slot": 3,
+          "address": 33621,
+          "code": 50
+        },
+        {
+          "frame": 1139,
+          "slot": 1,
+          "address": 33181,
+          "code": 48
+        },
+        {
+          "frame": 1139,
+          "slot": 2,
+          "address": 33544,
+          "code": 49
+        },
+        {
+          "frame": 1139,
+          "slot": 3,
+          "address": 33541,
+          "code": 50
+        },
+        {
+          "frame": 1140,
+          "slot": 1,
+          "address": 33141,
+          "code": 48
+        },
+        {
+          "frame": 1140,
+          "slot": 2,
+          "address": 33504,
+          "code": 49
+        },
+        {
+          "frame": 1140,
+          "slot": 3,
+          "address": 33501,
+          "code": 50
+        },
+        {
+          "frame": 1141,
+          "slot": 1,
+          "address": 33101,
+          "code": 48
+        },
+        {
+          "frame": 1141,
+          "slot": 2,
+          "address": 33464,
+          "code": 49
+        },
+        {
+          "frame": 1141,
+          "slot": 3,
+          "address": 33461,
+          "code": 50
+        },
+        {
+          "frame": 1142,
+          "slot": 1,
+          "address": 34141,
+          "code": 48
+        },
+        {
+          "frame": 1142,
+          "slot": 2,
+          "address": 33424,
+          "code": 49
+        },
+        {
+          "frame": 1142,
+          "slot": 3,
+          "address": 33421,
+          "code": 50
+        },
+        {
+          "frame": 1143,
+          "slot": 1,
+          "address": 16437,
+          "code": 48
+        },
+        {
+          "frame": 1143,
+          "slot": 2,
+          "address": 33384,
+          "code": 49
+        },
+        {
+          "frame": 1143,
+          "slot": 3,
+          "address": 33381,
+          "code": 50
+        },
+        {
+          "frame": 1144,
+          "slot": 2,
+          "address": 33305,
+          "code": 49
+        },
+        {
+          "frame": 1144,
+          "slot": 3,
+          "address": 33301,
+          "code": 50
+        },
+        {
+          "frame": 1145,
+          "slot": 2,
+          "address": 33265,
+          "code": 49
+        },
+        {
+          "frame": 1145,
+          "slot": 3,
+          "address": 33261,
+          "code": 50
+        },
+        {
+          "frame": 1146,
+          "slot": 2,
+          "address": 33225,
+          "code": 49
+        },
+        {
+          "frame": 1146,
+          "slot": 3,
+          "address": 33221,
+          "code": 50
+        },
+        {
+          "frame": 1147,
+          "slot": 2,
+          "address": 33185,
+          "code": 49
+        },
+        {
+          "frame": 1147,
+          "slot": 3,
+          "address": 33181,
+          "code": 50
+        },
+        {
+          "frame": 1148,
+          "slot": 2,
+          "address": 33105,
+          "code": 49
+        },
+        {
+          "frame": 1148,
+          "slot": 3,
+          "address": 33101,
+          "code": 50
+        },
+        {
+          "frame": 1149,
+          "slot": 2,
+          "address": 34145,
+          "code": 49
+        },
+        {
+          "frame": 1149,
+          "slot": 3,
+          "address": 34141,
+          "code": 50
+        },
+        {
+          "frame": 1150,
+          "slot": 2,
+          "address": 34145,
+          "code": 49
+        },
+        {
+          "frame": 1150,
+          "slot": 3,
+          "address": 34141,
+          "code": 50
+        },
+        {
+          "frame": 1151,
+          "slot": 3,
+          "address": 34061,
+          "code": 50
+        },
+        {
+          "frame": 1152,
+          "slot": 3,
+          "address": 34021,
+          "code": 50
+        },
+        {
+          "frame": 1153,
+          "slot": 3,
+          "address": 33941,
+          "code": 50
+        },
+        {
+          "frame": 1154,
+          "slot": 3,
+          "address": 33941,
+          "code": 50
+        },
+        {
+          "frame": 1155,
+          "slot": 0,
+          "address": 16431,
+          "code": 47
+        },
+        {
+          "frame": 1155,
+          "slot": 1,
+          "address": 33620,
+          "code": 48
+        },
+        {
+          "frame": 1155,
+          "slot": 3,
+          "address": 16437,
+          "code": 50
+        },
+        {
+          "frame": 1156,
+          "slot": 1,
+          "address": 33580,
+          "code": 48
+        },
+        {
+          "frame": 1157,
+          "slot": 1,
+          "address": 33500,
+          "code": 48
+        },
+        {
+          "frame": 1158,
+          "slot": 1,
+          "address": 33500,
+          "code": 48
+        },
+        {
+          "frame": 1159,
+          "slot": 1,
+          "address": 33420,
+          "code": 48
+        },
+        {
+          "frame": 1160,
+          "slot": 1,
+          "address": 33380,
+          "code": 48
+        },
+        {
+          "frame": 1161,
+          "slot": 1,
+          "address": 33340,
+          "code": 48
+        },
+        {
+          "frame": 1162,
+          "slot": 0,
+          "address": 33659,
+          "code": 47
+        },
+        {
+          "frame": 1162,
+          "slot": 1,
+          "address": 33300,
+          "code": 48
+        },
+        {
+          "frame": 1162,
+          "slot": 2,
+          "address": 33661,
+          "code": 49
+        },
+        {
+          "frame": 1162,
+          "slot": 3,
+          "address": 33660,
+          "code": 50
+        },
+        {
+          "frame": 1163,
+          "slot": 0,
+          "address": 33619,
+          "code": 47
+        },
+        {
+          "frame": 1163,
+          "slot": 1,
+          "address": 33260,
+          "code": 48
+        },
+        {
+          "frame": 1163,
+          "slot": 2,
+          "address": 33621,
+          "code": 49
+        },
+        {
+          "frame": 1163,
+          "slot": 3,
+          "address": 33620,
+          "code": 50
+        },
+        {
+          "frame": 1164,
+          "slot": 0,
+          "address": 33539,
+          "code": 47
+        },
+        {
+          "frame": 1164,
+          "slot": 1,
+          "address": 33180,
+          "code": 48
+        },
+        {
+          "frame": 1164,
+          "slot": 2,
+          "address": 33542,
+          "code": 49
+        },
+        {
+          "frame": 1164,
+          "slot": 3,
+          "address": 33540,
+          "code": 50
+        },
+        {
+          "frame": 1165,
+          "slot": 0,
+          "address": 33499,
+          "code": 47
+        },
+        {
+          "frame": 1165,
+          "slot": 1,
+          "address": 33140,
+          "code": 48
+        },
+        {
+          "frame": 1165,
+          "slot": 2,
+          "address": 33502,
+          "code": 49
+        },
+        {
+          "frame": 1165,
+          "slot": 3,
+          "address": 33500,
+          "code": 50
+        },
+        {
+          "frame": 1166,
+          "slot": 1,
+          "address": 33100,
+          "code": 48
+        },
+        {
+          "frame": 1166,
+          "slot": 2,
+          "address": 33462,
+          "code": 49
+        },
+        {
+          "frame": 1166,
+          "slot": 3,
+          "address": 33460,
+          "code": 50
+        },
+        {
+          "frame": 1167,
+          "slot": 1,
+          "address": 34140,
+          "code": 48
+        },
+        {
+          "frame": 1167,
+          "slot": 2,
+          "address": 33422,
+          "code": 49
+        },
+        {
+          "frame": 1167,
+          "slot": 3,
+          "address": 33420,
+          "code": 50
+        },
+        {
+          "frame": 1168,
+          "slot": 2,
+          "address": 33342,
+          "code": 49
+        },
+        {
+          "frame": 1168,
+          "slot": 3,
+          "address": 33340,
+          "code": 50
+        },
+        {
+          "frame": 1169,
+          "slot": 2,
+          "address": 33302,
+          "code": 49
+        },
+        {
+          "frame": 1169,
+          "slot": 3,
+          "address": 33300,
+          "code": 50
+        },
+        {
+          "frame": 1170,
+          "slot": 2,
+          "address": 33302,
+          "code": 49
+        },
+        {
+          "frame": 1170,
+          "slot": 3,
+          "address": 33300,
+          "code": 50
+        },
+        {
+          "frame": 1171,
+          "slot": 2,
+          "address": 33222,
+          "code": 49
+        },
+        {
+          "frame": 1171,
+          "slot": 3,
+          "address": 33220,
+          "code": 50
+        },
+        {
+          "frame": 1172,
+          "slot": 2,
+          "address": 33183,
+          "code": 49
+        },
+        {
+          "frame": 1172,
+          "slot": 3,
+          "address": 33180,
+          "code": 50
+        },
+        {
+          "frame": 1173,
+          "slot": 2,
+          "address": 33103,
+          "code": 49
+        },
+        {
+          "frame": 1173,
+          "slot": 3,
+          "address": 33100,
+          "code": 50
+        },
+        {
+          "frame": 1174,
+          "slot": 2,
+          "address": 33103,
+          "code": 49
+        },
+        {
+          "frame": 1174,
+          "slot": 3,
+          "address": 33100,
+          "code": 50
+        },
+        {
+          "frame": 1175,
+          "slot": 2,
+          "address": 34103,
+          "code": 49
+        },
+        {
+          "frame": 1176,
+          "slot": 2,
+          "address": 34063,
+          "code": 49
+        },
+        {
+          "frame": 1177,
+          "slot": 2,
+          "address": 33983,
+          "code": 49
+        },
+        {
+          "frame": 1178,
+          "slot": 2,
+          "address": 33983,
+          "code": 49
+        },
+        {
+          "frame": 1179,
+          "slot": 2,
+          "address": 33903,
+          "code": 49
+        },
+        {
+          "frame": 1180,
+          "slot": 2,
+          "address": 33864,
+          "code": 49
+        },
+        {
+          "frame": 1181,
+          "slot": 2,
+          "address": 33824,
+          "code": 49
+        },
+        {
+          "frame": 1544,
+          "slot": 0,
+          "address": 33375,
+          "code": 47
+        },
+        {
+          "frame": 1562,
+          "slot": 0,
+          "address": 33698,
+          "code": 47
+        }
+      ],
+      "capture": "build/shot-solid-impact/continuation/b2/l2-b2-main-1-4.bin",
+      "captureSha256": "7bdd18785f9bf7aeb661bb4be2c674212951f5f5a9888f832600b807fe0a632d",
+      "report": "build/frame-peak-main-campaign/runtime-wall-trace/l2-b2-main-1-4-focused-run.json",
+      "reportSha256": "5ef4a5ba94696614e1d3d22f14a5cc6273221607bb26881f42d6e7a5943a3cc9"
+    },
+    {
+      "id": "l2-b2-main-0-5",
+      "frames": 1800,
+      "acceptance": {
+        "measured_frames": 1800,
+        "maximum_wall_cycles": 30290,
+        "wall_ceiling": 32568,
+        "physical_headroom": 5278,
+        "missed_frames": 0,
+        "extra_vbi_boundaries": 0,
+        "physical_overruns": 0,
+        "deadline_overruns": 0,
+        "dli_ordering_errors": 0,
+        "passed": true
+      },
+      "liveCapitalFrames": 1117,
+      "playerShotCountRange": [
+        3,
+        4
+      ],
+      "unexplainedEarlyCapitalRetirements": [],
+      "ownedCellsNotContainingShotGlyph": [],
+      "capture": "build/shot-solid-impact/continuation/b2/l2-b2-main-0-5.bin",
+      "captureSha256": "f882d63c02515c92730e6a7b8973904740f1ff9c97a50dc2eb251f309abfbc6f",
+      "report": "build/frame-peak-main-campaign/runtime-wall-trace/l2-b2-main-0-5-focused-run.json",
+      "reportSha256": "6656f853fbda0887c68bd1fdbd5bc6824b4eb91e879e8e240e7fb31839fee561"
+    },
+    {
+      "id": "l2-b2-main-1-5",
+      "status": "cancelled at hard-gate stop"
+    }
+  ],
+  "baseline5053697": "Not started in this bounded batch at hard-gate stop",
+  "bindings": [
+    {
+      "path": "build/frame-peak-main-campaign/runtime-wall-trace/l2-b2-main-1-4.csv",
+      "bytes": 2818131,
+      "sha256": "86099caa30387930b1694621e688d0a3fc14fad01253451a9d176acc60a53868"
+    },
+    {
+      "path": "build/shot-solid-impact/continuation/b2/l2-b2-main-1-4.bin",
+      "bytes": 117964800,
+      "sha256": "7bdd18785f9bf7aeb661bb4be2c674212951f5f5a9888f832600b807fe0a632d"
+    },
+    {
+      "path": "build/shot-solid-impact/continuation/b2/l2-b2-main-1-4.log",
+      "bytes": 2213,
+      "sha256": "338394d3432cfebceac1dcb492ffba247b1c49709313ddc697548b4918464650"
+    },
+    {
+      "path": "build/frame-peak-main-campaign/void-strike-65.atr",
+      "bytes": 133136,
+      "sha256": "5f1a2ea11166abf6501161c6a8500b5118a89a8d8a3da83b9588526727af9676"
+    },
+    {
+      "path": "build/frame-peak-main-campaign/void-strike-65-boot.bin",
+      "bytes": 27008,
+      "sha256": "1a7297863668716d760be6ef0a70cff1a518694e14cca6e5e499d5bf6e95d80a"
+    },
+    {
+      "path": "build/frame-peak-main-campaign/manifest.json",
+      "bytes": 884235,
+      "sha256": "e76fa080e3c3b23ef6b15783c7897e21f6ed8239125f5c7629446b3f79cb1400"
+    },
+    {
+      "path": "build/atari800-trace/src/atari800",
+      "bytes": 1255912,
+      "sha256": "4db1f460b733e42a81602abcbe3c70d0568202855ebde03db6bb51d09412a194"
+    },
+    {
+      "path": "build/shot-solid-impact/main-npm-test.log",
+      "bytes": 478285,
+      "sha256": "12e7ab8a90d2a7d6ddc5b8dde169339fb653d7a850bfe844fc9a8c0f5aee2c15"
+    }
+  ],
+  "productionDelta": 0,
+  "remainingGates": "Not run; main full test cancelled and partial output not used",
+  "fixture": "Campaign; normal joystick target X=92, bottom Y=225; held FIRE; diagnostic host pins requested booster mode/timer, holds lives at 4; no invulnerability, HP or shot-state injection",
+  "requestedCapitalBound": 31200,
+  "excessOverRequestedCapitalBound": 1592
+}

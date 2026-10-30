@@ -1,0 +1,129 @@
+{
+  "measurement": "Assembled NMOS 6502 renderer, instruction execution; no ANTIC raster simulation",
+  "results": [
+    {
+      "revision": "main",
+      "cases": [
+        {
+          "surface": "island",
+          "code": 62,
+          "address": 33547,
+          "visible": 11,
+          "backing": 62,
+          "glyph": [
+            192,
+            192,
+            0,
+            0,
+            192,
+            192,
+            0,
+            0
+          ],
+          "restored": 62,
+          "active": 1
+        },
+        {
+          "surface": "hull",
+          "code": 59,
+          "address": 33547,
+          "visible": 11,
+          "backing": 59,
+          "glyph": [
+            192,
+            192,
+            0,
+            0,
+            192,
+            192,
+            0,
+            0
+          ],
+          "restored": 59,
+          "active": 1
+        },
+        {
+          "surface": "hostile hull",
+          "code": 203,
+          "address": 33547,
+          "visible": 11,
+          "backing": 203,
+          "glyph": [
+            192,
+            192,
+            0,
+            0,
+            192,
+            192,
+            0,
+            0
+          ],
+          "restored": 203,
+          "active": 1
+        }
+      ]
+    },
+    {
+      "revision": "5053697",
+      "cases": [
+        {
+          "surface": "island",
+          "code": 62,
+          "address": 33547,
+          "visible": 11,
+          "backing": 62,
+          "glyph": [
+            192,
+            192,
+            0,
+            0,
+            192,
+            192,
+            0,
+            0
+          ],
+          "restored": 62,
+          "active": 1
+        },
+        {
+          "surface": "hull",
+          "code": 59,
+          "address": 33547,
+          "visible": 11,
+          "backing": 59,
+          "glyph": [
+            192,
+            192,
+            0,
+            0,
+            192,
+            192,
+            0,
+            0
+          ],
+          "restored": 59,
+          "active": 1
+        },
+        {
+          "surface": "hostile hull",
+          "code": 203,
+          "address": 33547,
+          "visible": 11,
+          "backing": 203,
+          "glyph": [
+            192,
+            192,
+            0,
+            0,
+            192,
+            192,
+            0,
+            0
+          ],
+          "restored": 203,
+          "active": 1
+        }
+      ]
+    }
+  ]
+}

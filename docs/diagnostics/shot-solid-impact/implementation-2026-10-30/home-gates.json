@@ -1,0 +1,519 @@
+{
+  "measurement": "MEASURED host CPU access census; no guest writes by the census; seeded terminal boss fixtures",
+  "originalHome27Passed": true,
+  "newSpreadRoutePassed": true,
+  "totalPassed": 28,
+  "files": [
+    {
+      "file": "build/shot-solid-impact/implementation/home/boss-r1.csv",
+      "sha256": "57341e959258668a9c9d1f93093b818575604cb046ddd5dada1b09c45f5c2d55",
+      "reads": 2015157,
+      "writes": 19332,
+      "contentOpcodeFetches": 26,
+      "bossOpcodeFetches": 772390,
+      "invalidExecutions": 0,
+      "badExamples": []
+    },
+    {
+      "file": "build/shot-solid-impact/implementation/home/boss-r2.csv",
+      "sha256": "6a23e1c973e32b3c1ada6b118f101c7e2d423b6fc4ebe2973139187786cadd02",
+      "reads": 2014125,
+      "writes": 19355,
+      "contentOpcodeFetches": 26,
+      "bossOpcodeFetches": 771744,
+      "invalidExecutions": 0,
+      "badExamples": []
+    },
+    {
+      "file": "build/shot-solid-impact/implementation/home/boss-r3.csv",
+      "sha256": "8d390060fc725828dd27ca06ca09a240ea3f07e07bd3450f56966b61352ffae9",
+      "reads": 2389481,
+      "writes": 21597,
+      "contentOpcodeFetches": 26,
+      "bossOpcodeFetches": 915246,
+      "invalidExecutions": 0,
+      "badExamples": []
+    },
+    {
+      "file": "build/shot-solid-impact/implementation/home/boss-r4.csv",
+      "sha256": "0da75dcba0116f1d86995fb19e93145bca699c83e3686e51f59aa234b72c4027",
+      "reads": 2013382,
+      "writes": 19216,
+      "contentOpcodeFetches": 26,
+      "bossOpcodeFetches": 772020,
+      "invalidExecutions": 0,
+      "badExamples": []
+    },
+    {
+      "file": "build/shot-solid-impact/implementation/home/campaign-0-flight-home.csv",
+      "sha256": "fc1fa0308b4d28c004377f4e0ed3150263eb35288b067a86b1ff7e803cd45115",
+      "reads": 636124,
+      "writes": 13263,
+      "contentOpcodeFetches": 169388,
+      "bossOpcodeFetches": 66966,
+      "invalidExecutions": 0,
+      "badExamples": []
+    },
+    {
+      "file": "build/shot-solid-impact/implementation/home/campaign-1-flight-home.csv",
+      "sha256": "6ca32a4e502de9ecf04db0eb3a8a6045af5296bc350cd4f92062c347507c4385",
+      "reads": 662978,
+      "writes": 13252,
+      "contentOpcodeFetches": 179228,
+      "bossOpcodeFetches": 67130,
+      "invalidExecutions": 0,
+      "badExamples": []
+    },
+    {
+      "file": "build/shot-solid-impact/implementation/home/campaign-1-spread-capital-home.csv",
+      "sha256": "81671ce1b27fa50c52e6a799d46bea69e78da01fecc90e82826fcde1e76cd537",
+      "reads": 203958,
+      "writes": 5773,
+      "contentOpcodeFetches": 75566,
+      "bossOpcodeFetches": 0,
+      "invalidExecutions": 0,
+      "badExamples": []
+    },
+    {
+      "file": "build/shot-solid-impact/implementation/home/campaign-2-brake-home.csv",
+      "sha256": "2798545b3c11c07f3b20902abedf72a2aa3c27380ea02e74b031c09e22d48fd9",
+      "reads": 716064,
+      "writes": 13312,
+      "contentOpcodeFetches": 199182,
+      "bossOpcodeFetches": 67218,
+      "invalidExecutions": 0,
+      "badExamples": []
+    },
+    {
+      "file": "build/shot-solid-impact/implementation/home/l2-480-0-brake-home.csv",
+      "sha256": "93eebc216904b4aa0bf92a4a0f5d449b18525f46c7e6a4760386cd0f1c6a547c",
+      "reads": 556923,
+      "writes": 13320,
+      "contentOpcodeFetches": 139600,
+      "bossOpcodeFetches": 67126,
+      "invalidExecutions": 0,
+      "badExamples": []
+    },
+    {
+      "file": "build/shot-solid-impact/implementation/home/l2-480-0-flight-home.csv",
+      "sha256": "a9e190305443cde4bf4bd3c3f57adb16fa6609f28c7afcbb50dca92b4bc99002",
+      "reads": 547711,
+      "writes": 13266,
+      "contentOpcodeFetches": 135812,
+      "bossOpcodeFetches": 66966,
+      "invalidExecutions": 0,
+      "badExamples": []
+    },
+    {
+      "file": "build/shot-solid-impact/implementation/home/l2-480-1-brake-home.csv",
+      "sha256": "90b24659ac026dc067ebb28c8867be94839fd7206361aca6214308d55a3a5fa7",
+      "reads": 557992,
+      "writes": 13243,
+      "contentOpcodeFetches": 140196,
+      "bossOpcodeFetches": 67130,
+      "invalidExecutions": 0,
+      "badExamples": []
+    },
+    {
+      "file": "build/shot-solid-impact/implementation/home/l2-480-1-flight-home.csv",
+      "sha256": "e707935a9c65d0045f25e35b67091ac2c5538abe60711cf380e9d3b8d1f46196",
+      "reads": 577921,
+      "writes": 13272,
+      "contentOpcodeFetches": 146722,
+      "bossOpcodeFetches": 67270,
+      "invalidExecutions": 0,
+      "badExamples": []
+    },
+    {
+      "file": "build/shot-solid-impact/implementation/home/l2-480-2-brake-home.csv",
+      "sha256": "2637e7fbb3e3cb2dc4de75988050ac186ec4a23f6b06e41ca83671723ada35c4",
+      "reads": 607154,
+      "writes": 13313,
+      "contentOpcodeFetches": 157944,
+      "bossOpcodeFetches": 67356,
+      "invalidExecutions": 0,
+      "badExamples": []
+    },
+    {
+      "file": "build/shot-solid-impact/implementation/home/l2-480-2-flight-home.csv",
+      "sha256": "a1b4fe921a809c3baa3314b16e60a078c4ad0dedc156330dfef80554681f5db9",
+      "reads": 601507,
+      "writes": 13338,
+      "contentOpcodeFetches": 155206,
+      "bossOpcodeFetches": 67496,
+      "invalidExecutions": 0,
+      "badExamples": []
+    },
+    {
+      "file": "build/shot-solid-impact/implementation/home/l2-960-0-brake-home.csv",
+      "sha256": "77b3c20a44128372159ac82bafe7d9ee867452eb4b8693436f21815fcf2109bd",
+      "reads": 654298,
+      "writes": 13266,
+      "contentOpcodeFetches": 176874,
+      "bossOpcodeFetches": 66966,
+      "invalidExecutions": 0,
+      "badExamples": []
+    },
+    {
+      "file": "build/shot-solid-impact/implementation/home/l2-960-0-flight-home.csv",
+      "sha256": "4212cf3b8cf6ed6ccd73af010308440ae340937854347e0b781f9687d1fd2e81",
+      "reads": 650190,
+      "writes": 13266,
+      "contentOpcodeFetches": 174662,
+      "bossOpcodeFetches": 66966,
+      "invalidExecutions": 0,
+      "badExamples": []
+    },
+    {
+      "file": "build/shot-solid-impact/implementation/home/l2-960-1-brake-home.csv",
+      "sha256": "a64f961a53c12d8a41964b7e7c27ad9f6d8c5e5d16d89f1c87917c97110dc0ea",
+      "reads": 671017,
+      "writes": 13243,
+      "contentOpcodeFetches": 182640,
+      "bossOpcodeFetches": 67130,
+      "invalidExecutions": 0,
+      "badExamples": []
+    },
+    {
+      "file": "build/shot-solid-impact/implementation/home/l2-960-1-flight-home.csv",
+      "sha256": "c08a3724a87e1145b2910619fb512609449a7cdecff9ff78f0b9ed66f3ebaa4f",
+      "reads": 676058,
+      "writes": 13273,
+      "contentOpcodeFetches": 183846,
+      "bossOpcodeFetches": 67270,
+      "invalidExecutions": 0,
+      "badExamples": []
+    },
+    {
+      "file": "build/shot-solid-impact/implementation/home/l2-960-2-brake-home.csv",
+      "sha256": "8258b8d139691eaab523aa2ee7e2465f1b602226063d93f8468b1597dc420b6e",
+      "reads": 709233,
+      "writes": 13300,
+      "contentOpcodeFetches": 196558,
+      "bossOpcodeFetches": 67356,
+      "invalidExecutions": 0,
+      "badExamples": []
+    },
+    {
+      "file": "build/shot-solid-impact/implementation/home/l2-960-2-flight-home.csv",
+      "sha256": "1b59f1c396f393144af6bad51b494607b5e74d724a921ecec442620d15a53ea2",
+      "reads": 708521,
+      "writes": 13305,
+      "contentOpcodeFetches": 195756,
+      "bossOpcodeFetches": 67356,
+      "invalidExecutions": 0,
+      "badExamples": []
+    },
+    {
+      "file": "build/shot-solid-impact/implementation/home/l2-exit-480-game-over.csv",
+      "sha256": "9a30cc5504ceef1dfa534beb6fa703822d30ce4143300bd8505948eaac85a33e",
+      "reads": 144187,
+      "writes": 7688,
+      "contentOpcodeFetches": 53482,
+      "bossOpcodeFetches": 0,
+      "invalidExecutions": 0,
+      "badExamples": []
+    },
+    {
+      "file": "build/shot-solid-impact/implementation/home/l2-exit-480-level-end.csv",
+      "sha256": "0c720be6a8b84367aef2d8ad113f991d1f7e449eba5edb912c894b47e3d18e02",
+      "reads": 141981,
+      "writes": 7688,
+      "contentOpcodeFetches": 52672,
+      "bossOpcodeFetches": 0,
+      "invalidExecutions": 0,
+      "badExamples": []
+    },
+    {
+      "file": "build/shot-solid-impact/implementation/home/l2-exit-480-quit.csv",
+      "sha256": "f0ea6e9b976cd0a7adfe5a9fc9d4ebe5494d7195782107a7ae78096dfe8492ac",
+      "reads": 144187,
+      "writes": 7688,
+      "contentOpcodeFetches": 53482,
+      "bossOpcodeFetches": 0,
+      "invalidExecutions": 0,
+      "badExamples": []
+    },
+    {
+      "file": "build/shot-solid-impact/implementation/home/l2-exit-480-reset.csv",
+      "sha256": "210ba4a8590dc86ccb624a6f923d701e74d5a1657526f9a0078053ed8fb2e45d",
+      "reads": 148031,
+      "writes": 11528,
+      "contentOpcodeFetches": 53484,
+      "bossOpcodeFetches": 0,
+      "invalidExecutions": 0,
+      "badExamples": []
+    },
+    {
+      "file": "build/shot-solid-impact/implementation/home/l2-exit-960-game-over.csv",
+      "sha256": "41ff7a24654d16184ef617219dda62a3f0eee79a5e716ef6e3967cdf2aef5607",
+      "reads": 146635,
+      "writes": 7688,
+      "contentOpcodeFetches": 54394,
+      "bossOpcodeFetches": 0,
+      "invalidExecutions": 0,
+      "badExamples": []
+    },
+    {
+      "file": "build/shot-solid-impact/implementation/home/l2-exit-960-level-end.csv",
+      "sha256": "8cf96f2585848982ca5aa9723796a29936320156f60abe554a9fbd30447259a9",
+      "reads": 144434,
+      "writes": 7688,
+      "contentOpcodeFetches": 53586,
+      "bossOpcodeFetches": 0,
+      "invalidExecutions": 0,
+      "badExamples": []
+    },
+    {
+      "file": "build/shot-solid-impact/implementation/home/l2-exit-960-quit.csv",
+      "sha256": "ad9ccfada0cdfbe5a353d60c2012eca6616cf59d692de8475d6b170955dfa199",
+      "reads": 146635,
+      "writes": 7688,
+      "contentOpcodeFetches": 54394,
+      "bossOpcodeFetches": 0,
+      "invalidExecutions": 0,
+      "badExamples": []
+    },
+    {
+      "file": "build/shot-solid-impact/implementation/home/l2-exit-960-reset.csv",
+      "sha256": "bcbd2f4968dca12cefc4cacbbb41096b6fd6eef28e07eca866b71c15ee4e733a",
+      "reads": 150479,
+      "writes": 11528,
+      "contentOpcodeFetches": 54396,
+      "bossOpcodeFetches": 0,
+      "invalidExecutions": 0,
+      "badExamples": []
+    }
+  ],
+  "totals": {
+    "reads": 19336363,
+    "writes": 353689,
+    "contentOpcodeFetches": 3039174,
+    "bossOpcodeFetches": 4239102,
+    "invalidExecutions": 0
+  },
+  "exits": [
+    {
+      "rows": 480,
+      "path": "quit",
+      "counts": {
+        "checked_l2_init": 2,
+        "boot_ready_disarmed": 1,
+        "capital_death_valid": 3,
+        "respawn": 3,
+        "game_over": 0,
+        "stale_access": 0,
+        "exit_fixture": 1
+      },
+      "diagnostic_only": true
+    },
+    {
+      "rows": 480,
+      "path": "game-over",
+      "counts": {
+        "checked_l2_init": 2,
+        "boot_ready_disarmed": 1,
+        "capital_death_valid": 3,
+        "respawn": 3,
+        "game_over": 1,
+        "stale_access": 0,
+        "exit_fixture": 1
+      },
+      "diagnostic_only": true
+    },
+    {
+      "rows": 480,
+      "path": "level-end",
+      "counts": {
+        "checked_l2_init": 2,
+        "boot_ready_disarmed": 1,
+        "capital_death_valid": 3,
+        "respawn": 3,
+        "game_over": 0,
+        "stale_access": 0,
+        "exit_fixture": 1
+      },
+      "diagnostic_only": true
+    },
+    {
+      "rows": 960,
+      "path": "quit",
+      "counts": {
+        "checked_l2_init": 2,
+        "boot_ready_disarmed": 1,
+        "capital_death_valid": 2,
+        "respawn": 2,
+        "game_over": 0,
+        "stale_access": 0,
+        "exit_fixture": 1
+      },
+      "diagnostic_only": true
+    },
+    {
+      "rows": 480,
+      "path": "reset",
+      "counts": {
+        "checked_l2_init": 2,
+        "boot_ready_disarmed": 2,
+        "capital_death_valid": 3,
+        "respawn": 3,
+        "game_over": 0,
+        "stale_access": 0,
+        "exit_fixture": 1
+      },
+      "diagnostic_only": true
+    },
+    {
+      "rows": 960,
+      "path": "game-over",
+      "counts": {
+        "checked_l2_init": 2,
+        "boot_ready_disarmed": 1,
+        "capital_death_valid": 2,
+        "respawn": 2,
+        "game_over": 1,
+        "stale_access": 0,
+        "exit_fixture": 1
+      },
+      "diagnostic_only": true
+    },
+    {
+      "rows": 960,
+      "path": "level-end",
+      "counts": {
+        "checked_l2_init": 2,
+        "boot_ready_disarmed": 1,
+        "capital_death_valid": 2,
+        "respawn": 2,
+        "game_over": 0,
+        "stale_access": 0,
+        "exit_fixture": 1
+      },
+      "diagnostic_only": true
+    },
+    {
+      "rows": 960,
+      "path": "reset",
+      "counts": {
+        "checked_l2_init": 2,
+        "boot_ready_disarmed": 2,
+        "capital_death_valid": 2,
+        "respawn": 2,
+        "game_over": 0,
+        "stale_access": 0,
+        "exit_fixture": 1
+      },
+      "diagnostic_only": true
+    }
+  ],
+  "bosses": [
+    {
+      "region": 1,
+      "file": "build/shot-solid-impact/release-fixed/build/shot-solid-home-boss/r1/r1.jsonl",
+      "sha256": "53a8ce75f2ff514cbcee16ace4f03aff8b873b54bb76a88f3e2f979085ada1a9",
+      "summary": {
+        "restartedLevel": 1,
+        "summary": true,
+        "frames": 175,
+        "misses": 0,
+        "hudErrors": 0,
+        "shipErrors": 0,
+        "dliErrors": 0,
+        "returnedToMenu": 1,
+        "readImageChecks": 90,
+        "readImageErrors": 0,
+        "readAttempts": 24,
+        "sioFailures": 0,
+        "readDlis": 275,
+        "readDliErrors": 0,
+        "strobeFrames": 92,
+        "strobeDliWallPeak": 356,
+        "strobeCpuTop": 109,
+        "strobeCpuRing": 94,
+        "strobeCpuHud": 57,
+        "strobeBlockPeak": 382
+      }
+    },
+    {
+      "region": 2,
+      "file": "build/shot-solid-impact/release-fixed/build/shot-solid-home-boss/r2/r2.jsonl",
+      "sha256": "c5463fa1a6e4b982ecc7f89d05c2af5889cd30d581403cac1b02bc285f57a213",
+      "summary": {
+        "restartedLevel": 4,
+        "summary": true,
+        "frames": 175,
+        "misses": 0,
+        "hudErrors": 0,
+        "shipErrors": 0,
+        "dliErrors": 0,
+        "returnedToMenu": 1,
+        "readImageChecks": 90,
+        "readImageErrors": 0,
+        "readAttempts": 24,
+        "sioFailures": 0,
+        "readDlis": 275,
+        "readDliErrors": 0,
+        "strobeFrames": 92,
+        "strobeDliWallPeak": 356,
+        "strobeCpuTop": 109,
+        "strobeCpuRing": 94,
+        "strobeCpuHud": 57,
+        "strobeBlockPeak": 382
+      }
+    },
+    {
+      "region": 3,
+      "file": "build/shot-solid-impact/release-fixed/build/shot-solid-home-boss/r3/r3.jsonl",
+      "sha256": "82c3aef6f897a23e0d3a499c54d564662680542ad33b11a8ce3d1b7e1264ca5a",
+      "summary": {
+        "restartedLevel": 7,
+        "summary": true,
+        "frames": 175,
+        "misses": 0,
+        "hudErrors": 0,
+        "shipErrors": 0,
+        "dliErrors": 0,
+        "returnedToMenu": 1,
+        "readImageChecks": 90,
+        "readImageErrors": 0,
+        "readAttempts": 24,
+        "sioFailures": 0,
+        "readDlis": 275,
+        "readDliErrors": 0,
+        "strobeFrames": 92,
+        "strobeDliWallPeak": 356,
+        "strobeCpuTop": 109,
+        "strobeCpuRing": 94,
+        "strobeCpuHud": 57,
+        "strobeBlockPeak": 382
+      }
+    },
+    {
+      "region": 4,
+      "file": "build/shot-solid-impact/release-fixed/build/shot-solid-home-boss/r4/r4.jsonl",
+      "sha256": "9bc4124cb44affdfc924af5767423dd489318afce120befbd0d666022f3e1ac2",
+      "summary": {
+        "restartedLevel": 10,
+        "summary": true,
+        "frames": 175,
+        "misses": 0,
+        "hudErrors": 0,
+        "shipErrors": 0,
+        "dliErrors": 0,
+        "returnedToMenu": 1,
+        "readImageChecks": 90,
+        "readImageErrors": 0,
+        "readAttempts": 24,
+        "sioFailures": 0,
+        "readDlis": 275,
+        "readDliErrors": 0,
+        "strobeFrames": 92,
+        "strobeDliWallPeak": 356,
+        "strobeCpuTop": 109,
+        "strobeCpuRing": 94,
+        "strobeCpuHud": 57,
+        "strobeBlockPeak": 382
+      }
+    }
+  ]
+}

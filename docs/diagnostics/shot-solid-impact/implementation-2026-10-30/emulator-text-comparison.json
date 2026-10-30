@@ -1,0 +1,58 @@
+{
+  "measurement": "Mach-O64 section byte comparison; debug/symbol metadata outside executable TEXT may differ by private build path",
+  "equal": true,
+  "sides": {
+    "release-main": {
+      "__text": {
+        "bytes": 585388,
+        "sha256": "d3aed22061df97e534cff1c4997ac82b728a16b74ef5bcea867d89cfc68de3ec"
+      },
+      "__stubs": {
+        "bytes": 2412,
+        "sha256": "187a53026a0d29d9d36392b7a05085fe2d657341d2553db2a1481ec683cc544b"
+      },
+      "__cstring": {
+        "bytes": 94032,
+        "sha256": "29127a5ad1a811ec508ec6c8cf0f637822872e347326389409a0a0f227edd0fb"
+      },
+      "__const": {
+        "bytes": 161144,
+        "sha256": "077161072fdf8423de79932929604a484ab60fc8b419209960ae6b586aa4e26b"
+      },
+      "__unwind_info": {
+        "bytes": 3168,
+        "sha256": "618d93c948da8d301e7ec42185800c37f33511c06d9c056387922fbf57fa5a5f"
+      },
+      "__eh_frame": {
+        "bytes": 280,
+        "sha256": "a2bbd912fddeac355d8d84cb4c932cdcd3e8b8a687966db375aedf751ec47cbf"
+      }
+    },
+    "release-fixed": {
+      "__text": {
+        "bytes": 585388,
+        "sha256": "d3aed22061df97e534cff1c4997ac82b728a16b74ef5bcea867d89cfc68de3ec"
+      },
+      "__stubs": {
+        "bytes": 2412,
+        "sha256": "187a53026a0d29d9d36392b7a05085fe2d657341d2553db2a1481ec683cc544b"
+      },
+      "__cstring": {
+        "bytes": 94032,
+        "sha256": "29127a5ad1a811ec508ec6c8cf0f637822872e347326389409a0a0f227edd0fb"
+      },
+      "__const": {
+        "bytes": 161144,
+        "sha256": "077161072fdf8423de79932929604a484ab60fc8b419209960ae6b586aa4e26b"
+      },
+      "__unwind_info": {
+        "bytes": 3168,
+        "sha256": "618d93c948da8d301e7ec42185800c37f33511c06d9c056387922fbf57fa5a5f"
+      },
+      "__eh_frame": {
+        "bytes": 280,
+        "sha256": "a2bbd912fddeac355d8d84cb4c932cdcd3e8b8a687966db375aedf751ec47cbf"
+      }
+    }
+  }
+}

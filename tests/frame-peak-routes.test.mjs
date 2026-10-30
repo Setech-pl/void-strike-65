@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
-import {capitalEntrySessions,validateCapitalEntry,validateCapitalObservers,framePeakRouteIds,validatePeakCoverage} from '../scripts/frame-peak-routes.mjs';
+import {capitalEntrySessions,spreadCapitalSessions,validateSpreadCapital,validateCapitalEntry,validateCapitalObservers,framePeakRouteIds,validatePeakCoverage} from '../scripts/frame-peak-routes.mjs';
 import {traceArtifactLayout,assertDiagnosticRun} from '../scripts/trace-artifacts.mjs';
 const sample=()=>Array.from({length:5},(_,frame)=>{
  const base=(100+frame)*35568,start=base+2060;
@@ -49,11 +49,25 @@ test('frame-peak snapshots stay worktree-local and must match their exact source
  assert.throws(()=>traceArtifactLayout(process.cwd(),'build/frame-peak-fixed-480/runtime-wall-trace'),/debug-route/);
 });
 test('the native gate cannot drop old routes or accept stale L2 and mismatched world/hull clocks',()=>{
- assert.equal(framePeakRouteIds.length,15);assert.doesNotThrow(()=>validatePeakCoverage([...framePeakRouteIds]));
+ assert.equal(framePeakRouteIds.length,16);assert.doesNotThrow(()=>validatePeakCoverage([...framePeakRouteIds]));
  assert.throws(()=>validatePeakCoverage(framePeakRouteIds.slice(1)),/missing l2-480-0-flight/);
  const clocks=[{state:2,phase:968,world:20,hull:20}];
  assert.doesNotThrow(()=>validateCapitalObservers('fixture',clocks,[]));
  assert.throws(()=>validateCapitalObservers('fixture',[{...clocks[0],hull:19}],[]),/world\/hull mismatch/);
  assert.throws(()=>validateCapitalObservers('fixture',clocks,[{event:'stale_access'}]),/stale L2/);
  assert.throws(()=>validateCapitalObservers('fixture',[{...clocks[0],phase:900}],[]),/incomplete/);
+});
+test('Spread capital failing inputs are permanent and retain the hard gate with an explicit soft target',()=>{
+ assert.deepEqual(spreadCapitalSessions.map(s=>[s.id,s.difficulty,s.policy,s.frames,s.forcedBooster,s.holdPlayerLives]),
+  [['campaign-1-spread-capital',1,'l2-spread-capital',1800,4,4]]);
+ assert.throws(()=>validatePeakCoverage(framePeakRouteIds.filter(id=>id!=='campaign-1-spread-capital')),/missing campaign-1-spread-capital/);
+ const rows=Array.from({length:1800},(_,frame)=>({...sample()[0],frame,sector_state:2,
+  player_lifecycle:0,player_x:88,player_y:225,pickup_booster_state:4,corridor_phase:209,wall_cycles:31501}));
+ assert.equal(validateSpreadCapital('fixture',rows).targetMargin,-1);
+ rows[0].wall_cycles=32569;
+ assert.throws(()=>validateSpreadCapital('fixture',rows),/Spread peak 32569 > 32568/);
+ rows[0].wall_cycles=31501;rows[0].pickup_booster_state=3;
+ assert.throws(()=>validateSpreadCapital('fixture',rows),/Spread fixture expired/);
+ rows[0].pickup_booster_state=0;rows[0].player_lifecycle_after=1;
+ assert.doesNotThrow(()=>validateSpreadCapital('fixture',rows),'lethal end-of-frame booster clear is not fixture expiry');
 });

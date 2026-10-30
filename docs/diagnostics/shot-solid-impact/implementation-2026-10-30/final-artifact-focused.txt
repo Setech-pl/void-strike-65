@@ -1,0 +1,17 @@
+✔ docs/memory-map.md carries exactly one generated block (0.859958ms)
+✔ the generated memory map matches the current build (68.738958ms)
+✔ the generated map reports phase-exclusive menu/L2/boss/death owners and the misnamed STARFIELD (0.326958ms)
+✔ shot entering island ends without writing or damaging its backing cell (24.978916ms)
+✔ shot entering allied hull ends without writing or damaging its backing cell (16.767084ms)
+✔ shot entering hostile hull ends without writing or damaging its backing cell (11.108708ms)
+✔ spawn into a solid cell ends immediately with no drawing, for every player shot kind (132.813542ms)
+✔ a shot passing beside an island reaches the top (12.874084ms)
+✔ stars remain passable and enemy PairShots retain their existing solid-cell overdraw (73.962458ms)
+ℹ tests 9
+ℹ suites 0
+ℹ pass 9
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 341.345334

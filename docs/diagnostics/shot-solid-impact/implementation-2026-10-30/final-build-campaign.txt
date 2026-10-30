@@ -1,0 +1,3 @@
+npm notice run void-strike-65@0.1.1 build
+npm notice run node scripts/build.mjs --quiet
+WARNING: Runtime wall-trace evidence pending: stale binding for void-strike-65-boot.bin, void-strike-65.atr (evidence commit b3b8e466); release build will fail.

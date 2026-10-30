@@ -1,0 +1,1892 @@
+[
+  {
+    "module": "boss-death.map",
+    "segment": "DEATH_BUFFER",
+    "baseline": {
+      "start": 7680,
+      "size": 512
+    },
+    "candidate": {
+      "start": 7680,
+      "size": 512
+    },
+    "sizeDelta": 0,
+    "addressChanged": false
+  },
+  {
+    "module": "boss-death.map",
+    "segment": "DEATH_CODE",
+    "baseline": {
+      "start": 4588,
+      "size": 1892
+    },
+    "candidate": {
+      "start": 4588,
+      "size": 1892
+    },
+    "sizeDelta": 0,
+    "addressChanged": false
+  },
+  {
+    "module": "boss-death.map",
+    "segment": "DEATH_DATA",
+    "baseline": {
+      "start": 6480,
+      "size": 175
+    },
+    "candidate": {
+      "start": 6480,
+      "size": 175
+    },
+    "sizeDelta": 0,
+    "addressChanged": false
+  },
+  {
+    "module": "boss-death.map",
+    "segment": "DEATH_HEAD",
+    "baseline": {
+      "start": 4096,
+      "size": 492
+    },
+    "candidate": {
+      "start": 4096,
+      "size": 492
+    },
+    "sizeDelta": 0,
+    "addressChanged": false
+  },
+  {
+    "module": "boss-death.map",
+    "segment": "DEATH_STATE",
+    "baseline": {
+      "start": 19744,
+      "size": 23
+    },
+    "candidate": {
+      "start": 19744,
+      "size": 23
+    },
+    "sizeDelta": 0,
+    "addressChanged": false
+  },
+  {
+    "module": "boss.map",
+    "segment": "BOSS_BANNER",
+    "baseline": {
+      "start": 4096,
+      "size": 191
+    },
+    "candidate": {
+      "start": 4096,
+      "size": 191
+    },
+    "sizeDelta": 0,
+    "addressChanged": false
+  },
+  {
+    "module": "boss.map",
+    "segment": "BOSS_BANNER_HEAD",
+    "baseline": {
+      "start": 4287,
+      "size": 48
+    },
+    "candidate": {
+      "start": 4287,
+      "size": 48
+    },
+    "sizeDelta": 0,
+    "addressChanged": false
+  },
+  {
+    "module": "boss.map",
+    "segment": "BOSS_BANNER_KEEP",
+    "baseline": {
+      "start": 31376,
+      "size": 250
+    },
+    "candidate": {
+      "start": 31376,
+      "size": 250
+    },
+    "sizeDelta": 0,
+    "addressChanged": false
+  },
+  {
+    "module": "boss.map",
+    "segment": "BOSS_BANNER_KEEP_BSS",
+    "baseline": {
+      "start": 31626,
+      "size": 16
+    },
+    "candidate": {
+      "start": 31626,
+      "size": 16
+    },
+    "sizeDelta": 0,
+    "addressChanged": false
+  },
+  {
+    "module": "boss.map",
+    "segment": "BOSS_BANNER_LATE",
+    "baseline": {
+      "start": 4335,
+      "size": 236
+    },
+    "candidate": {
+      "start": 4335,
+      "size": 236
+    },
+    "sizeDelta": 0,
+    "addressChanged": false
+  },
+  {
+    "module": "boss.map",
+    "segment": "BOSS_BSS",
+    "baseline": {
+      "start": 6296,
+      "size": 93
+    },
+    "candidate": {
+      "start": 6296,
+      "size": 93
+    },
+    "sizeDelta": 0,
+    "addressChanged": false
+  },
+  {
+    "module": "boss.map",
+    "segment": "BOSS_CODE",
+    "baseline": {
+      "start": 28175,
+      "size": 1963
+    },
+    "candidate": {
+      "start": 28175,
+      "size": 1963
+    },
+    "sizeDelta": 0,
+    "addressChanged": false
+  },
+  {
+    "module": "boss.map",
+    "segment": "BOSS_C_ASM",
+    "baseline": {
+      "start": 5464,
+      "size": 453
+    },
+    "candidate": {
+      "start": 5464,
+      "size": 453
+    },
+    "sizeDelta": 0,
+    "addressChanged": false
+  },
+  {
+    "module": "boss.map",
+    "segment": "BOSS_C_BSS",
+    "baseline": {
+      "start": 5917,
+      "size": 223
+    },
+    "candidate": {
+      "start": 5917,
+      "size": 223
+    },
+    "sizeDelta": 0,
+    "addressChanged": false
+  },
+  {
+    "module": "boss.map",
+    "segment": "BOSS_C_CODE",
+    "baseline": {
+      "start": 4096,
+      "size": 1276
+    },
+    "candidate": {
+      "start": 4096,
+      "size": 1276
+    },
+    "sizeDelta": 0,
+    "addressChanged": false
+  },
+  {
+    "module": "boss.map",
+    "segment": "BOSS_C_RODATA",
+    "baseline": {
+      "start": 5454,
+      "size": 10
+    },
+    "candidate": {
+      "start": 5454,
+      "size": 10
+    },
+    "sizeDelta": 0,
+    "addressChanged": false
+  },
+  {
+    "module": "boss.map",
+    "segment": "BOSS_DEATH_PREP",
+    "baseline": {
+      "start": 5372,
+      "size": 81
+    },
+    "candidate": {
+      "start": 5372,
+      "size": 81
+    },
+    "sizeDelta": 0,
+    "addressChanged": false
+  },
+  {
+    "module": "boss.map",
+    "segment": "BOSS_D_BSS",
+    "baseline": {
+      "start": 8084,
+      "size": 104
+    },
+    "candidate": {
+      "start": 8084,
+      "size": 104
+    },
+    "sizeDelta": 0,
+    "addressChanged": false
+  },
+  {
+    "module": "boss.map",
+    "segment": "BOSS_D_CODE",
+    "baseline": {
+      "start": 6400,
+      "size": 1684
+    },
+    "candidate": {
+      "start": 6400,
+      "size": 1684
+    },
+    "sizeDelta": 0,
+    "addressChanged": false
+  },
+  {
+    "module": "boss.map",
+    "segment": "BOSS_ENTRY_COLD",
+    "baseline": {
+      "start": 31304,
+      "size": 66
+    },
+    "candidate": {
+      "start": 31304,
+      "size": 66
+    },
+    "sizeDelta": 0,
+    "addressChanged": false
+  },
+  {
+    "module": "boss.map",
+    "segment": "BOSS_E_BSS",
+    "baseline": {
+      "start": 19967,
+      "size": 16
+    },
+    "candidate": {
+      "start": 19967,
+      "size": 16
+    },
+    "sizeDelta": 0,
+    "addressChanged": false
+  },
+  {
+    "module": "boss.map",
+    "segment": "BOSS_E_CODE",
+    "baseline": {
+      "start": 19456,
+      "size": 511
+    },
+    "candidate": {
+      "start": 19456,
+      "size": 511
+    },
+    "sizeDelta": 0,
+    "addressChanged": false
+  },
+  {
+    "module": "boss.map",
+    "segment": "BOSS_F_CODE",
+    "baseline": {
+      "start": 21102,
+      "size": 213
+    },
+    "candidate": {
+      "start": 21102,
+      "size": 213
+    },
+    "sizeDelta": 0,
+    "addressChanged": false
+  },
+  {
+    "module": "boss.map",
+    "segment": "BOSS_G_CODE",
+    "baseline": {
+      "start": 21102,
+      "size": 319
+    },
+    "candidate": {
+      "start": 21102,
+      "size": 319
+    },
+    "sizeDelta": 0,
+    "addressChanged": false
+  },
+  {
+    "module": "boss.map",
+    "segment": "BOSS_HEAD",
+    "baseline": {
+      "start": 28136,
+      "size": 39
+    },
+    "candidate": {
+      "start": 28136,
+      "size": 39
+    },
+    "sizeDelta": 0,
+    "addressChanged": false
+  },
+  {
+    "module": "boss.map",
+    "segment": "BOSS_HEAD_CHECK",
+    "baseline": {
+      "start": 30138,
+      "size": 36
+    },
+    "candidate": {
+      "start": 30138,
+      "size": 36
+    },
+    "sizeDelta": 0,
+    "addressChanged": false
+  },
+  {
+    "module": "boss.map",
+    "segment": "BOSS_HUD_BACKUP",
+    "baseline": {
+      "start": 6395,
+      "size": 5
+    },
+    "candidate": {
+      "start": 6395,
+      "size": 5
+    },
+    "sizeDelta": 0,
+    "addressChanged": false
+  },
+  {
+    "module": "boss.map",
+    "segment": "BOSS_INSTALL",
+    "baseline": {
+      "start": 30736,
+      "size": 383
+    },
+    "candidate": {
+      "start": 30736,
+      "size": 383
+    },
+    "sizeDelta": 0,
+    "addressChanged": false
+  },
+  {
+    "module": "boss.map",
+    "segment": "BOSS_R_CODE",
+    "baseline": {
+      "start": 21102,
+      "size": 398
+    },
+    "candidate": {
+      "start": 21102,
+      "size": 398
+    },
+    "sizeDelta": 0,
+    "addressChanged": false
+  },
+  {
+    "module": "boss.map",
+    "segment": "BOSS_R_DATA",
+    "baseline": {
+      "start": 21043,
+      "size": 58
+    },
+    "candidate": {
+      "start": 21043,
+      "size": 58
+    },
+    "sizeDelta": 0,
+    "addressChanged": false
+  },
+  {
+    "module": "boss.map",
+    "segment": "BOSS_SCRATCH",
+    "baseline": {
+      "start": 6144,
+      "size": 152
+    },
+    "candidate": {
+      "start": 6144,
+      "size": 152
+    },
+    "sizeDelta": 0,
+    "addressChanged": false
+  },
+  {
+    "module": "boss.map",
+    "segment": "LANCE_BSS",
+    "baseline": {
+      "start": 48112,
+      "size": 5
+    },
+    "candidate": {
+      "start": 48112,
+      "size": 5
+    },
+    "sizeDelta": 0,
+    "addressChanged": false
+  },
+  {
+    "module": "boss.map",
+    "segment": "LANCE_CODE",
+    "baseline": {
+      "start": 47360,
+      "size": 752
+    },
+    "candidate": {
+      "start": 47360,
+      "size": 752
+    },
+    "sizeDelta": 0,
+    "addressChanged": false
+  },
+  {
+    "module": "boss.map",
+    "segment": "LANCE_PAGE",
+    "baseline": {
+      "start": 1024,
+      "size": 250
+    },
+    "candidate": {
+      "start": 1024,
+      "size": 250
+    },
+    "sizeDelta": 0,
+    "addressChanged": false
+  },
+  {
+    "module": "boss.map",
+    "segment": "LANCE_ZP",
+    "baseline": {
+      "start": 182,
+      "size": 14
+    },
+    "candidate": {
+      "start": 182,
+      "size": 14
+    },
+    "sizeDelta": 0,
+    "addressChanged": false
+  },
+  {
+    "module": "capital-player-collision.map",
+    "segment": "COLLISION",
+    "baseline": {
+      "start": 35687,
+      "size": 33
+    },
+    "candidate": {
+      "start": 35687,
+      "size": 33
+    },
+    "sizeDelta": 0,
+    "addressChanged": false
+  },
+  {
+    "module": "content-module.map",
+    "segment": "CONTENT_CODE",
+    "baseline": {
+      "start": 4481,
+      "size": 606
+    },
+    "candidate": {
+      "start": 4481,
+      "size": 606
+    },
+    "sizeDelta": 0,
+    "addressChanged": false
+  },
+  {
+    "module": "content-module.map",
+    "segment": "CONTENT_DATA",
+    "baseline": {
+      "start": 5087,
+      "size": 5
+    },
+    "candidate": {
+      "start": 5087,
+      "size": 5
+    },
+    "sizeDelta": 0,
+    "addressChanged": false
+  },
+  {
+    "module": "content-module.map",
+    "segment": "CONTENT_HEADER",
+    "baseline": {
+      "start": 4480,
+      "size": 1
+    },
+    "candidate": {
+      "start": 4480,
+      "size": 1
+    },
+    "sizeDelta": 0,
+    "addressChanged": false
+  },
+  {
+    "module": "content-module.map",
+    "segment": "DIRECTOR_ABI",
+    "baseline": {
+      "start": 34561,
+      "size": 106
+    },
+    "candidate": {
+      "start": 34561,
+      "size": 106
+    },
+    "sizeDelta": 0,
+    "addressChanged": false
+  },
+  {
+    "module": "content-module.map",
+    "segment": "DIRECTOR_C_BSS",
+    "baseline": {
+      "start": 34554,
+      "size": 7
+    },
+    "candidate": {
+      "start": 34554,
+      "size": 7
+    },
+    "sizeDelta": 0,
+    "addressChanged": false
+  },
+  {
+    "module": "content-module.map",
+    "segment": "DIRECTOR_C_CODE",
+    "baseline": {
+      "start": 40329,
+      "size": 304
+    },
+    "candidate": {
+      "start": 40329,
+      "size": 304
+    },
+    "sizeDelta": 0,
+    "addressChanged": false
+  },
+  {
+    "module": "content-module.map",
+    "segment": "DIRECTOR_C_LOW",
+    "baseline": {
+      "start": 35720,
+      "size": 214
+    },
+    "candidate": {
+      "start": 35720,
+      "size": 214
+    },
+    "sizeDelta": 0,
+    "addressChanged": false
+  },
+  {
+    "module": "content-module.map",
+    "segment": "DIRECTOR_C_PRE",
+    "baseline": {
+      "start": 40286,
+      "size": 21
+    },
+    "candidate": {
+      "start": 40286,
+      "size": 21
+    },
+    "sizeDelta": 0,
+    "addressChanged": false
+  },
+  {
+    "module": "content-module.map",
+    "segment": "DIRECTOR_C_RODATA",
+    "baseline": {
+      "start": 40309,
+      "size": 20
+    },
+    "candidate": {
+      "start": 40309,
+      "size": 20
+    },
+    "sizeDelta": 0,
+    "addressChanged": false
+  },
+  {
+    "module": "content-module.map",
+    "segment": "DIRECTOR_SECTOR_STATE",
+    "baseline": {
+      "start": 33065,
+      "size": 5
+    },
+    "candidate": {
+      "start": 33065,
+      "size": 5
+    },
+    "sizeDelta": 0,
+    "addressChanged": false
+  },
+  {
+    "module": "content-module.map",
+    "segment": "ENEMY_ARCHETYPE_DATA",
+    "baseline": {
+      "start": 35965,
+      "size": 48
+    },
+    "candidate": {
+      "start": 35965,
+      "size": 48
+    },
+    "sizeDelta": 0,
+    "addressChanged": false
+  },
+  {
+    "module": "content-module.map",
+    "segment": "HYBRID_ASM_ARENA",
+    "baseline": {
+      "start": 31696,
+      "size": 162
+    },
+    "candidate": {
+      "start": 31696,
+      "size": 162
+    },
+    "sizeDelta": 0,
+    "addressChanged": false
+  },
+  {
+    "module": "content-module.map",
+    "segment": "HYBRID_ASM_HEAVY_WINDOW",
+    "baseline": {
+      "start": 46506,
+      "size": 106
+    },
+    "candidate": {
+      "start": 46506,
+      "size": 106
+    },
+    "sizeDelta": 0,
+    "addressChanged": false
+  },
+  {
+    "module": "content-module.map",
+    "segment": "HYBRID_ASM_WINDOW",
+    "baseline": {
+      "start": 46080,
+      "size": 1
+    },
+    "candidate": {
+      "start": 46080,
+      "size": 1
+    },
+    "sizeDelta": 0,
+    "addressChanged": false
+  },
+  {
+    "module": "content-module.map",
+    "segment": "HYBRID_C_ARENA",
+    "baseline": {
+      "start": 31858,
+      "size": 641
+    },
+    "candidate": {
+      "start": 31858,
+      "size": 641
+    },
+    "sizeDelta": 0,
+    "addressChanged": false
+  },
+  {
+    "module": "content-module.map",
+    "segment": "HYBRID_C_ARENA_RODATA",
+    "baseline": {
+      "start": 32499,
+      "size": 24
+    },
+    "candidate": {
+      "start": 32499,
+      "size": 24
+    },
+    "sizeDelta": 0,
+    "addressChanged": false
+  },
+  {
+    "module": "content-module.map",
+    "segment": "HYBRID_C_EXT",
+    "baseline": {
+      "start": 36013,
+      "size": 696
+    },
+    "candidate": {
+      "start": 36013,
+      "size": 696
+    },
+    "sizeDelta": 0,
+    "addressChanged": false
+  },
+  {
+    "module": "content-module.map",
+    "segment": "HYBRID_C_SECTOR",
+    "baseline": {
+      "start": 34306,
+      "size": 244
+    },
+    "candidate": {
+      "start": 34306,
+      "size": 244
+    },
+    "sizeDelta": 0,
+    "addressChanged": false
+  },
+  {
+    "module": "content-module.map",
+    "segment": "HYBRID_C_STATE",
+    "baseline": {
+      "start": 33040,
+      "size": 9
+    },
+    "candidate": {
+      "start": 33040,
+      "size": 9
+    },
+    "sizeDelta": 0,
+    "addressChanged": false
+  },
+  {
+    "module": "content-module.map",
+    "segment": "HYBRID_C_WINDOW",
+    "baseline": {
+      "start": 44544,
+      "size": 1536
+    },
+    "candidate": {
+      "start": 44544,
+      "size": 1536
+    },
+    "sizeDelta": 0,
+    "addressChanged": false
+  },
+  {
+    "module": "content-module.map",
+    "segment": "HYBRID_C_WINDOW_FLOW",
+    "baseline": {
+      "start": 46081,
+      "size": 122
+    },
+    "candidate": {
+      "start": 46081,
+      "size": 122
+    },
+    "sizeDelta": 0,
+    "addressChanged": false
+  },
+  {
+    "module": "content-module.map",
+    "segment": "HYBRID_C_WINDOW_HEAVY",
+    "baseline": {
+      "start": 46203,
+      "size": 244
+    },
+    "candidate": {
+      "start": 46203,
+      "size": 244
+    },
+    "sizeDelta": 0,
+    "addressChanged": false
+  },
+  {
+    "module": "content-module.map",
+    "segment": "HYBRID_C_WINDOW_HEAVY_RODATA",
+    "baseline": {
+      "start": 46447,
+      "size": 59
+    },
+    "candidate": {
+      "start": 46447,
+      "size": 59
+    },
+    "sizeDelta": 0,
+    "addressChanged": false
+  },
+  {
+    "module": "content-module.map",
+    "segment": "HYBRID_ENCOUNTER_STATE",
+    "baseline": {
+      "start": 33049,
+      "size": 2
+    },
+    "candidate": {
+      "start": 33049,
+      "size": 2
+    },
+    "sizeDelta": 0,
+    "addressChanged": false
+  },
+  {
+    "module": "content-module.map",
+    "segment": "HYBRID_HEAVY_BREAKUP",
+    "baseline": {
+      "start": 33064,
+      "size": 1
+    },
+    "candidate": {
+      "start": 33064,
+      "size": 1
+    },
+    "sizeDelta": 0,
+    "addressChanged": false
+  },
+  {
+    "module": "content-module.map",
+    "segment": "HYBRID_HEAVY_MEMBERS",
+    "baseline": {
+      "start": 34278,
+      "size": 8
+    },
+    "candidate": {
+      "start": 34278,
+      "size": 8
+    },
+    "sizeDelta": 0,
+    "addressChanged": false
+  },
+  {
+    "module": "content-module.map",
+    "segment": "HYBRID_HEAVY_PACKAGE",
+    "baseline": {
+      "start": 33083,
+      "size": 5
+    },
+    "candidate": {
+      "start": 33083,
+      "size": 5
+    },
+    "sizeDelta": 0,
+    "addressChanged": false
+  },
+  {
+    "module": "content-module.map",
+    "segment": "HYBRID_HEAVY_STATE",
+    "baseline": {
+      "start": 33051,
+      "size": 11
+    },
+    "candidate": {
+      "start": 33051,
+      "size": 11
+    },
+    "sizeDelta": 0,
+    "addressChanged": false
+  },
+  {
+    "module": "content-module.map",
+    "segment": "HYBRID_LIGHT_LOOK",
+    "baseline": {
+      "start": 33070,
+      "size": 13
+    },
+    "candidate": {
+      "start": 33070,
+      "size": 13
+    },
+    "sizeDelta": 0,
+    "addressChanged": false
+  },
+  {
+    "module": "content-module.map",
+    "segment": "HYBRID_LIGHT_ROTATE",
+    "baseline": {
+      "start": 33063,
+      "size": 1
+    },
+    "candidate": {
+      "start": 33063,
+      "size": 1
+    },
+    "sizeDelta": 0,
+    "addressChanged": false
+  },
+  {
+    "module": "content-module.map",
+    "segment": "HYBRID_LIGHT_SCREEN",
+    "baseline": {
+      "start": 33062,
+      "size": 1
+    },
+    "candidate": {
+      "start": 33062,
+      "size": 1
+    },
+    "sizeDelta": 0,
+    "addressChanged": false
+  },
+  {
+    "module": "content-module.map",
+    "segment": "HYBRID_LIGHT_SLOTS",
+    "baseline": {
+      "start": 32709,
+      "size": 59
+    },
+    "candidate": {
+      "start": 32709,
+      "size": 59
+    },
+    "sizeDelta": 0,
+    "addressChanged": false
+  },
+  {
+    "module": "content-module.map",
+    "segment": "HYBRID_LIGHT_STATE",
+    "baseline": {
+      "start": 33024,
+      "size": 16
+    },
+    "candidate": {
+      "start": 33024,
+      "size": 16
+    },
+    "sizeDelta": 0,
+    "addressChanged": false
+  },
+  {
+    "module": "content-module.map",
+    "segment": "LEVEL_CORE",
+    "baseline": {
+      "start": 43520,
+      "size": 256
+    },
+    "candidate": {
+      "start": 43520,
+      "size": 256
+    },
+    "sizeDelta": 0,
+    "addressChanged": false
+  },
+  {
+    "module": "content-module.map",
+    "segment": "LEVEL_GEOMETRY",
+    "baseline": {
+      "start": 44032,
+      "size": 8
+    },
+    "candidate": {
+      "start": 44032,
+      "size": 8
+    },
+    "sizeDelta": 0,
+    "addressChanged": false
+  },
+  {
+    "module": "encounter-director.map",
+    "segment": "CONTENT_CODE",
+    "baseline": {
+      "start": 4481,
+      "size": 606
+    },
+    "candidate": {
+      "start": 4481,
+      "size": 606
+    },
+    "sizeDelta": 0,
+    "addressChanged": false
+  },
+  {
+    "module": "encounter-director.map",
+    "segment": "CONTENT_DATA",
+    "baseline": {
+      "start": 5087,
+      "size": 5
+    },
+    "candidate": {
+      "start": 5087,
+      "size": 5
+    },
+    "sizeDelta": 0,
+    "addressChanged": false
+  },
+  {
+    "module": "encounter-director.map",
+    "segment": "CONTENT_HEADER",
+    "baseline": {
+      "start": 4480,
+      "size": 1
+    },
+    "candidate": {
+      "start": 4480,
+      "size": 1
+    },
+    "sizeDelta": 0,
+    "addressChanged": false
+  },
+  {
+    "module": "encounter-director.map",
+    "segment": "DIRECTOR_ABI",
+    "baseline": {
+      "start": 34561,
+      "size": 106
+    },
+    "candidate": {
+      "start": 34561,
+      "size": 106
+    },
+    "sizeDelta": 0,
+    "addressChanged": false
+  },
+  {
+    "module": "encounter-director.map",
+    "segment": "DIRECTOR_C_BSS",
+    "baseline": {
+      "start": 34554,
+      "size": 7
+    },
+    "candidate": {
+      "start": 34554,
+      "size": 7
+    },
+    "sizeDelta": 0,
+    "addressChanged": false
+  },
+  {
+    "module": "encounter-director.map",
+    "segment": "DIRECTOR_C_CODE",
+    "baseline": {
+      "start": 40329,
+      "size": 304
+    },
+    "candidate": {
+      "start": 40329,
+      "size": 304
+    },
+    "sizeDelta": 0,
+    "addressChanged": false
+  },
+  {
+    "module": "encounter-director.map",
+    "segment": "DIRECTOR_C_LOW",
+    "baseline": {
+      "start": 35720,
+      "size": 214
+    },
+    "candidate": {
+      "start": 35720,
+      "size": 214
+    },
+    "sizeDelta": 0,
+    "addressChanged": false
+  },
+  {
+    "module": "encounter-director.map",
+    "segment": "DIRECTOR_C_PRE",
+    "baseline": {
+      "start": 40286,
+      "size": 21
+    },
+    "candidate": {
+      "start": 40286,
+      "size": 21
+    },
+    "sizeDelta": 0,
+    "addressChanged": false
+  },
+  {
+    "module": "encounter-director.map",
+    "segment": "DIRECTOR_C_RODATA",
+    "baseline": {
+      "start": 40309,
+      "size": 20
+    },
+    "candidate": {
+      "start": 40309,
+      "size": 20
+    },
+    "sizeDelta": 0,
+    "addressChanged": false
+  },
+  {
+    "module": "encounter-director.map",
+    "segment": "DIRECTOR_SECTOR_STATE",
+    "baseline": {
+      "start": 33065,
+      "size": 5
+    },
+    "candidate": {
+      "start": 33065,
+      "size": 5
+    },
+    "sizeDelta": 0,
+    "addressChanged": false
+  },
+  {
+    "module": "encounter-director.map",
+    "segment": "ENEMY_ARCHETYPE_DATA",
+    "baseline": {
+      "start": 35965,
+      "size": 48
+    },
+    "candidate": {
+      "start": 35965,
+      "size": 48
+    },
+    "sizeDelta": 0,
+    "addressChanged": false
+  },
+  {
+    "module": "encounter-director.map",
+    "segment": "HYBRID_ASM_ARENA",
+    "baseline": {
+      "start": 31696,
+      "size": 162
+    },
+    "candidate": {
+      "start": 31696,
+      "size": 162
+    },
+    "sizeDelta": 0,
+    "addressChanged": false
+  },
+  {
+    "module": "encounter-director.map",
+    "segment": "HYBRID_ASM_HEAVY_WINDOW",
+    "baseline": {
+      "start": 46506,
+      "size": 106
+    },
+    "candidate": {
+      "start": 46506,
+      "size": 106
+    },
+    "sizeDelta": 0,
+    "addressChanged": false
+  },
+  {
+    "module": "encounter-director.map",
+    "segment": "HYBRID_ASM_WINDOW",
+    "baseline": {
+      "start": 46080,
+      "size": 1
+    },
+    "candidate": {
+      "start": 46080,
+      "size": 1
+    },
+    "sizeDelta": 0,
+    "addressChanged": false
+  },
+  {
+    "module": "encounter-director.map",
+    "segment": "HYBRID_C_ARENA",
+    "baseline": {
+      "start": 31858,
+      "size": 641
+    },
+    "candidate": {
+      "start": 31858,
+      "size": 641
+    },
+    "sizeDelta": 0,
+    "addressChanged": false
+  },
+  {
+    "module": "encounter-director.map",
+    "segment": "HYBRID_C_ARENA_RODATA",
+    "baseline": {
+      "start": 32499,
+      "size": 24
+    },
+    "candidate": {
+      "start": 32499,
+      "size": 24
+    },
+    "sizeDelta": 0,
+    "addressChanged": false
+  },
+  {
+    "module": "encounter-director.map",
+    "segment": "HYBRID_C_EXT",
+    "baseline": {
+      "start": 36013,
+      "size": 696
+    },
+    "candidate": {
+      "start": 36013,
+      "size": 696
+    },
+    "sizeDelta": 0,
+    "addressChanged": false
+  },
+  {
+    "module": "encounter-director.map",
+    "segment": "HYBRID_C_SECTOR",
+    "baseline": {
+      "start": 34306,
+      "size": 244
+    },
+    "candidate": {
+      "start": 34306,
+      "size": 244
+    },
+    "sizeDelta": 0,
+    "addressChanged": false
+  },
+  {
+    "module": "encounter-director.map",
+    "segment": "HYBRID_C_STATE",
+    "baseline": {
+      "start": 33040,
+      "size": 9
+    },
+    "candidate": {
+      "start": 33040,
+      "size": 9
+    },
+    "sizeDelta": 0,
+    "addressChanged": false
+  },
+  {
+    "module": "encounter-director.map",
+    "segment": "HYBRID_C_WINDOW",
+    "baseline": {
+      "start": 44544,
+      "size": 1536
+    },
+    "candidate": {
+      "start": 44544,
+      "size": 1536
+    },
+    "sizeDelta": 0,
+    "addressChanged": false
+  },
+  {
+    "module": "encounter-director.map",
+    "segment": "HYBRID_C_WINDOW_FLOW",
+    "baseline": {
+      "start": 46081,
+      "size": 122
+    },
+    "candidate": {
+      "start": 46081,
+      "size": 122
+    },
+    "sizeDelta": 0,
+    "addressChanged": false
+  },
+  {
+    "module": "encounter-director.map",
+    "segment": "HYBRID_C_WINDOW_HEAVY",
+    "baseline": {
+      "start": 46203,
+      "size": 244
+    },
+    "candidate": {
+      "start": 46203,
+      "size": 244
+    },
+    "sizeDelta": 0,
+    "addressChanged": false
+  },
+  {
+    "module": "encounter-director.map",
+    "segment": "HYBRID_C_WINDOW_HEAVY_RODATA",
+    "baseline": {
+      "start": 46447,
+      "size": 59
+    },
+    "candidate": {
+      "start": 46447,
+      "size": 59
+    },
+    "sizeDelta": 0,
+    "addressChanged": false
+  },
+  {
+    "module": "encounter-director.map",
+    "segment": "HYBRID_ENCOUNTER_STATE",
+    "baseline": {
+      "start": 33049,
+      "size": 2
+    },
+    "candidate": {
+      "start": 33049,
+      "size": 2
+    },
+    "sizeDelta": 0,
+    "addressChanged": false
+  },
+  {
+    "module": "encounter-director.map",
+    "segment": "HYBRID_HEAVY_BREAKUP",
+    "baseline": {
+      "start": 33064,
+      "size": 1
+    },
+    "candidate": {
+      "start": 33064,
+      "size": 1
+    },
+    "sizeDelta": 0,
+    "addressChanged": false
+  },
+  {
+    "module": "encounter-director.map",
+    "segment": "HYBRID_HEAVY_MEMBERS",
+    "baseline": {
+      "start": 34278,
+      "size": 8
+    },
+    "candidate": {
+      "start": 34278,
+      "size": 8
+    },
+    "sizeDelta": 0,
+    "addressChanged": false
+  },
+  {
+    "module": "encounter-director.map",
+    "segment": "HYBRID_HEAVY_PACKAGE",
+    "baseline": {
+      "start": 33083,
+      "size": 5
+    },
+    "candidate": {
+      "start": 33083,
+      "size": 5
+    },
+    "sizeDelta": 0,
+    "addressChanged": false
+  },
+  {
+    "module": "encounter-director.map",
+    "segment": "HYBRID_HEAVY_STATE",
+    "baseline": {
+      "start": 33051,
+      "size": 11
+    },
+    "candidate": {
+      "start": 33051,
+      "size": 11
+    },
+    "sizeDelta": 0,
+    "addressChanged": false
+  },
+  {
+    "module": "encounter-director.map",
+    "segment": "HYBRID_LIGHT_LOOK",
+    "baseline": {
+      "start": 33070,
+      "size": 13
+    },
+    "candidate": {
+      "start": 33070,
+      "size": 13
+    },
+    "sizeDelta": 0,
+    "addressChanged": false
+  },
+  {
+    "module": "encounter-director.map",
+    "segment": "HYBRID_LIGHT_ROTATE",
+    "baseline": {
+      "start": 33063,
+      "size": 1
+    },
+    "candidate": {
+      "start": 33063,
+      "size": 1
+    },
+    "sizeDelta": 0,
+    "addressChanged": false
+  },
+  {
+    "module": "encounter-director.map",
+    "segment": "HYBRID_LIGHT_SCREEN",
+    "baseline": {
+      "start": 33062,
+      "size": 1
+    },
+    "candidate": {
+      "start": 33062,
+      "size": 1
+    },
+    "sizeDelta": 0,
+    "addressChanged": false
+  },
+  {
+    "module": "encounter-director.map",
+    "segment": "HYBRID_LIGHT_SLOTS",
+    "baseline": {
+      "start": 32709,
+      "size": 59
+    },
+    "candidate": {
+      "start": 32709,
+      "size": 59
+    },
+    "sizeDelta": 0,
+    "addressChanged": false
+  },
+  {
+    "module": "encounter-director.map",
+    "segment": "HYBRID_LIGHT_STATE",
+    "baseline": {
+      "start": 33024,
+      "size": 16
+    },
+    "candidate": {
+      "start": 33024,
+      "size": 16
+    },
+    "sizeDelta": 0,
+    "addressChanged": false
+  },
+  {
+    "module": "encounter-director.map",
+    "segment": "LEVEL_CORE",
+    "baseline": {
+      "start": 43520,
+      "size": 256
+    },
+    "candidate": {
+      "start": 43520,
+      "size": 256
+    },
+    "sizeDelta": 0,
+    "addressChanged": false
+  },
+  {
+    "module": "encounter-director.map",
+    "segment": "LEVEL_GEOMETRY",
+    "baseline": {
+      "start": 44032,
+      "size": 8
+    },
+    "candidate": {
+      "start": 44032,
+      "size": 8
+    },
+    "sizeDelta": 0,
+    "addressChanged": false
+  },
+  {
+    "module": "gameplay-music.map",
+    "segment": "GAMEPLAY_MUSIC",
+    "baseline": {
+      "start": 42504,
+      "size": 512
+    },
+    "candidate": {
+      "start": 42504,
+      "size": 512
+    },
+    "sizeDelta": 0,
+    "addressChanged": false
+  },
+  {
+    "module": "integration-glue.map",
+    "segment": "GLUE",
+    "baseline": {
+      "start": 20222,
+      "size": 250
+    },
+    "candidate": {
+      "start": 20222,
+      "size": 250
+    },
+    "sizeDelta": 0,
+    "addressChanged": false
+  },
+  {
+    "module": "l2.map",
+    "segment": "L2",
+    "baseline": {
+      "start": 6400,
+      "size": 1290
+    },
+    "candidate": {
+      "start": 6400,
+      "size": 1290
+    },
+    "sizeDelta": 0,
+    "addressChanged": false
+  },
+  {
+    "module": "level-summary.map",
+    "segment": "LEVEL_SUMMARY",
+    "baseline": {
+      "start": 1280,
+      "size": 1792
+    },
+    "candidate": {
+      "start": 1280,
+      "size": 1792
+    },
+    "sizeDelta": 0,
+    "addressChanged": false
+  },
+  {
+    "module": "light-kernel.map",
+    "segment": "CAPITAL_VECTOR_IMAGE",
+    "baseline": {
+      "start": 14810,
+      "size": 36
+    },
+    "candidate": {
+      "start": 14810,
+      "size": 36
+    },
+    "sizeDelta": 0,
+    "addressChanged": false
+  },
+  {
+    "module": "light-kernel.map",
+    "segment": "DISK_GUARD",
+    "baseline": {
+      "start": 14713,
+      "size": 97
+    },
+    "candidate": {
+      "start": 14713,
+      "size": 97
+    },
+    "sizeDelta": 0,
+    "addressChanged": false
+  },
+  {
+    "module": "light-kernel.map",
+    "segment": "HUD_BOOSTER_BACKUP",
+    "baseline": {
+      "start": 14846,
+      "size": 22
+    },
+    "candidate": {
+      "start": 14846,
+      "size": 22
+    },
+    "sizeDelta": 0,
+    "addressChanged": false
+  },
+  {
+    "module": "light-kernel.map",
+    "segment": "LIFE_CAPSULE",
+    "baseline": {
+      "start": 14868,
+      "size": 209
+    },
+    "candidate": {
+      "start": 14868,
+      "size": 209
+    },
+    "sizeDelta": 0,
+    "addressChanged": false
+  },
+  {
+    "module": "light-kernel.map",
+    "segment": "LIGHT_KERNEL",
+    "baseline": {
+      "start": 13891,
+      "size": 822
+    },
+    "candidate": {
+      "start": 13891,
+      "size": 822
+    },
+    "sizeDelta": 0,
+    "addressChanged": false
+  },
+  {
+    "module": "light-kernel.map",
+    "segment": "PAUSE_FRONTEND",
+    "baseline": {
+      "start": 15077,
+      "size": 10
+    },
+    "candidate": {
+      "start": 15077,
+      "size": 10
+    },
+    "sizeDelta": 0,
+    "addressChanged": false
+  },
+  {
+    "module": "sector-reader.map",
+    "segment": "READER_BSS",
+    "baseline": {
+      "start": 48128,
+      "size": 21
+    },
+    "candidate": {
+      "start": 48128,
+      "size": 21
+    },
+    "sizeDelta": 0,
+    "addressChanged": false
+  },
+  {
+    "module": "sector-reader.map",
+    "segment": "READER_ZP",
+    "baseline": {
+      "start": 160,
+      "size": 2
+    },
+    "candidate": {
+      "start": 160,
+      "size": 2
+    },
+    "sizeDelta": 0,
+    "addressChanged": false
+  },
+  {
+    "module": "sector-reader.map",
+    "segment": "SECTOR_READER",
+    "baseline": {
+      "start": 40960,
+      "size": 1512
+    },
+    "candidate": {
+      "start": 40960,
+      "size": 1512
+    },
+    "sizeDelta": 0,
+    "addressChanged": false
+  },
+  {
+    "module": "void-strike-65.map",
+    "segment": "A2_KERNEL",
+    "baseline": {
+      "start": 36864,
+      "size": 237
+    },
+    "candidate": {
+      "start": 36864,
+      "size": 237
+    },
+    "sizeDelta": 0,
+    "addressChanged": false
+  },
+  {
+    "module": "void-strike-65.map",
+    "segment": "BOOT_SPLASH",
+    "baseline": {
+      "start": 1280,
+      "size": 512
+    },
+    "candidate": {
+      "start": 1280,
+      "size": 512
+    },
+    "sizeDelta": 0,
+    "addressChanged": false
+  },
+  {
+    "module": "void-strike-65.map",
+    "segment": "BOOT_STAGE2",
+    "baseline": {
+      "start": 8641,
+      "size": 1446
+    },
+    "candidate": {
+      "start": 8641,
+      "size": 1446
+    },
+    "sizeDelta": 0,
+    "addressChanged": false
+  },
+  {
+    "module": "void-strike-65.map",
+    "segment": "BROADSIDE",
+    "baseline": {
+      "start": 24080,
+      "size": 6653
+    },
+    "candidate": {
+      "start": 24080,
+      "size": 6653
+    },
+    "sizeDelta": 0,
+    "addressChanged": false
+  },
+  {
+    "module": "void-strike-65.map",
+    "segment": "CODE",
+    "baseline": {
+      "start": 8192,
+      "size": 4464
+    },
+    "candidate": {
+      "start": 8192,
+      "size": 4464
+    },
+    "sizeDelta": 0,
+    "addressChanged": false
+  },
+  {
+    "module": "void-strike-65.map",
+    "segment": "ENTITY_CODE",
+    "baseline": {
+      "start": 37120,
+      "size": 3161
+    },
+    "candidate": {
+      "start": 37120,
+      "size": 3161
+    },
+    "sizeDelta": 0,
+    "addressChanged": false
+  },
+  {
+    "module": "void-strike-65.map",
+    "segment": "ENTITY_RUN_PAD",
+    "baseline": {
+      "start": 36864,
+      "size": 1
+    },
+    "candidate": {
+      "start": 36864,
+      "size": 1
+    },
+    "sizeDelta": 0,
+    "addressChanged": false
+  },
+  {
+    "module": "void-strike-65.map",
+    "segment": "ENTITY_STATE",
+    "baseline": {
+      "start": 32768,
+      "size": 256
+    },
+    "candidate": {
+      "start": 32768,
+      "size": 256
+    },
+    "sizeDelta": 0,
+    "addressChanged": false
+  },
+  {
+    "module": "void-strike-65.map",
+    "segment": "HEAVY_CODE",
+    "baseline": {
+      "start": 36776,
+      "size": 64
+    },
+    "candidate": {
+      "start": 36776,
+      "size": 64
+    },
+    "sizeDelta": 0,
+    "addressChanged": false
+  },
+  {
+    "module": "void-strike-65.map",
+    "segment": "LIGHT_CODE",
+    "baseline": {
+      "start": 36709,
+      "size": 67
+    },
+    "candidate": {
+      "start": 36709,
+      "size": 67
+    },
+    "sizeDelta": 0,
+    "addressChanged": false
+  },
+  {
+    "module": "void-strike-65.map",
+    "segment": "MENU_OVERLAY",
+    "baseline": {
+      "start": 3072,
+      "size": 1304
+    },
+    "candidate": {
+      "start": 3072,
+      "size": 1304
+    },
+    "sizeDelta": 0,
+    "addressChanged": false
+  },
+  {
+    "module": "void-strike-65.map",
+    "segment": "PICKUP_CODE",
+    "baseline": {
+      "start": 34678,
+      "size": 1002
+    },
+    "candidate": {
+      "start": 34678,
+      "size": 1002
+    },
+    "sizeDelta": 0,
+    "addressChanged": false
+  },
+  {
+    "module": "void-strike-65.map",
+    "segment": "PROJECTILES",
+    "baseline": {
+      "start": 21504,
+      "size": 190
+    },
+    "candidate": {
+      "start": 21504,
+      "size": 190
+    },
+    "sizeDelta": 0,
+    "addressChanged": false
+  },
+  {
+    "module": "void-strike-65.map",
+    "segment": "RODATA",
+    "baseline": {
+      "start": 12656,
+      "size": 3232
+    },
+    "candidate": {
+      "start": 12656,
+      "size": 3232
+    },
+    "sizeDelta": 0,
+    "addressChanged": false
+  },
+  {
+    "module": "void-strike-65.map",
+    "segment": "STARFIELD",
+    "baseline": {
+      "start": 21732,
+      "size": 1428
+    },
+    "candidate": {
+      "start": 21732,
+      "size": 1428
+    },
+    "sizeDelta": 0,
+    "addressChanged": false
+  },
+  {
+    "module": "void-strike-65.map",
+    "segment": "ZEROPAGE",
+    "baseline": {
+      "start": 128,
+      "size": 32
+    },
+    "candidate": {
+      "start": 128,
+      "size": 32
+    },
+    "sizeDelta": 0,
+    "addressChanged": false
+  }
+]

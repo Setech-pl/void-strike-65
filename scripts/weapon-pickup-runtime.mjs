@@ -2169,6 +2169,7 @@ export function executeSpreadShotHullArtifactTrace({
       address,
       backingCode,
       projectileCode: code,
+      activeAfterRender: memory[active + selectedSlot],
       inverse: code >> 7,
       backingGlyph,
       projectileGlyph,
@@ -2315,6 +2316,7 @@ export function executeSpreadShotOverlapTrace({
   runRoutine(memory, labels, "render_fighter_projectile_overlays");
   const both = logicalDisplay(memory, labels);
   const bothCode = both[displayOffset];
+  const activeAfterBoth = [memory[active], memory[active + 1]];
   const bothGlyph = Array.from(memory.subarray(
     0x4400 + (bothCode & 0x7f) * 8,
     0x4400 + (bothCode & 0x7f) * 8 + 8,
@@ -2339,6 +2341,7 @@ export function executeSpreadShotOverlapTrace({
     reference: Array.from(reference),
     both: Array.from(both),
     bothCode,
+    activeAfterBoth,
     bothGlyph,
     afterBothErase: Array.from(afterBothErase),
     oneRemaining: Array.from(oneRemaining),

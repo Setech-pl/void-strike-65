@@ -1,0 +1,18 @@
+l2-b2-main-0-0 0
+l2-b2-main-0-5 0
+l2-b2-main-0-4 0
+l2-b2-main-0-3 0
+l2-b2-main-1-0 0
+l2-b2-main-1-4 1
+file:///Users/marcinkrzetowski/Projects/dark-fighter-shot-impact/build/shot-solid-impact/continuation/b2-run.mjs:14
+ console.log(job.id,code);if(code)throw Error(`${job.id}: wrapper failed; STOP`);
+                                        ^
+
+Error: l2-b2-main-1-4: wrapper failed; STOP
+    at run (file:///Users/marcinkrzetowski/Projects/dark-fighter-shot-impact/build/shot-solid-impact/continuation/b2-run.mjs:14:41)
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+    at async file:///Users/marcinkrzetowski/Projects/dark-fighter-shot-impact/build/shot-solid-impact/continuation/b2-run.mjs:18:69
+    at async Promise.all (index 0)
+    at async file:///Users/marcinkrzetowski/Projects/dark-fighter-shot-impact/build/shot-solid-impact/continuation/b2-run.mjs:18:1
+
+Node.js v26.12.1

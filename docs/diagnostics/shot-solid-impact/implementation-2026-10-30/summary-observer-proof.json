@@ -1,0 +1,62 @@
+[
+  {
+    "session": "director-complete-0-natural-sweep-fire0",
+    "csvBytesIdentical": true,
+    "oldCsvSha256": "7969415aecd38ee8664111eb5e84f67718483e034edb119e20201042e2ec7303",
+    "newCsvSha256": "7969415aecd38ee8664111eb5e84f67718483e034edb119e20201042e2ec7303",
+    "old": {
+      "allocations": 531,
+      "cancelled": 2,
+      "stats": [
+        18,
+        2,
+        157,
+        0,
+        43,
+        0
+      ]
+    },
+    "new": {
+      "allocations": 531,
+      "cancelled": 1,
+      "stats": [
+        18,
+        2,
+        157,
+        0,
+        43,
+        0
+      ]
+    }
+  },
+  {
+    "session": "director-complete-1-natural-sweep-fire0",
+    "csvBytesIdentical": true,
+    "oldCsvSha256": "b226b930f8b3fe2e1cf4a6841b7b9919c28002e13fd9e354765b15bfdfeb8f0e",
+    "newCsvSha256": "b226b930f8b3fe2e1cf4a6841b7b9919c28002e13fd9e354765b15bfdfeb8f0e",
+    "old": {
+      "allocations": 544,
+      "cancelled": 2,
+      "stats": [
+        32,
+        2,
+        200,
+        0,
+        50,
+        0
+      ]
+    },
+    "new": {
+      "allocations": 544,
+      "cancelled": 0,
+      "stats": [
+        32,
+        2,
+        200,
+        0,
+        50,
+        0
+      ]
+    }
+  }
+]

@@ -1,0 +1,24 @@
+l2-b2-main-1-4: 1800 frames, max 32792 wall cycles
+  PAL timing audit  l2-b2-main-1-4                                frames 1800  misses   0  preWait  22811  margin   2489  maxWall  32792  >target    3  >hard    3  shifted    0  [unreliable: missed 0 extraVBI 0 DLIerr 0]  FAIL (DMA-on maximum 32792 > 32568)
+PAL timing audit: line-238 fence, distinct miss events (missed_frames / extra_vbi_boundaries cannot see an overrun: they are derived from Atari800_nframes, and an overrunning frame simply waits for the same VCOUNT one frame later).
+PAL timing audit: 0 distinct miss events across 1 replays (FAIL)
+PAL timing audit: 1 replay(s) outside the gates (GO >= 500, DMA-on <= 32568): l2-b2-main-1-4
+Boss-entry debris clause: subject 0 boss entries, 0 with debris live
+Boss-entry HUD clause: subject 0 boss entries, 0 with a HUD cell changed
+Window tail write clause: 1 replays watched, subject 0 lance run reads, 0 lance-state writes, 0 foreign writers
+Slot F write clause: 1 replays watched, subject 0 block reads, 0 field-state writes, 0 foreign writers
+Behavioural clauses: 1 session(s) ran to completion
+Focused report: build/frame-peak-main-campaign/runtime-wall-trace/l2-b2-main-1-4-focused-run.json
+file:///Users/marcinkrzetowski/Projects/dark-fighter-shot-impact/scripts/runtime-wall-trace.mjs:1647
+  if (!condition) throw new Error(message);
+                        ^
+
+Error: Focused PAL acceptance failed: {"measured_frames":1800,"maximum_wall_cycles":32792,"wall_ceiling":32568,"physical_headroom":2776,"missed_frames":0,"extra_vbi_boundaries":0,"physical_overruns":0,"deadline_overruns":3,"dli_ordering_errors":0,"passed":false}
+    at invariant (file:///Users/marcinkrzetowski/Projects/dark-fighter-shot-impact/scripts/runtime-wall-trace.mjs:1647:25)
+    at main (file:///Users/marcinkrzetowski/Projects/dark-fighter-shot-impact/scripts/runtime-wall-trace.mjs:7632:5)
+    at file:///Users/marcinkrzetowski/Projects/dark-fighter-shot-impact/scripts/runtime-wall-trace.mjs:9878:1
+    at ModuleJob.run (node:internal/modules/esm/module_job:569:25)
+    at async node:internal/modules/esm/loader:650:26
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:105:5)
+
+Node.js v26.12.1

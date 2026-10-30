@@ -1141,8 +1141,18 @@ MUSIC_VOICE_STATE_END:
 M3H_DAMAGED_BODY_BUFFER:
     .res 32
 M3H_DAMAGED_BODY_BUFFER_END:
+; Formation renderer cache. Admission initializes all eight bytes after boot
+; staging; the body buffer itself is populated lazily by the damage publisher.
+M3H_BODY_INDEX:       .res 2
+M3H_DAMAGE_STAGE:     .res 2
+M3H_DAMAGE_RETRY:     .res 1
+M3H_DAMAGE_COPY_VALID:.res 1
+M3H_DAMAGE_SCRATCH:   .res 2
+M3H_RENDER_STATE_END:
 .assert M3H_DAMAGED_BODY_BUFFER = $549E, lderror, "M3-H damaged-body buffer moved"
 .assert M3H_DAMAGED_BODY_BUFFER_END = $54BE, lderror, "M3-H damaged-body buffer grew"
+.assert M3H_BODY_INDEX = HEAVY_BODY_INDEX, lderror, "M3-H body-index ABI moved"
+.assert M3H_RENDER_STATE_END <= $54E4, lderror, "M3-H render state reaches STARFIELD"
 .assert MUSIC_VOICE_STATE_END <= __STARFIELD_RUN__, lderror, "menu music voice state overruns the PairShot RAM area"
 
 ; The complete page is explicit BSS, but no byte is trusted after cold boot.
@@ -5041,14 +5051,11 @@ draw_enemy_member:
     beq @body_done
     jsr enemy_member_screen_y   ; A = screen Y, and republishes ENEMY_TARGET_Y
     tay
-    ldx ENEMY_ARCHETYPE
-    lda enemy_frame_heights,x
+    .assert *+1 = HEAVY_BODY_HEIGHT_OPERAND, lderror, "M3-H height operand moved"
+    lda #14                       ; installed once at formation admission
     sta row_counter
-    txa                           ; fixed 16-byte frame stride
-    asl
-    asl
-    asl
-    asl
+    ldx ENEMY_TARGET_SLOT
+    lda M3H_BODY_INDEX,x
     tax
     lda ENEMY_TARGET_SLOT
     clc
@@ -5057,6 +5064,7 @@ draw_enemy_member:
 @body_loop:
     cpy #GAMEPLAY_TOP
     bcc @body_next
+    .assert *+1 = HEAVY_BODY_BASE_OPERAND, lderror, "M3-H body operand moved"
     lda enemy_body_data,x
     cpy #GAMEPLAY_BOTTOM
     bcs @body_done
@@ -5069,6 +5077,7 @@ draw_enemy_member:
     bne @body_loop
 @body_done:
     rts
+    .res 3,$EA                    ; H10 saves 3 B; later labels stay fixed
 draw_enemy_offscreen_layout_pad:
     .res 1,$EA                  ; preserve every following BROADSIDE integration ABI
 
@@ -8118,6 +8127,9 @@ raider_gate_end:
 .assert ENEMY_X = HEAVY_ABI_X, lderror, "M3-H X ABI moved"
 .assert ENEMY_Y = HEAVY_ABI_Y, lderror, "M3-H Y ABI moved"
 .assert player_x = HEAVY_ABI_PLAYER_X, lderror, "M3-H player ABI moved"
+.assert ENEMY_ARCHETYPE = HEAVY_ABI_SHAPE, lderror, "M3-H shape ABI moved"
+.assert enemy_body_data = HEAVY_ABI_BODY_DATA, lderror, "M3-H body data ABI moved"
+.assert enemy_frame_heights = HEAVY_ABI_FRAME_HEIGHTS, lderror, "M3-H height data ABI moved"
     .res 120-(*-hull_sequence_reserve), $00
 .assert LEVEL_GEOMETRY_SEQUENCE_BYTES = CAPITAL_HULL_SECTOR_MODULE_COUNT, error, "the level page's sequences must cover the 960-row coordinate"
 

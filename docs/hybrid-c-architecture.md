@@ -182,6 +182,17 @@ audio hot paths, hardware writes, low-level rendering, loader, and ATR entry.
 ASM also owns damage-source mailboxes; C consumes them at one coarse lifecycle
 boundary.
 
+M3-H session 2 caches the formation's PMG body base, two member indices and
+height at admission. The existing ASM spawn veneer calls C first, then
+`heavy_look_install`, before either forced plane draw. The draw routine keeps
+its stationary-body skip and clipping; no movement or HP policy moves to ASM.
+Eight bytes at `$54BE–$54C5` hold render metadata; the existing 32-B damage
+buffer stays `$549E–$54BD`. Admission resets metadata after boot staging and
+before reading any cached index. The body copy remains lazy/invalid until the
+future content-home damage publisher installs it. A new formation always
+reinstalls a whole body. Fixed cross-link operand/data bindings have linker
+assertions at their actual main-link instructions and tables.
+
 ## Calling convention and ABI
 
 `src/hybrid/c-asm-abi.s` is the stable boundary. ASM calls coarse C routines at

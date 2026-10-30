@@ -441,7 +441,7 @@ enemy_recycle:
     jsr _enemy_c_recycle
     jmp heavy_publish_hull_colour
 enemy_spawn_raiders:
-    jsr _enemy_c_spawn_raiders
+    jsr heavy_look_spawn
 heavy_publish_hull_colour:
     lda _heavy_hull_colour
     sta COLPM1
@@ -719,6 +719,42 @@ heavy_armoured_tick:
     rts
 @normal:
     pla
+    rts
+
+; M3-H H10/H11. Main asserts every fixed binding at the actual instruction or
+; BSS allocation. No interrupt reads these operands or enters the body copy.
+heavy_body_index = $54BE
+heavy_body_height_operand = $63A1
+heavy_body_base_operand = $63B9
+heavy_abi_shape = $4ECB
+heavy_abi_body_data = $7765
+heavy_abi_frame_heights = $774A
+.export heavy_body_index, heavy_body_height_operand, heavy_body_base_operand
+.export heavy_abi_shape, heavy_abi_body_data, heavy_abi_frame_heights
+.export heavy_look_spawn, heavy_look_install
+heavy_look_spawn:
+    jsr _enemy_c_spawn_raiders
+heavy_look_install:
+    lda #0
+    ldx #7
+@clear:
+    sta heavy_body_index,x
+    dex
+    bpl @clear
+    lda #<heavy_abi_body_data
+    sta heavy_body_base_operand
+    lda #>heavy_abi_body_data
+    sta heavy_body_base_operand+1
+    ldx heavy_abi_shape
+    lda heavy_abi_frame_heights,x
+    sta heavy_body_height_operand
+    txa
+    asl
+    asl
+    asl
+    asl
+    sta heavy_body_index
+    sta heavy_body_index+1
     rts
 
 .include "content-module.s"

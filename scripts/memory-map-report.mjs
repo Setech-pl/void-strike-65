@@ -449,8 +449,11 @@ function collectRows(build) {
   // Zero-page equates outside any segment.
   add(sym("MUSIC_VOICE_COLUMN"), sym("MUSIC_VOICE_SCRATCH") + 1, "state", "menu music v2 column pointers and publication scratch (equates)", "resident", "src/main.s `MUSIC_VOICE_COLUMN`");
   add(sym("M3H_DAMAGED_BODY_BUFFER"), sym("M3H_DAMAGED_BODY_BUFFER_END") - 1,
-    "reserved", "M3-H damaged-body buffer; no writer before M3-H", "resident",
+    "reserved", "M3-H 32-B damaged-body buffer; admission invalidates its lazy copy", "resident",
     "src/main.s `M3H_DAMAGED_BODY_BUFFER`");
+  add(sym("M3H_BODY_INDEX"), sym("M3H_RENDER_STATE_END") - 1,
+    "state", "M3-H render metadata: body indices, stages, retry, copy-valid and scratch; initialized at admission", "resident",
+    "src/main.s `M3H_BODY_INDEX`");
   add(m.levelSummary.statBlock.address, m.levelSummary.statBlock.address + m.levelSummary.statBlock.bytes - 1, "state", "level-summary stat block (`STATS_SHOTS` … `STATS_BONUS`), cleared at every START GAME", "session", "manifest `levelSummary.statBlock`");
 
   // Display memory and hand-placed resident state.

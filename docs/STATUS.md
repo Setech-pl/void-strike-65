@@ -22,6 +22,12 @@ the values below.
 
 ### M3-H session 2 — accepted plan; implementation authorized
 
+Checkpoint1 implemented and verified: default body-base/height/member cache,
+8-B render metadata, unchanged art. Window+44 B; body copy−8 cycles; reset+129
+cycles (component report-only). Normal build PASS; focused44/1 shared;
+quick Spread30,465 /capital-96031,153. [Checkpoint1 audit](diagnostics/m3h-session2/checkpoint-1.md).
+No owner-smoke pause until checkpoint2; no gameplay acceptance claim.
+
 Planning only on owner-created `codex/m3h-session2`, current main `7fe9040`.
 [Rebased plan](plans/m3h-session2.md) covers H10–H14/H16, the armoured Raider
 look and generated damage holes, with explicit state/placement/CPU budgets and

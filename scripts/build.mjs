@@ -1826,6 +1826,12 @@ function renderDirectorAbiInclude(labelBytes, lightKernelAddress, pauseFrontendM
     ["HEAVY_ABI_X", "heavy_abi_x"],
     ["HEAVY_ABI_Y", "heavy_abi_y"],
     ["HEAVY_ABI_PLAYER_X", "heavy_abi_player_x"],
+    ["HEAVY_BODY_INDEX", "heavy_body_index"],
+    ["HEAVY_BODY_HEIGHT_OPERAND", "heavy_body_height_operand"],
+    ["HEAVY_BODY_BASE_OPERAND", "heavy_body_base_operand"],
+    ["HEAVY_ABI_SHAPE", "heavy_abi_shape"],
+    ["HEAVY_ABI_BODY_DATA", "heavy_abi_body_data"],
+    ["HEAVY_ABI_FRAME_HEIGHTS", "heavy_abi_frame_heights"],
     // Heavy break-up (plan-4.6-placement.md §7.4 variant 2): the kill frame's
     // DEFERRABLE token claim, and the deferred-once bit its forcing rule needs.
     ["HYBRID_ENEMY_HEAVY_BREAKUP_CLAIM", "enemy_heavy_breakup_claim"],

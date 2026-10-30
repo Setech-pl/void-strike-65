@@ -195,7 +195,7 @@
  * at all, so green separates from burgundy, from steel and from the amber
  * allied faction colour on both hull styles. The frontend/loader greens ($D8,
  * $D0) are hue D on screens gameplay never shares.
- *   HP 4 -> $C8   HP 3 -> $C6   HP 2 -> $C4   HP 1 -> $C2
+ *   HP 5/4/3 -> $C8   HP 2 -> $C6   HP 1 -> $C4 (M3-H session 2)
  * HULL_COLOUR_BOMBER is the full-HP entry, published to COLPM1/COLPM2 when
  * the formation is admitted; bomber_colour() derives the rest per tick. The
  * cost is zero: only the value of this constant changes. */
@@ -207,7 +207,13 @@
  * real hardware, over the burgundy enemy capital hull, in one sitting. */
 #define BOMBER_HULL_HUE          BOMBER_HULL_HUE_OVERRIDE
 #endif
-#define BOMBER_HULL_HP_LUMA      1u      /* left shift: two luma steps per HP */
+#pragma rodata-name (push, "HYBRID_C_WINDOW_LOOK")
+/* Owner-approved readable HP ramp; flash/charge are mutually exclusive. */
+static const uint8_t bomber_hull_ramp[6] = {
+    BOMBER_HULL_HUE, BOMBER_HULL_HUE | 4u, BOMBER_HULL_HUE | 6u,
+    BOMBER_HULL_HUE | 8u, BOMBER_HULL_HUE | 8u, BOMBER_HULL_HUE | 8u
+};
+#pragma rodata-name (pop)
 #define HULL_COLOUR_BOMBER       (BOMBER_HULL_HUE | 0x08u)
 #define HEAVY_PROFILE_BYTES      9u
 #define HEAVY_SLOT_STATE_LAST    11u
@@ -319,7 +325,7 @@ typedef char enemy_archetype_must_remain_twelve_bytes[
 /* The Bomber ramp is added to without clamping: prove at compile time that the
  * brightest combination still lies inside the Bomber's hue. */
 typedef char bomber_hull_ramp_must_stay_inside_its_hue[
-    (HULL_COLOUR_BOMBER == (BOMBER_HULL_HUE | (4u << BOMBER_HULL_HP_LUMA))) &&
+    (HULL_COLOUR_BOMBER == (BOMBER_HULL_HUE | 8u)) &&
     (HULL_COLOUR_BOMBER + BOMBER_FLASH_LUMA) < (BOMBER_HULL_HUE + 0x10u) &&
     (HULL_COLOUR_BOMBER + BOMBER_CHARGE_LUMA) < (BOMBER_HULL_HUE + 0x10u) ? 1 : -1
 ];
@@ -1596,16 +1602,12 @@ static void bomber_turn(void)
     heavy_member_turn_timer = (uint8_t)((FRAME_COUNTER & BOMBER_TURN_SPREAD) + BOMBER_TURN_MIN);
 }
 
-/* Hull colour of the ticked member: BOMBER_HULL_HUE with the remaining HP as its
- * luminance, brightened while it charges an attack, brighter still for a few
- * frames after a hit. BOMBER_FLASH_LUMA and BOMBER_CHARGE_LUMA are added
- * unclamped, so the worst case must stay inside the hue: HP 5 ($CA) + flash 4
- * is $CE. Uses heavy_index only: heavy_scratch carries the tick's return
- * value. */
+/* Readable HP base, then mutually exclusive flash/charge. Uses heavy_index
+ * only: heavy_scratch carries the tick return value. Maximum luma 8+4=12. */
 static void bomber_colour(void)
 {
     heavy_index = ENEMY_HP_0_ADDRESS[HEAVY_SLOT];
-    heavy_member_colour = (uint8_t)(BOMBER_HULL_HUE | (heavy_index << BOMBER_HULL_HP_LUMA));
+    heavy_member_colour = bomber_hull_ramp[heavy_index];
     if (heavy_index != (heavy_member_aux & BOMBER_HP_MASK)) {
         heavy_member_aux = (uint8_t)(heavy_index | (BOMBER_FLASH_FRAMES << 4));
         if (heavy_index <= 2u) {

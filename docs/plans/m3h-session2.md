@@ -5,6 +5,8 @@
 `7fe90409bd09db58ff263806bec711db21a76457`; planning commit `a35c559`.
 Implementation is authorized through checkpoints 1–6, with a mandatory pause
 for owner smoke after checkpoint 2 and final owner smoke after checkpoint 6.
+Checkpoint 2 owner smoke PASSED on 2026-10-30 at `f33fcdc`; checkpoints 3–6
+are authorized, with the next pause after 6.
 Commit each checkpoint; verify/build/save its ATR without intermediate smoke
 waits except those two pauses.
 

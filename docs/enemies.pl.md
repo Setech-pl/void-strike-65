@@ -76,8 +76,8 @@ Ciężki bombowiec o sylwetce katamaranu (dwa kadłuby, jeden mostek), więc nig
 nie wygląda jak duży Raider. Jest zielony, a tego koloru nie nosi nic innego w
 tej bitwie.
 
-- **Trafień do zniszczenia:** 4. Kadłub ciemnieje z każdym trafieniem, więc po
-  kolorze poznasz, ile mu zostało; błyska przy trafieniu, które przeżyje.
+- **Trafień do zniszczenia:** 4 / 4 / 5. Przy 2 i 1 HP zielony kadłub ciemnieje,
+  ale przy 1 HP pozostaje czytelny. Błyska przy trafieniu, które przeżyje.
 - **Punkty:** 50.
 - **Broń:** nalot. Bomber zatrzymuje się, jego kadłub rozjaśnia się na 20
   klatek, gdy celuje, a potem wystrzeliwuje dwa pociski co 8 klatek z tego

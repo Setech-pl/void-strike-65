@@ -1,0 +1,1000 @@
+{
+  "status": "OWNER-SMOKE CANDIDATE",
+  "ownerAcceptance": {
+    "checkpoint": 2,
+    "commit": "f33fcdc",
+    "date": "2026-10-30",
+    "result": "PASS"
+  },
+  "measurement": "NMOS linked instructions; excludes ANTIC DMA",
+  "window": {
+    "step": "owner decision X",
+    "owner": "HYBRID_C_WINDOW",
+    "address": 44544,
+    "guardAddress": 48154,
+    "endExclusive": 48128,
+    "capacityBytes": 3584,
+    "guardBytes": 6,
+    "directorHalfBytes": 2159,
+    "lightKernelBytes": 0,
+    "usedBytes": 2159,
+    "freeBytes": 1425,
+    "beforeLanceFreeBytes": 657,
+    "availability": "unconditional: disable_basic_rom forces PORTB bit 1 and writes BASICF at every stage-2 entry",
+    "boundedBy": {
+      "below": "16-sector level buffer $A600-$ADFF",
+      "above": "sector reader BSS $BC00-$BC19, then the guard and the OS screen $BC20-$BFFF (RAMTOP $C0 when BASIC is disabled at coldstart)"
+    },
+    "guard": "HYBRID_C_WINDOW_GUARD $BC1A-$BC1F, reserved with no segment, plus the ld65 assert \"HYBRID_C_WINDOW reaches the sector reader BSS at $BC00\"",
+    "contents": "Director: HYBRID_ASM_WINDOW + HYBRID_C_WINDOW + HYBRID_C_WINDOW_RODATA + HYBRID_C_WINDOW_FLOW + HYBRID_C_WINDOW_HEAVY + HYBRID_C_WINDOW_HEAVY_RODATA + HYBRID_ASM_HEAVY_WINDOW + HYBRID_C_WINDOW_LOOK",
+    "transport": {
+      "record": "own DFMC record, LZ, stagingId extension",
+      "finalDestination": 44544,
+      "startSector": 174,
+      "sectors": 14,
+      "rawBytes": 2159,
+      "packedBytes": 1768,
+      "paddingBytes": 3,
+      "landing": "direct: stage 2 decodes it to AE00 after disable_basic_rom"
+    }
+  },
+  "arena": {
+    "step": "4.5M-M3",
+    "owner": "HYBRID_C_ARENA",
+    "address": 31696,
+    "endExclusive": 32528,
+    "capacityBytes": 832,
+    "usedBytes": 830,
+    "freeBytes": 2,
+    "asmBytes": 162,
+    "codeBytes": 644,
+    "rodataBytes": 24,
+    "segments": [
+      "HYBRID_ASM_ARENA",
+      "HYBRID_C_ARENA",
+      "HYBRID_C_ARENA_RODATA"
+    ],
+    "anchor": "hybrid_arena_anchor (1-B rts, HYBRID_ASM_ARENA): keeps the record non-empty",
+    "replaces": "HYBRID_C_HEAVY window $7E12-$7F04 (243 B) and its 44-B transport tail in the merged low-C/GLUE record",
+    "boundedBy": {
+      "below": "starfield stream A staging / pause-screen backup end $7BD0",
+      "above": "A2 display lists $7F10"
+    },
+    "transport": {
+      "record": "own DFMC record, LZ, stagingId extension",
+      "finalDestination": 31696,
+      "startSector": 168,
+      "sectors": 6,
+      "rawBytes": 830,
+      "packedBytes": 726,
+      "paddingBytes": 21,
+      "landing": "direct: stage 2 decodes it to $7BD0; no hold, no publish copy"
+    },
+    "ownersInArena": [
+      {
+        "owner": "record 7bd0",
+        "start": 31696,
+        "endExclusive": 32526
+      }
+    ],
+    "worstCaseFullArenaPackedBytes": 840,
+    "worstCaseFullArenaSectors": 7
+  },
+  "content": {
+    "address": 4480,
+    "endExclusive": 6400,
+    "capacityBytes": 1920,
+    "usedBytes": 612,
+    "runIndex": 12,
+    "validAddress": 34483,
+    "phase": "checked fighter/capital content; disarmed before boss"
+  },
+  "rampSamples": [
+    {
+      "difficulty": 0,
+      "slot": 0,
+      "hp": 1,
+      "mode": "cruise",
+      "cycles": 542,
+      "colour": 196,
+      "baselineCycles": 538,
+      "delta": 4
+    },
+    {
+      "difficulty": 0,
+      "slot": 0,
+      "hp": 1,
+      "mode": "charge",
+      "cycles": 439,
+      "colour": 200,
+      "baselineCycles": 435,
+      "delta": 4
+    },
+    {
+      "difficulty": 0,
+      "slot": 0,
+      "hp": 1,
+      "mode": "flash",
+      "cycles": 506,
+      "colour": 200,
+      "baselineCycles": 502,
+      "delta": 4
+    },
+    {
+      "difficulty": 0,
+      "slot": 0,
+      "hp": 2,
+      "mode": "cruise",
+      "cycles": 542,
+      "colour": 198,
+      "baselineCycles": 538,
+      "delta": 4
+    },
+    {
+      "difficulty": 0,
+      "slot": 0,
+      "hp": 2,
+      "mode": "charge",
+      "cycles": 439,
+      "colour": 202,
+      "baselineCycles": 435,
+      "delta": 4
+    },
+    {
+      "difficulty": 0,
+      "slot": 0,
+      "hp": 2,
+      "mode": "flash",
+      "cycles": 506,
+      "colour": 202,
+      "baselineCycles": 502,
+      "delta": 4
+    },
+    {
+      "difficulty": 0,
+      "slot": 0,
+      "hp": 3,
+      "mode": "cruise",
+      "cycles": 542,
+      "colour": 200,
+      "baselineCycles": 538,
+      "delta": 4
+    },
+    {
+      "difficulty": 0,
+      "slot": 0,
+      "hp": 3,
+      "mode": "charge",
+      "cycles": 439,
+      "colour": 204,
+      "baselineCycles": 435,
+      "delta": 4
+    },
+    {
+      "difficulty": 0,
+      "slot": 0,
+      "hp": 3,
+      "mode": "flash",
+      "cycles": 506,
+      "colour": 204,
+      "baselineCycles": 502,
+      "delta": 4
+    },
+    {
+      "difficulty": 0,
+      "slot": 0,
+      "hp": 4,
+      "mode": "cruise",
+      "cycles": 542,
+      "colour": 200,
+      "baselineCycles": 538,
+      "delta": 4
+    },
+    {
+      "difficulty": 0,
+      "slot": 0,
+      "hp": 4,
+      "mode": "charge",
+      "cycles": 439,
+      "colour": 204,
+      "baselineCycles": 435,
+      "delta": 4
+    },
+    {
+      "difficulty": 0,
+      "slot": 0,
+      "hp": 4,
+      "mode": "flash",
+      "cycles": 506,
+      "colour": 204,
+      "baselineCycles": 502,
+      "delta": 4
+    },
+    {
+      "difficulty": 0,
+      "slot": 0,
+      "hp": 5,
+      "mode": "cruise",
+      "cycles": 542,
+      "colour": 200,
+      "baselineCycles": 538,
+      "delta": 4
+    },
+    {
+      "difficulty": 0,
+      "slot": 0,
+      "hp": 5,
+      "mode": "charge",
+      "cycles": 439,
+      "colour": 204,
+      "baselineCycles": 435,
+      "delta": 4
+    },
+    {
+      "difficulty": 0,
+      "slot": 0,
+      "hp": 5,
+      "mode": "flash",
+      "cycles": 506,
+      "colour": 204,
+      "baselineCycles": 502,
+      "delta": 4
+    },
+    {
+      "difficulty": 0,
+      "slot": 1,
+      "hp": 1,
+      "mode": "cruise",
+      "cycles": 537,
+      "colour": 196,
+      "baselineCycles": 534,
+      "delta": 3
+    },
+    {
+      "difficulty": 0,
+      "slot": 1,
+      "hp": 1,
+      "mode": "charge",
+      "cycles": 439,
+      "colour": 200,
+      "baselineCycles": 435,
+      "delta": 4
+    },
+    {
+      "difficulty": 0,
+      "slot": 1,
+      "hp": 1,
+      "mode": "flash",
+      "cycles": 506,
+      "colour": 200,
+      "baselineCycles": 502,
+      "delta": 4
+    },
+    {
+      "difficulty": 0,
+      "slot": 1,
+      "hp": 2,
+      "mode": "cruise",
+      "cycles": 537,
+      "colour": 198,
+      "baselineCycles": 534,
+      "delta": 3
+    },
+    {
+      "difficulty": 0,
+      "slot": 1,
+      "hp": 2,
+      "mode": "charge",
+      "cycles": 439,
+      "colour": 202,
+      "baselineCycles": 435,
+      "delta": 4
+    },
+    {
+      "difficulty": 0,
+      "slot": 1,
+      "hp": 2,
+      "mode": "flash",
+      "cycles": 506,
+      "colour": 202,
+      "baselineCycles": 502,
+      "delta": 4
+    },
+    {
+      "difficulty": 0,
+      "slot": 1,
+      "hp": 3,
+      "mode": "cruise",
+      "cycles": 537,
+      "colour": 200,
+      "baselineCycles": 534,
+      "delta": 3
+    },
+    {
+      "difficulty": 0,
+      "slot": 1,
+      "hp": 3,
+      "mode": "charge",
+      "cycles": 439,
+      "colour": 204,
+      "baselineCycles": 435,
+      "delta": 4
+    },
+    {
+      "difficulty": 0,
+      "slot": 1,
+      "hp": 3,
+      "mode": "flash",
+      "cycles": 506,
+      "colour": 204,
+      "baselineCycles": 502,
+      "delta": 4
+    },
+    {
+      "difficulty": 0,
+      "slot": 1,
+      "hp": 4,
+      "mode": "cruise",
+      "cycles": 537,
+      "colour": 200,
+      "baselineCycles": 534,
+      "delta": 3
+    },
+    {
+      "difficulty": 0,
+      "slot": 1,
+      "hp": 4,
+      "mode": "charge",
+      "cycles": 439,
+      "colour": 204,
+      "baselineCycles": 435,
+      "delta": 4
+    },
+    {
+      "difficulty": 0,
+      "slot": 1,
+      "hp": 4,
+      "mode": "flash",
+      "cycles": 506,
+      "colour": 204,
+      "baselineCycles": 502,
+      "delta": 4
+    },
+    {
+      "difficulty": 0,
+      "slot": 1,
+      "hp": 5,
+      "mode": "cruise",
+      "cycles": 537,
+      "colour": 200,
+      "baselineCycles": 534,
+      "delta": 3
+    },
+    {
+      "difficulty": 0,
+      "slot": 1,
+      "hp": 5,
+      "mode": "charge",
+      "cycles": 439,
+      "colour": 204,
+      "baselineCycles": 435,
+      "delta": 4
+    },
+    {
+      "difficulty": 0,
+      "slot": 1,
+      "hp": 5,
+      "mode": "flash",
+      "cycles": 506,
+      "colour": 204,
+      "baselineCycles": 502,
+      "delta": 4
+    },
+    {
+      "difficulty": 1,
+      "slot": 0,
+      "hp": 1,
+      "mode": "cruise",
+      "cycles": 542,
+      "colour": 196,
+      "baselineCycles": 538,
+      "delta": 4
+    },
+    {
+      "difficulty": 1,
+      "slot": 0,
+      "hp": 1,
+      "mode": "charge",
+      "cycles": 439,
+      "colour": 200,
+      "baselineCycles": 435,
+      "delta": 4
+    },
+    {
+      "difficulty": 1,
+      "slot": 0,
+      "hp": 1,
+      "mode": "flash",
+      "cycles": 506,
+      "colour": 200,
+      "baselineCycles": 502,
+      "delta": 4
+    },
+    {
+      "difficulty": 1,
+      "slot": 0,
+      "hp": 2,
+      "mode": "cruise",
+      "cycles": 542,
+      "colour": 198,
+      "baselineCycles": 538,
+      "delta": 4
+    },
+    {
+      "difficulty": 1,
+      "slot": 0,
+      "hp": 2,
+      "mode": "charge",
+      "cycles": 439,
+      "colour": 202,
+      "baselineCycles": 435,
+      "delta": 4
+    },
+    {
+      "difficulty": 1,
+      "slot": 0,
+      "hp": 2,
+      "mode": "flash",
+      "cycles": 506,
+      "colour": 202,
+      "baselineCycles": 502,
+      "delta": 4
+    },
+    {
+      "difficulty": 1,
+      "slot": 0,
+      "hp": 3,
+      "mode": "cruise",
+      "cycles": 542,
+      "colour": 200,
+      "baselineCycles": 538,
+      "delta": 4
+    },
+    {
+      "difficulty": 1,
+      "slot": 0,
+      "hp": 3,
+      "mode": "charge",
+      "cycles": 439,
+      "colour": 204,
+      "baselineCycles": 435,
+      "delta": 4
+    },
+    {
+      "difficulty": 1,
+      "slot": 0,
+      "hp": 3,
+      "mode": "flash",
+      "cycles": 506,
+      "colour": 204,
+      "baselineCycles": 502,
+      "delta": 4
+    },
+    {
+      "difficulty": 1,
+      "slot": 0,
+      "hp": 4,
+      "mode": "cruise",
+      "cycles": 542,
+      "colour": 200,
+      "baselineCycles": 538,
+      "delta": 4
+    },
+    {
+      "difficulty": 1,
+      "slot": 0,
+      "hp": 4,
+      "mode": "charge",
+      "cycles": 439,
+      "colour": 204,
+      "baselineCycles": 435,
+      "delta": 4
+    },
+    {
+      "difficulty": 1,
+      "slot": 0,
+      "hp": 4,
+      "mode": "flash",
+      "cycles": 506,
+      "colour": 204,
+      "baselineCycles": 502,
+      "delta": 4
+    },
+    {
+      "difficulty": 1,
+      "slot": 0,
+      "hp": 5,
+      "mode": "cruise",
+      "cycles": 542,
+      "colour": 200,
+      "baselineCycles": 538,
+      "delta": 4
+    },
+    {
+      "difficulty": 1,
+      "slot": 0,
+      "hp": 5,
+      "mode": "charge",
+      "cycles": 439,
+      "colour": 204,
+      "baselineCycles": 435,
+      "delta": 4
+    },
+    {
+      "difficulty": 1,
+      "slot": 0,
+      "hp": 5,
+      "mode": "flash",
+      "cycles": 506,
+      "colour": 204,
+      "baselineCycles": 502,
+      "delta": 4
+    },
+    {
+      "difficulty": 1,
+      "slot": 1,
+      "hp": 1,
+      "mode": "cruise",
+      "cycles": 537,
+      "colour": 196,
+      "baselineCycles": 534,
+      "delta": 3
+    },
+    {
+      "difficulty": 1,
+      "slot": 1,
+      "hp": 1,
+      "mode": "charge",
+      "cycles": 439,
+      "colour": 200,
+      "baselineCycles": 435,
+      "delta": 4
+    },
+    {
+      "difficulty": 1,
+      "slot": 1,
+      "hp": 1,
+      "mode": "flash",
+      "cycles": 506,
+      "colour": 200,
+      "baselineCycles": 502,
+      "delta": 4
+    },
+    {
+      "difficulty": 1,
+      "slot": 1,
+      "hp": 2,
+      "mode": "cruise",
+      "cycles": 537,
+      "colour": 198,
+      "baselineCycles": 534,
+      "delta": 3
+    },
+    {
+      "difficulty": 1,
+      "slot": 1,
+      "hp": 2,
+      "mode": "charge",
+      "cycles": 439,
+      "colour": 202,
+      "baselineCycles": 435,
+      "delta": 4
+    },
+    {
+      "difficulty": 1,
+      "slot": 1,
+      "hp": 2,
+      "mode": "flash",
+      "cycles": 506,
+      "colour": 202,
+      "baselineCycles": 502,
+      "delta": 4
+    },
+    {
+      "difficulty": 1,
+      "slot": 1,
+      "hp": 3,
+      "mode": "cruise",
+      "cycles": 537,
+      "colour": 200,
+      "baselineCycles": 534,
+      "delta": 3
+    },
+    {
+      "difficulty": 1,
+      "slot": 1,
+      "hp": 3,
+      "mode": "charge",
+      "cycles": 439,
+      "colour": 204,
+      "baselineCycles": 435,
+      "delta": 4
+    },
+    {
+      "difficulty": 1,
+      "slot": 1,
+      "hp": 3,
+      "mode": "flash",
+      "cycles": 506,
+      "colour": 204,
+      "baselineCycles": 502,
+      "delta": 4
+    },
+    {
+      "difficulty": 1,
+      "slot": 1,
+      "hp": 4,
+      "mode": "cruise",
+      "cycles": 537,
+      "colour": 200,
+      "baselineCycles": 534,
+      "delta": 3
+    },
+    {
+      "difficulty": 1,
+      "slot": 1,
+      "hp": 4,
+      "mode": "charge",
+      "cycles": 439,
+      "colour": 204,
+      "baselineCycles": 435,
+      "delta": 4
+    },
+    {
+      "difficulty": 1,
+      "slot": 1,
+      "hp": 4,
+      "mode": "flash",
+      "cycles": 506,
+      "colour": 204,
+      "baselineCycles": 502,
+      "delta": 4
+    },
+    {
+      "difficulty": 1,
+      "slot": 1,
+      "hp": 5,
+      "mode": "cruise",
+      "cycles": 537,
+      "colour": 200,
+      "baselineCycles": 534,
+      "delta": 3
+    },
+    {
+      "difficulty": 1,
+      "slot": 1,
+      "hp": 5,
+      "mode": "charge",
+      "cycles": 439,
+      "colour": 204,
+      "baselineCycles": 435,
+      "delta": 4
+    },
+    {
+      "difficulty": 1,
+      "slot": 1,
+      "hp": 5,
+      "mode": "flash",
+      "cycles": 506,
+      "colour": 204,
+      "baselineCycles": 502,
+      "delta": 4
+    },
+    {
+      "difficulty": 2,
+      "slot": 0,
+      "hp": 1,
+      "mode": "cruise",
+      "cycles": 542,
+      "colour": 196,
+      "baselineCycles": 538,
+      "delta": 4
+    },
+    {
+      "difficulty": 2,
+      "slot": 0,
+      "hp": 1,
+      "mode": "charge",
+      "cycles": 439,
+      "colour": 200,
+      "baselineCycles": 435,
+      "delta": 4
+    },
+    {
+      "difficulty": 2,
+      "slot": 0,
+      "hp": 1,
+      "mode": "flash",
+      "cycles": 506,
+      "colour": 200,
+      "baselineCycles": 502,
+      "delta": 4
+    },
+    {
+      "difficulty": 2,
+      "slot": 0,
+      "hp": 2,
+      "mode": "cruise",
+      "cycles": 542,
+      "colour": 198,
+      "baselineCycles": 538,
+      "delta": 4
+    },
+    {
+      "difficulty": 2,
+      "slot": 0,
+      "hp": 2,
+      "mode": "charge",
+      "cycles": 439,
+      "colour": 202,
+      "baselineCycles": 435,
+      "delta": 4
+    },
+    {
+      "difficulty": 2,
+      "slot": 0,
+      "hp": 2,
+      "mode": "flash",
+      "cycles": 506,
+      "colour": 202,
+      "baselineCycles": 502,
+      "delta": 4
+    },
+    {
+      "difficulty": 2,
+      "slot": 0,
+      "hp": 3,
+      "mode": "cruise",
+      "cycles": 542,
+      "colour": 200,
+      "baselineCycles": 538,
+      "delta": 4
+    },
+    {
+      "difficulty": 2,
+      "slot": 0,
+      "hp": 3,
+      "mode": "charge",
+      "cycles": 439,
+      "colour": 204,
+      "baselineCycles": 435,
+      "delta": 4
+    },
+    {
+      "difficulty": 2,
+      "slot": 0,
+      "hp": 3,
+      "mode": "flash",
+      "cycles": 506,
+      "colour": 204,
+      "baselineCycles": 502,
+      "delta": 4
+    },
+    {
+      "difficulty": 2,
+      "slot": 0,
+      "hp": 4,
+      "mode": "cruise",
+      "cycles": 542,
+      "colour": 200,
+      "baselineCycles": 538,
+      "delta": 4
+    },
+    {
+      "difficulty": 2,
+      "slot": 0,
+      "hp": 4,
+      "mode": "charge",
+      "cycles": 439,
+      "colour": 204,
+      "baselineCycles": 435,
+      "delta": 4
+    },
+    {
+      "difficulty": 2,
+      "slot": 0,
+      "hp": 4,
+      "mode": "flash",
+      "cycles": 506,
+      "colour": 204,
+      "baselineCycles": 502,
+      "delta": 4
+    },
+    {
+      "difficulty": 2,
+      "slot": 0,
+      "hp": 5,
+      "mode": "cruise",
+      "cycles": 542,
+      "colour": 200,
+      "baselineCycles": 538,
+      "delta": 4
+    },
+    {
+      "difficulty": 2,
+      "slot": 0,
+      "hp": 5,
+      "mode": "charge",
+      "cycles": 439,
+      "colour": 204,
+      "baselineCycles": 435,
+      "delta": 4
+    },
+    {
+      "difficulty": 2,
+      "slot": 0,
+      "hp": 5,
+      "mode": "flash",
+      "cycles": 506,
+      "colour": 204,
+      "baselineCycles": 502,
+      "delta": 4
+    },
+    {
+      "difficulty": 2,
+      "slot": 1,
+      "hp": 1,
+      "mode": "cruise",
+      "cycles": 537,
+      "colour": 196,
+      "baselineCycles": 534,
+      "delta": 3
+    },
+    {
+      "difficulty": 2,
+      "slot": 1,
+      "hp": 1,
+      "mode": "charge",
+      "cycles": 439,
+      "colour": 200,
+      "baselineCycles": 435,
+      "delta": 4
+    },
+    {
+      "difficulty": 2,
+      "slot": 1,
+      "hp": 1,
+      "mode": "flash",
+      "cycles": 506,
+      "colour": 200,
+      "baselineCycles": 502,
+      "delta": 4
+    },
+    {
+      "difficulty": 2,
+      "slot": 1,
+      "hp": 2,
+      "mode": "cruise",
+      "cycles": 537,
+      "colour": 198,
+      "baselineCycles": 534,
+      "delta": 3
+    },
+    {
+      "difficulty": 2,
+      "slot": 1,
+      "hp": 2,
+      "mode": "charge",
+      "cycles": 439,
+      "colour": 202,
+      "baselineCycles": 435,
+      "delta": 4
+    },
+    {
+      "difficulty": 2,
+      "slot": 1,
+      "hp": 2,
+      "mode": "flash",
+      "cycles": 506,
+      "colour": 202,
+      "baselineCycles": 502,
+      "delta": 4
+    },
+    {
+      "difficulty": 2,
+      "slot": 1,
+      "hp": 3,
+      "mode": "cruise",
+      "cycles": 537,
+      "colour": 200,
+      "baselineCycles": 534,
+      "delta": 3
+    },
+    {
+      "difficulty": 2,
+      "slot": 1,
+      "hp": 3,
+      "mode": "charge",
+      "cycles": 439,
+      "colour": 204,
+      "baselineCycles": 435,
+      "delta": 4
+    },
+    {
+      "difficulty": 2,
+      "slot": 1,
+      "hp": 3,
+      "mode": "flash",
+      "cycles": 506,
+      "colour": 204,
+      "baselineCycles": 502,
+      "delta": 4
+    },
+    {
+      "difficulty": 2,
+      "slot": 1,
+      "hp": 4,
+      "mode": "cruise",
+      "cycles": 537,
+      "colour": 200,
+      "baselineCycles": 534,
+      "delta": 3
+    },
+    {
+      "difficulty": 2,
+      "slot": 1,
+      "hp": 4,
+      "mode": "charge",
+      "cycles": 439,
+      "colour": 204,
+      "baselineCycles": 435,
+      "delta": 4
+    },
+    {
+      "difficulty": 2,
+      "slot": 1,
+      "hp": 4,
+      "mode": "flash",
+      "cycles": 506,
+      "colour": 204,
+      "baselineCycles": 502,
+      "delta": 4
+    },
+    {
+      "difficulty": 2,
+      "slot": 1,
+      "hp": 5,
+      "mode": "cruise",
+      "cycles": 537,
+      "colour": 200,
+      "baselineCycles": 534,
+      "delta": 3
+    },
+    {
+      "difficulty": 2,
+      "slot": 1,
+      "hp": 5,
+      "mode": "charge",
+      "cycles": 439,
+      "colour": 204,
+      "baselineCycles": 435,
+      "delta": 4
+    },
+    {
+      "difficulty": 2,
+      "slot": 1,
+      "hp": 5,
+      "mode": "flash",
+      "cycles": 506,
+      "colour": 204,
+      "baselineCycles": 502,
+      "delta": 4
+    }
+  ],
+  "tests": {
+    "pass": 31,
+    "fail": 0
+  },
+  "atr": "build/play/m3h-session2/checkpoint-3/campaign.atr",
+  "sha256": "ce0698ccdb9513bbd585a3bb669f0e45a5bbb5459fecbe65c6e089b6e24d21a1"
+}

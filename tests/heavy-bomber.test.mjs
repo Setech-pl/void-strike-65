@@ -65,7 +65,8 @@ const BOMBER_HUE = 0xc0;
 // src/main.s GAMEPLAY_COLPF1 and its darker second-half level steps: the
 // values the Bomber must not land on.
 const ALLIED_STEEL = [0x88, 0x8a, 0x86, 0x84];
-const HULL_AT = (hp) => BOMBER_HUE | (hp << 1);
+// Owner-approved M3-H session 2 ramp, 2026-10-30.
+const HULL_AT = (hp) => BOMBER_HUE | [0,4,6,8,8,8][hp];
 const CHARGE_AT = (hp) => HULL_AT(hp) + 4;
 const FLASH_AT = (hp) => HULL_AT(hp) + 4;
 const HULL = HULL_AT(4);
@@ -446,11 +447,11 @@ test("charge telegraph and hit flash: per-member COLPM, Raider formations untouc
     ramp.push([hp, base, charged[COLPM1], flashed[COLPM1]]);
   }
   assert.deepEqual(ramp, [
-    [5, 0xca, 0xce, 0xce],
+    [5, 0xc8, 0xcc, 0xcc],
     [4, 0xc8, 0xcc, 0xcc],
-    [3, 0xc6, 0xca, 0xca],
-    [2, 0xc4, 0xc8, 0xc8],
-    [1, 0xc2, 0xc6, 0xc6],
+    [3, 0xc8, 0xcc, 0xcc],
+    [2, 0xc6, 0xca, 0xca],
+    [1, 0xc4, 0xc8, 0xc8],
   ]);
   assert.ok(ramp.every(([, ...colours]) => colours.every((c) => c >= 0xc0 && c <= 0xcf)),
     "no combination overflows hue C");
@@ -466,7 +467,7 @@ test("charge telegraph and hit flash: per-member COLPM, Raider formations untouc
     colours.every((c) => (c & 0xf0) !== 0x80 && (c & 0xf0) !== 0x40)),
     "the Bomber hull leaves both the allied steel hue and the hostile red hue");
   // A hit (HP 4 -> 3) flashes the member for 6 ticks, over the charge colour,
-  // and the hull stays one luma step darker afterwards.
+  // Healthy HP3..5 share a base; holes distinguish the low-HP thresholds.
   const hit = attackRun(1, (image, frame) => { if (frame === 5) image[L("ENEMY_HP")] = 3; }).frames;
   assert.deepEqual(hit.slice(4, 13).map(({ colour }) => colour),
     [CHARGE_AT(4), FLASH_AT(3), FLASH_AT(3), FLASH_AT(3), FLASH_AT(3), FLASH_AT(3),

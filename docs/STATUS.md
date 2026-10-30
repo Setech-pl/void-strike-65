@@ -1,6 +1,6 @@
 # VOID STRIKE 65 — CURRENT STATUS
 
-Last update: 2026-10-30 (M3-H session 2 checkpoints 1–2; owner smoke pending)
+Last update: 2026-10-30 (M3-H session 2 checkpoint 2 owner smoke PASS; 3–6 authorized)
 
 What is true now. Rules: [reguly-projektu.txt](reguly-projektu.txt). Roadmap:
 [plan-realizacji.md](plan-realizacji.md). Source-of-truth order:
@@ -20,8 +20,10 @@ the values below.
 
 ## Checkpoint
 
-### M3-H session 2 — checkpoints 1–2, OWNER-SMOKE CANDIDATE
+### M3-H session 2 — checkpoints 1–2 OWNER-ACCEPTED; 3–6 in progress
 
+Owner smoke after checkpoint 2 **PASS**, 2026-10-30, at `f33fcdc`. Checkpoints 1–2
+are OWNER-ACCEPTED. Owner authorized 3–6 with final smoke after 6.
 Owner accepted the plan and amendments on 2026-10-30. Checkpoint 1 `5041ccb`
 installs/reset the body cache; checkpoint 2 adds the payload-driven plated
 armoured look and C colour selection. Assault/Bomber source art and existing
@@ -44,11 +46,11 @@ Spine B3 and is not merged/rebased here. Owner integration is needed before
 fast-forward merge. New armoured rendering has linked NMOS variant coverage;
 extra bounded native level 2 replays did not reach an armoured admission.
 
-**NEXT TASK: owner smoke after checkpoint 2; STOP before 3.** H12/H13 remain
+**NEXT TASK: implement checkpoints 3–6, then pause for final owner smoke.** H12/H13 remain
 assigned to checked content home with a resident validity/phase guard; H14
 choice B stays nonrotate-only, ≤3 frames. Bomber ramp 4/6/8/8/8 hue C is authorized
-for the later final smoke. None of checkpoints 3–6 is implemented yet. No owner
-smoke acceptance, merge, push or release is claimed.
+for the later final smoke. Checkpoints 3–6 remain candidates until the final owner smoke. No merge, push
+or release is claimed.
 
 ### Loop-phase resync — partial OWNER-SMOKE CANDIDATE
 

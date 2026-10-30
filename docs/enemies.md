@@ -72,8 +72,8 @@ health. Both profiles share the Raider's weapons, score and renderer.
 A heavy bomber with a catamaran silhouette (two hulls, one bridge), so it never
 reads as a big Raider. It is green, a colour nothing else in the battle wears.
 
-- **Hits to kill:** 4. The hull gets darker with every hit, so its colour
-  tells you how much is left, and it flashes on a hit it survives.
+- **Hits to kill:** 4 / 4 / 5. At 2 and 1 HP the green hull gets darker,
+  with enough brightness left to read at 1 HP. It flashes on a surviving hit.
 - **Points:** 50.
 - **Weapon:** an attack run. The Bomber stops, its hull brightens for 20
   frames while it aims, then it fires two shells 8 frames apart from the same

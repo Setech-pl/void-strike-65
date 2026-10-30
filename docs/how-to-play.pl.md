@@ -152,8 +152,7 @@ stałej wysokości, by strzelać, i robią unik w bok po trafieniu, które prze�
 Opancerzone Raidery mają szersze, osłonięte płytami skrzydła i jaśniejszy kolor
 wrogiego kadłuba. Na poziomie 2 występują obok szturmowych Raiderów o dawnej sylwetce.
 
-Kadłub Bombera ciemnieje w miarę obrywania, więc po kolorze poznasz, ile mu
-zostało. Rozjaśnia się, gdy Bomber hamuje, by celować, i ciemnieje po powrocie
+Kadłub Bombera ciemnieje przy 2 i 1 HP, ale przy 1 HP pozostaje czytelny. Rozjaśnia się, gdy Bomber hamuje, by celować, i ciemnieje po powrocie
 do lotu. Po przeżytym trafieniu Bomber przez sześć klatek robi unik w bok,
 bez zmiany wysokości. Trafienie podczas zaplanowanego postoju nie skraca
 tego postoju. Interceptor ginie od trzeciego trafienia: gdy twój strzał go trafi, a

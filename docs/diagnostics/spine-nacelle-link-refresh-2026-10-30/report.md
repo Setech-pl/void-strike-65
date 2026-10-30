@@ -1,4 +1,136 @@
-# Spine nacelle link B3 — smoke refresh, 2026-10-30
+# Spine nacelle link B3 — merged-main refresh, 2026-10-30
+
+**OWNER-SMOKE CANDIDATE; owner smoke pending.** Continued from `2c06453` on
+`codex/spine-nacelle-link`. Merged main `7fe9040` (phase-resync) with merge
+commit `4d3c691`, without rebase. B3 art and production implementation remain
+unchanged from the checkpoint. This continuation adds documentation and evidence.
+
+The sole merge conflict was `docs/recorded-gate-failures.json`: retained main's
+phase-resync debt and this branch's Spine unit debt. No code, asset, script or
+test conflict occurred. Main's hand-written documentation stays unchanged and
+in order; the only generated-map differences are the four approved Spine rows.
+[Preservation audit](merged-main/preservation.json).
+
+## Current validation
+
+Campaign, direct-Spine and capital-960 normal builds pass computed gates.
+Stale release evidence is reported as pending; strict release remains blocked
+by prior evidence/debt. No full native matrix, home matrix, standalone boss
+stress, release trace or strict release was run. The explicitly requested full
+unit suites include their existing stress cases.
+
+B3 focused checks **6/6 PASS**; generated memory-map checks **3/3 PASS**.
+[Focused checks](merged-main/focused.log), [map checks](merged-main/map-tests.log).
+The B3 command and its coverage remain documented in the historical audit below.
+
+One full `npm test` per source (1,623 tests each): candidate **1,486 PASS /
+137 FAIL**, main raw **1,482 PASS / 141 FAIL**. Matched by name, first failing
+assertion and message: raw **A137/B0/C4**, audited **A137/B0/C0**. The four raw
+C cases were transient main generated-include fixtures (`EMIT_ENEMY_SCORES`
+missing); an isolated normal rebuild plus focused rerun passes **4/4**.
+Each correction and its test name is recorded in
+[test comparison](merged-main/test-comparison.json); [rerun](merged-main/main-fixture-rerun.log).
+No second full suite, no stale expectation/test changes. The comparison helper
+uses the real path of the macOS `/tmp` checkout when matching stack locations.
+
+All 137 shared failures match the branch's already recorded unit debt exactly;
+the ledger adds the current baseline/evidence reference, plus the shared Spine
+runtime clause. Reconciliation ran on both saved full logs and the unchanged
+historical canonical trace. The legacy reconciler does not consume these task
+unit-debt groups: candidate 136 NEW, main raw 140 NEW; zero MOVED assertions.
+The historical trace has zero current clause failures and 32 disappeared legacy
+records. Both legacy reconciliations therefore remain nonzero; neither is a
+claim of release readiness or new runtime evidence.
+[Candidate reconciliation](merged-main/reconcile-candidate.log),
+[main reconciliation](merged-main/reconcile-main.log). Complete suite logs are
+saved as `merged-main/npm-test-{candidate,main}.log.gz`.
+
+Quick native PAL captures, zero guest instrumentation bytes:
+
+| Route | Ordinary frames | Worst wall cycles | Hard-gate margin |
+| --- | ---: | ---: | ---: |
+| capital Spread NORMAL `campaign-1-spread-capital` | 1,800 | 30,465 | 2,103 |
+| capital-960 HARD/brake `l2-960-2-brake` | 4,741 | 31,319 | 1,249 |
+| Siege Spine NORMAL `region-3-diag-1` | 2,947 | 30,369 | 2,199 |
+
+**Worst frame: 31,319 cycles**, capital-960 frame 3603; **181 below the
+31,500 target**, 1,249 below the 32,568 hard gate. All three timing checks pass,
+with zero misses, extra VBI boundaries and DLI ordering errors. Multi-frame
+loading rows are excluded from ordinary frame cost. Entry: 325 host frames on
+capital-960 and 344 for direct Spine, both <=350.
+[Capture summary and artifact bindings](merged-main/native-summary.json).
+Compressed raw CSVs and full native logs are in `merged-main/`.
+
+Spine's bot does not reach the chain within its 12,000-host-frame route limit.
+A fresh same-route main capture reproduces the identical first failing clause:
+main peak **30,372**, candidate **30,369** (−3 cycles); main entry 340 frames.
+This is shared bot-completion debt, recorded in `docs/recorded-gate-failures.json`.
+Timing PASS does not certify fight completion or owner smoke.
+[Candidate clause](merged-main/native-spine.log), [main clause](merged-main/native-spine-main.log).
+
+Self-resolved harness case: the first capital-960 launch omitted
+`DFTRACE_L2_LIFETIME`, so the observer never shortened the capture to its boss
+endpoint (10,000 records versus 4,742 expected). Supplied the lifetime-output
+setting and reran: exact endpoint and timing PASS, no validator/game changes.
+[Initial failure](merged-main/native-960-setup-failure.log), [successful rerun](merged-main/native-960.log).
+
+Spread and capital-960 peaks are +22 cycles against the previous refresh,
+consistent with phase-resync's already merged common path. Only Spine was
+newly traced on main in this continuation; no fresh main claim for the other
+two routes. Production code is unchanged by this continuation.
+
+## Current bytes and residency
+
+Fresh map/manifest comparison against `7fe9040`: only `BOSS_F_CODE` changes
+among linked segment starts/sizes: **213 ->243 B (+30)**. F occupied span
+323 ->353 B, **159 B free**. R3 meaningful charset **864 ->976 B (+112)**,
+122/128 codes, **48 B free**; disk charset 7 ->8 sectors (+128 B transport).
+Resident allocation delta **0**, reserved-range delta **0**. Initial packed
+content **12,865 B on both sources**; payload 27,008 B, 211 occupied transport
+sectors on both; ATR 133,136 B. No new runtime path or art/helper bytes versus
+checkpoint B3. The earlier helper estimates and composition results below
+remain historical, not remeasured wall-frame claims.
+[Fresh bytes](merged-main/bytes.json).
+
+## Current play ATRs and launch commands
+
+Both builds include merged phase-resync. Keep the disk mounted for menu returns.
+Start from the menu; direct Spine enters the region-3 boss sector.
+
+| ATR under `build/play/spine-nacelle-link/` | SHA-256 |
+| --- | --- |
+| `campaign.atr` | `bf11d321eef2d35f1a87d8e83305104fe40beec8fd1fe87e3368a523f1b1d56c` |
+| `spine-direct.atr` | `9f817d60dbe65e6cdb25f7a32f5217a1ac4720446b4e93f233bb94737fa6b451` |
+
+```sh
+cd /Users/marcinkrzetowski/Projects/dark-fighter-spine-b3
+atari800 -xl -pal -config "$PWD/build/atari800-pinned.cfg" -nopatch -nobasic "$PWD/build/play/spine-nacelle-link/spine-direct.atr"
+atari800 -xl -pal -config "$PWD/build/atari800-pinned.cfg" -nopatch -nobasic "$PWD/build/play/spine-nacelle-link/campaign.atr"
+```
+
+Rebuild campaign with `npm run build`, direct with
+`npm run build -- --level=1:sector=6 --boss-region=3`; copy their ATRs from
+`dist/` and `build/boss-region-3-level-1-s6/` respectively to the play paths.
+[Artifact metadata](merged-main/artifacts.json). `dist/` is restored clean
+for this per-task handoff.
+
+## Owner smoke — pending
+
+- Destroy either generator: all engine nozzles stay attached.
+- The top beam remains permanent.
+- Generator remnants occupy no more than one third of their original height.
+- Verify B3's outlined plate beam, 2-cell rail, hull collar and torn lower-third wreck.
+- Destroy both generators in either order, then plates/weapons: no stray cells.
+- Follow boss motion: links scroll with the hull; existing field-half and
+  shot/laser/lance behavior remains unchanged.
+
+Check Atari800 PAL and real 65XE PAL through SIO2SD. Only the owner can record
+acceptance. **NEXT TASK: owner smoke, then owner's merge decision.** No merge
+into main, push, tag, release or next roadmap work.
+
+---
+
+## Historical checkpoint `2c06453` — superseded by continuation above
 
 Branch `codex/spine-nacelle-link`; original `e6ec8cd`, rebased source
 `e4aaeec`, onto main `a066098`. B3 art is byte-for-byte unchanged from the

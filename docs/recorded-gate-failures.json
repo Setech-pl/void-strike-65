@@ -1224,6 +1224,14 @@
           "first_failing_message": "the volley is the full left/centre/right fan"
         }
       ]
+    },
+    {
+      "task": "spine-nacelle-link phase-resync main refresh, 2026-10-30",
+      "baseline_head": "7fe9040",
+      "measurement": "docs/diagnostics/spine-nacelle-link-refresh-2026-10-30/merged-main/test-comparison.json",
+      "class": "pre-existing-unclassified",
+      "failure_count": 137,
+      "unchanged_failures_recorded_in": "spine-nacelle-link main refresh, 2026-10-30"
     }
   ],
   "phase_resync_unit_debt_2026_10_30": {
@@ -2207,5 +2215,14 @@
         "first_failing_assertion": "tests/weapon-pickup-spread-shot.test.mjs:286"
       }
     ]
+  },
+  "spine_refresh_runtime_debt_2026_10_30": {
+    "baseline_head": "7fe9040",
+    "measurement": "docs/diagnostics/spine-nacelle-link-refresh-2026-10-30/merged-main/native-spine-main.log",
+    "route": "region-3-diag-1",
+    "first_failing_assertion": "region-3-diag-1: the fight never reached the chain in 12000 frames",
+    "classification": "shared bot-completion clause; native frame gates pass on main and candidate",
+    "main_peak_cycles": 30372,
+    "candidate_peak_cycles": 30369
   }
 }

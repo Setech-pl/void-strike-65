@@ -163,33 +163,32 @@ capital-content implementation, release, push or merge.
 
 ### Siege Spine nacelle link B3 — OWNER-SMOKE CANDIDATE
 
-Revision B3 supersedes B (§BX): five-row outlined plate beam with bolts and
-rust underside, two-pixel mounting rail, hull collar, and torn lower-third
-pod wreck. Both destroyed generators use the exact supplied pattern, mirrored
-on the left. No pixel deviations or new colours; owner smoke is pending.
+Continuation of `2c06453` on `codex/spine-nacelle-link`; main `7fe9040`
+(phase-resync) merged as `4d3c691`, without rebase. B3 art/production code
+unchanged. Owner approved regenerating the four Spine generated memory-map
+rows; main's hand-written text is preserved. Sole docs-ledger merge conflict
+retains both debt sets. No code/asset/script/test conflict occurred.
 
-Data-only replacement from `73f7512`. The compiler and runtime helper are
-unchanged; the block's helper/tables/state bytes are identical to B. No new
-per-frame work, hitbox, HP, score, lance, feedback or field-policy change.
-Each generator still powers its own field half; links scroll in the same band.
+Normal campaign/direct/960 builds pass computed gates; B3 focused 6/6 and
+memory-map 3/3 PASS. Full-suite audited diff **A137/B0/C0**; candidate 1,486/1,623 PASS, 137 shared
+recorded failures. Four transient main generated fixtures pass isolated rerun.
+Three quick native frame checks pass: Spread NORMAL 30,465, capital-960
+31,319, Siege Spine 30,369; worst 31,319, 1,249 below the hard gate. Zero
+misses/VBI/DLI anomalies. Entries: capital-960 325, Spine 344 <=350 host frames.
+Spine bot-completion clause is shared with fresh main (main peak 30,372):
+neither reaches the chain in its host-frame limit. It is recorded debt,
+not evidence of owner acceptance or completed bot fight.
 
-MEASURED: right 7 glyphs/56 B, left 7 mirror-only glyphs/56 B. Charset
-**952 -> 976/1024 B, 48 free**, 122 codes (+3), still eight sectors. Layouts
-remain 9 B per side, look tail 98/110; overlay F **353/512 B, 159 free**,
-unchanged. No reservation or resident allocation changes; protected ranges
-and R1/R2/R4 remain untouched.
+Against main: resident/range allocation delta 0; R3 F code +30 B (159 B
+free); meaningful charset +112 B, 122 codes (48 B free), disk +1 charset
+sector. Initial packed content 12,865 B, initial transport 211 sectors,
+ATR 133,136 B on both sources. Stale release evidence remains pending.
 
-The existing R3 art case is RED on hash-verified B -> GREEN on B3 (1/1).
-Normal campaign/direct builds pass computed gates with the expected stale
-runtime-evidence warning. No stress/entry/native trace rerun: no runtime code
-or sector-count change. B's earlier timing figures remain historical evidence,
-not newly measured B3 results. Known debt below is unchanged.
-
-Campaign ATR `build/play/spine-nacelle-link-b3/campaign-f4da8f080464.atr`;
-direct Spine `build/play/spine-nacelle-link-b3/spine-direct-69b17c84069a.atr`.
-[Plan and B3 addendum](plans/spine-nacelle-link.md#revision-b3--plan-2026-10-26),
-[full hashes, test logs and three harness captures](diagnostics/spine-nacelle-link-b3/result.json).
-**NEXT TASK: owner smoke, then owner merge decision.** Not release-certified.
+Rebuilt play ATRs: `build/play/spine-nacelle-link/campaign.atr` and
+`spine-direct.atr`. [Current audit, full hashes, launch commands and owner
+smoke checklist](diagnostics/spine-nacelle-link-refresh-2026-10-30/report.md).
+**NEXT TASK: owner smoke, then owner's merge decision.** No release,
+merge into main, push, tag or next roadmap work. Not OWNER-ACCEPTED.
 
 
 ### L2 audit fixes — OWNER-ACCEPTED

@@ -1,0 +1,63 @@
+{
+  "emulator": "Atari800 7.1.2 PAL/XL",
+  "guest_instrumentation_bytes": 0,
+  "diagnostic_allowances": {
+    "release_evidence": false,
+    "reuse_existing_traces": false,
+    "host_lives_top_up": "3",
+    "forced_booster_fixture": null,
+    "l2_exit_fixture": null,
+    "terminal_state_seed": false,
+    "l2_variant_alias": false
+  },
+  "artifact_sha256": {
+    "void-strike-65-boot.bin": {
+      "path": "build/boss-region-3-level-1-s6/void-strike-65-boot.bin",
+      "bytes": 27008,
+      "sha256": "0442dd23b92c05ec448a0d984c5b64cafd6e76a0d73f1f242788a5ab8d4479fe"
+    },
+    "void-strike-65.atr": {
+      "path": "build/boss-region-3-level-1-s6/void-strike-65.atr",
+      "bytes": 133136,
+      "sha256": "9f817d60dbe65e6cdb25f7a32f5217a1ac4720446b4e93f233bb94737fa6b451"
+    },
+    "void-strike-65-manifest.json": {
+      "path": "build/boss-region-3-level-1-s6/void-strike-65-manifest.json",
+      "bytes": 81285,
+      "sha256": "99cb3b3fa298cdc7023c5c2e537d30dba113f083750fb1635ded78daabbf996e"
+    }
+  },
+  "variant": "boss-region-3-level-1-s6",
+  "diagnostic_only": true,
+  "sessions": [
+    {
+      "id": "region-3-diag-1",
+      "kind": "baseline-9040",
+      "medium": "ATR",
+      "difficulty": 1,
+      "policy": "boss-aim",
+      "fire_delay": 2,
+      "measured_frames": 2947,
+      "maximum_wall_cycles": 30369,
+      "deadline_overrun_frames": 0,
+      "missed_frames": 0,
+      "hull_map_draws": 0,
+      "hull_map_stale_draws": 0,
+      "hull_map_dirty_reads": 0,
+      "hull_map_rebuilds_after_boss": 0
+    }
+  ],
+  "acceptance": {
+    "measured_frames": 2947,
+    "maximum_wall_cycles": 30369,
+    "wall_ceiling": 32568,
+    "physical_headroom": 5199,
+    "missed_frames": 0,
+    "extra_vbi_boundaries": 0,
+    "physical_overruns": 0,
+    "deadline_overruns": 0,
+    "dli_ordering_errors": 0,
+    "passed": true
+  },
+  "passed": true
+}

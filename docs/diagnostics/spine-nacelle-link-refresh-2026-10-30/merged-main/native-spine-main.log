@@ -1,0 +1,13 @@
+region-3-diag-1: region 3 entered in 340 host frames at frame 0; chain not reached
+CLAUSE FAILURE region-3-diag-1: region-3-diag-1: the fight never reached the chain in 12000 frames
+region-3-diag-1: 2947 frames, max 30372 wall cycles
+  PAL timing audit  region-3-diag-1                               frames 2947  misses   0  preWait  16740  margin   8323  maxWall  30372  >target    0  >hard    0  shifted    0  [unreliable: missed 0 extraVBI 0 DLIerr 0]  PASS
+PAL timing audit: line-238 fence, distinct miss events (missed_frames / extra_vbi_boundaries cannot see an overrun: they are derived from Atari800_nframes, and an overrunning frame simply waits for the same VCOUNT one frame later).
+PAL timing audit: 0 distinct miss events across 1 replays (PASS)
+Boss-entry debris clause: subject 1 boss entries, 0 with debris live
+Boss-entry HUD clause: subject 1 boss entries, 0 with a HUD cell changed
+Window tail write clause: 1 replays watched, subject 1 lance run reads, 5719 lance-state writes, 0 foreign writers
+Slot F write clause: 1 replays watched, subject 1 block reads, 4495 field-state writes, 0 foreign writers
+Behavioural clauses: 1 of 1 session(s) accumulated a failure
+  region-3-diag-1: region-3-diag-1: the fight never reached the chain in 12000 frames
+Focused report: build/boss-region-3-level-1-s6/runtime-wall-trace/region-3-diag-1-focused-run.json

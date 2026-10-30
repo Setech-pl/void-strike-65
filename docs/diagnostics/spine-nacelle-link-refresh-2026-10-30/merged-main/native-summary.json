@@ -1,0 +1,108 @@
+[
+  {
+    "route": "campaign-1-spread-capital",
+    "source": "candidate",
+    "peak": 30465,
+    "frame": 246,
+    "ordinaryFrames": 1800,
+    "acceptance": {
+      "measured_frames": 1800,
+      "maximum_wall_cycles": 30465,
+      "wall_ceiling": 32568,
+      "physical_headroom": 5103,
+      "missed_frames": 0,
+      "extra_vbi_boundaries": 0,
+      "physical_overruns": 0,
+      "deadline_overruns": 0,
+      "dli_ordering_errors": 0,
+      "passed": true
+    },
+    "artifact": {
+      "path": "build/frame-peak-fixed-campaign/void-strike-65.atr",
+      "bytes": 133136,
+      "sha256": "bf11d321eef2d35f1a87d8e83305104fe40beec8fd1fe87e3368a523f1b1d56c"
+    },
+    "bossEntryHostFrames": []
+  },
+  {
+    "route": "l2-960-2-brake",
+    "source": "candidate",
+    "peak": 31319,
+    "frame": 3603,
+    "ordinaryFrames": 4741,
+    "acceptance": {
+      "measured_frames": 4741,
+      "maximum_wall_cycles": 31319,
+      "wall_ceiling": 32568,
+      "physical_headroom": 4249,
+      "missed_frames": 0,
+      "extra_vbi_boundaries": 0,
+      "physical_overruns": 0,
+      "deadline_overruns": 0,
+      "dli_ordering_errors": 0,
+      "passed": true
+    },
+    "artifact": {
+      "path": "build/l2-capital-960/void-strike-65.atr",
+      "bytes": 133136,
+      "sha256": "93ebbc1443854a1d98319984d78331cf95a497def5ceda5d563edd5b0eb279ec"
+    },
+    "bossEntryHostFrames": [
+      325
+    ]
+  },
+  {
+    "route": "region-3-diag-1",
+    "source": "candidate",
+    "peak": 30369,
+    "frame": 2479,
+    "ordinaryFrames": 2947,
+    "acceptance": {
+      "measured_frames": 2947,
+      "maximum_wall_cycles": 30369,
+      "wall_ceiling": 32568,
+      "physical_headroom": 5199,
+      "missed_frames": 0,
+      "extra_vbi_boundaries": 0,
+      "physical_overruns": 0,
+      "deadline_overruns": 0,
+      "dli_ordering_errors": 0,
+      "passed": true
+    },
+    "artifact": {
+      "path": "build/boss-region-3-level-1-s6/void-strike-65.atr",
+      "bytes": 133136,
+      "sha256": "9f817d60dbe65e6cdb25f7a32f5217a1ac4720446b4e93f233bb94737fa6b451"
+    },
+    "bossEntryHostFrames": [
+      344
+    ]
+  },
+  {
+    "route": "region-3-diag-1",
+    "source": "main",
+    "peak": 30372,
+    "frame": 2479,
+    "ordinaryFrames": 2947,
+    "acceptance": {
+      "measured_frames": 2947,
+      "maximum_wall_cycles": 30372,
+      "wall_ceiling": 32568,
+      "physical_headroom": 5196,
+      "missed_frames": 0,
+      "extra_vbi_boundaries": 0,
+      "physical_overruns": 0,
+      "deadline_overruns": 0,
+      "dli_ordering_errors": 0,
+      "passed": true
+    },
+    "artifact": {
+      "path": "build/boss-region-3-level-1-s6/void-strike-65.atr",
+      "bytes": 133136,
+      "sha256": "e207d2a68ac8d4c0728ed44c3e31d773afd525a37943134f71b45e0b9521aec6"
+    },
+    "bossEntryHostFrames": [
+      340
+    ]
+  }
+]

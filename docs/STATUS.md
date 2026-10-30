@@ -1,6 +1,6 @@
 # VOID STRIKE 65 — CURRENT STATUS
 
-Last update: 2026-10-30 (M3-H session 2 planning — owner review pending)
+Last update: 2026-10-30 (M3-H session 2 plan accepted; checkpoints 1–2 authorized)
 
 What is true now. Rules: [reguly-projektu.txt](reguly-projektu.txt). Roadmap:
 [plan-realizacji.md](plan-realizacji.md). Source-of-truth order:
@@ -20,7 +20,7 @@ the values below.
 
 ## Checkpoint
 
-### M3-H session 2 — plan awaiting owner review
+### M3-H session 2 — accepted plan; implementation authorized
 
 Planning only on owner-created `codex/m3h-session2`, current main `7fe9040`.
 [Rebased plan](plans/m3h-session2.md) covers H10–H14/H16, the armoured Raider
@@ -34,13 +34,16 @@ on runtime/test inputs identical to main; all first assertions/messages match
 the existing debt. Focused 27 PASS/1 shared FAIL. Legacy release reconciliation
 remains nonzero; no release readiness claim.
 
-**OWNER_DECISION_REQUIRED before H14 implementation:** choose bounded second
-attempt (retry can rotate) or nonrotate-only publication (up to three frames).
-The old plan promises both two-frame forcing and no rotate publication; a
-spent token on a nonrotate first attempt makes that combination impossible.
-[Planning audit](diagnostics/m3h-session2-plan/audit.md). NEXT TASK: owner
-review of the committed plan; STOP before implementation. This is not a
-session-2 gameplay candidate or an owner acceptance claim.
+Owner review 2026-10-30 accepts the plan with **H14 choice B** (nonrotate-only,
+at most three frames), **H12/H13 in checked content home**, and a resident
+validity/phase guard that drops invalid requests without stale reads. Session
+window growth target ≤250 B; report content use/sectors and added level-load
+time. If lifetime or entry cost fails, STOP with numbers before any window
+fallback. Bomber ramp 4/6/8/8/8 hue C is authorized for final owner smoke.
+Commit/verify each checkpoint in order; owner smoke pauses after 2 and 6.
+[Planning audit](diagnostics/m3h-session2-plan/audit.md). NEXT TASK: implement
+checkpoints 1–2, then pause for owner smoke. Plan acceptance is not gameplay
+smoke acceptance.
 
 ### Loop-phase resync — partial OWNER-SMOKE CANDIDATE
 

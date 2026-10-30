@@ -1,13 +1,28 @@
 # M3-H session 2 — rebased implementation plan
 
-**OWNER REVIEW CANDIDATE — planning only, 2026-10-30.** Owner-created branch
-`codex/m3h-session2`, baseline/current main
-`7fe90409bd09db58ff263806bec711db21a76457`. No gameplay implementation is
-authorized by completion of this step. STOP after committing this plan.
+**OWNER-ACCEPTED PLAN — amended 2026-10-30.** Owner-created branch
+`codex/m3h-session2`, implementation baseline
+`7fe90409bd09db58ff263806bec711db21a76457`; planning commit `a35c559`.
+Implementation is authorized through checkpoints 1–6, with a mandatory pause
+for owner smoke after checkpoint 2 and final owner smoke after checkpoint 6.
+Commit each checkpoint; verify/build/save its ATR without intermediate smoke
+waits except those two pauses.
+
+**Owner placement decision:** H12 publisher and H13 hole tables live in the
+checked content home `$1180–$18FF`. Only a validity/phase-guarded entry veneer
+for that publisher stays resident in the window. Invalid-home requests are
+dropped with no draw or stale read. Target total session window growth
+**≤250 B**. Report final window/home use, content-record sectors and measured
+added level-load time. If guard/entry cost or lifetime makes this unworkable,
+STOP with measured numbers before any fallback to window placement.
+
+**Owner gameplay decisions:** H14 uses **B**, nonrotate-only publication,
+within three frames after the hit watch; no damage stamp is forced onto a
+rotate frame. The Bomber ramp **4/6/8/8/8**, hue C, is authorized as an
+owner-smoke candidate and will be judged at the final smoke.
 
 This supplements [M3-H §3 and session 2](m3-waves-heavy.md#3-m3-h--the-heavy-behaviour-package)
-and supersedes its obsolete session-2 placement/cost predictions only after
-owner review. The [session-1 audit](../audits/2026-10-27-m3h-step1.md#eighth-continuation--native-main-audio-proof-and-amendment-5)
+and supersedes its obsolete session-2 placement/cost predictions under the owner amendments above. The [session-1 audit](../audits/2026-10-27-m3h-step1.md#eighth-continuation--native-main-audio-proof-and-amendment-5)
 provides the implementation boundary; its measurements describe its named
 checkpoint, not current main. Current code already has H1–H9/H15, armour in
 WaveDef **bit 5**, assault HP 1/1/1, armour 2/2/3, Bomber 4/4/5, holds,
@@ -42,11 +57,11 @@ modified. `dist/` build output is restored after retaining baseline ATRs in
 | DFMC records | **11/11** | Extend an existing record; no twelfth record |
 | Transport | **211 sectors**, last 211 | **28 sectors** before menu at 240; not the session-1 total of 214 |
 
-The checked content home is a real fallback, but its free bytes are not
+The checked content home is the owner-selected H12/H13 home; its free bytes are not
 resident capacity during a boss fight. H10's shared renderer must never read
-a discarded payload or content image after Heavy teardown. The proposed
-primary route stays resident in record 8 and uses neither L2 reserve nor
-content-module growth. No loader, phase lifetime or Director redesign.
+a discarded payload or content image after Heavy teardown. H12/H13 run only during valid fighter/capital lifetime. The resident entry
+checks content validity and boss/phase ownership before any home read.
+L2 reserve stays untouched. No loader, phase lifetime or Director redesign.
 
 | DFMC record | Raw B | Packed B /capacity | Sectors | Packed slack B |
 | --- | ---: | ---: | ---: | ---: |
@@ -104,10 +119,10 @@ with a row tick, charge their event costs in that frame; they are not free.
 | **H10** | ASM `draw_enemy_member`, BROADSIDE in place: formation body-base operand, per-member indices, cached immediate height set at admission. Keep clipping, HPOS publication, departing-row erase and stationary skip. | Proposed replacement **−3 code B**, fill the reclaimed bytes to preserve later labels; **0 segment-size delta**. Height patch is charged to H11. | About **−8 per actual body copy**; 0 delta on stationary skip. Measure the full body path, including page crossings. | H11 default install and H16 metadata must be enabled atomically. |
 | **H11** | Window ASM installs base, indices and cached height; C spawn selects existing profile and payload colour. A window wrapper around the existing spawn call installs before forced draws, then returns to existing colour publication. Reinstall/reset on every formation. | **64–96 B window**, including wrapper/C colour selection; retarget existing ABI call operand, **0 ABI size growth**. | Approximately **+70–140 per admission**, minus H10 savings on the two initial copies. Repoint after damage included in H12. 0 ordinary frames. | H10/H16; existing `heavy_armoured`; compiler/default look. No base-body copy at spawn. |
 | **Armoured second look** | Compiler validates/emits `payload.heavyLook`: 14 authored rows padded to 16 plus hull colour. Level 2 uses a wider/plated Raider silhouette within the existing frame/visible bounds and hostile family. Assault retains original art. Default armoured look provided by compiler for a level without an override. | **17 B inside existing payload reserve per level**, 0 level-image/sectors growth; host compiler/preview source has no guest cost. Runtime selection in H11. | 0 additional beyond H11/H10. | Existing kind bit 5; no new archetype, renderer, HP/weapon policy or PMG allocation. Reject malformed rows, unsafe colours and out-of-bounds pixels. |
-| **H13 /generated variant C** | Editable `(row, clear-mask)` triples, 2 stages ×2 shapes, in `enemy-roster.json`. Generator emits hole tables into appended record 8 ASM and preview images from those same tables. Runtime applies `body[row] &= ~mask`; no alternate packed PMG artwork. | **24 B window data**. Host generation/preview only otherwise. | 0 idle cost; approximately **75–120 per member/stage** included in H12. | Second Raider look and Bomber art; validate each cleared bit exists, stages are cumulative, silhouettes/tails stay readable. |
-| **H12** | ASM consumer copies both source bodies once, stamps only requested live members, repoints base/indices, forces publication at current Y despite stationary skip. Coalesce both pending members into one bounded event. | **144–224 B window ASM**, including dual-member handling; no new source-body RAM beyond H16. | One member: approximately **920–1,180 first event**, **620–816 later stage**; both members: budget **1,600–2,400** including two publishes, claim/dispatch and stamp overhead. 0 idle cost. These are revised budgets; old 1,100 is not claimed met. | H10/H11/H13/H16; H14 stage/claim decisions. Must never draw a dead member or overwrite a peer's intact body. |
-| **H14** | C decides requested stage and claim/retry; ASM publishes. Fold existing damage request bits 0/1 into the byte already tested by `heavy_breakup_retry`; move breakup pending to bit 7. Mask every breakup reader/clear, preserve death priority and surviving requests. Retain the existing no-pending LDY/BNE/RTS path. | **80–128 B window C/dispatch**, including migration of the current **33-B** breakup claim; keep a 3-B JMP +30-B padding at its arena entry (**0 arena delta**). Budget **6 of 7 pickup-tail B** for nonzero trampoline and masked clear. Existing H15 damage byte becomes reserved, not extra free capacity. | **0 new with no pending** by construction, to be measured. Allow **+80–240** control cycles on a pending/claim frame within H12's event ceiling; breakup-only mask overhead roughly **+6–20**. HP-request producers retain their existing member-bit operations. | Existing event token, `world_rotate_due`, spawn/recycle/reset paths; policy clarification below. No additional every-frame poll. |
-| **Bomber readable HP ramp** | C `bomber_colour`, full-colour HP lookup in appended window rodata. Proposed HP1..5 base luminances **4, 6, 8, 8, 8**, hue C; flash/charge remain +4 with current priority. | **6 B window table** (including HP0 sentinel); **3–5 B arena** estimated lookup expansion. Max arena 832/832; if compiler needs more, move helper through a fixed-entry veneer to window rather than spend protected RAM. | Approximately **+4–8 per Bomber tick**, **+8–16 per pair frame**; no Raider or row-tick cost. Replaces the historical unsupported 0-cycle estimate. | Accepted [gameplay-variety Q4](gameplay-variety.md#71-the-owners-answers-2026-10-08) plus [M3-H §8.2a](m3-waves-heavy.md#82a-note--the-bomber-at-1-hp-owner-2026-10-06). Review this exact ramp with the looks. |
+| **H13 /generated variant C** | Editable `(row, clear-mask)` triples, 2 stages ×2 shapes, in `enemy-roster.json`. Generator emits hole tables into content-home ASM and preview images from those same tables. Runtime applies `body[row] &= ~mask`; no alternate packed PMG artwork. | **24 B content-home data**. Host generation/preview only otherwise. | 0 idle cost; approximately **75–120 per member/stage** included in H12. | Second Raider look and Bomber art; validate each cleared bit exists, stages are cumulative, silhouettes/tails stay readable. |
+| **H12** | ASM consumer copies both source bodies once, stamps only requested live members, repoints base/indices, forces publication at current Y despite stationary skip. Coalesce both pending members into one bounded event. | **144–224 B content-home ASM**, including dual-member handling; no new source-body RAM beyond H16. | One member: approximately **920–1,180 first event**, **620–816 later stage**; both members: budget **1,600–2,400** including two publishes, claim/dispatch and stamp overhead. 0 idle cost. These are revised budgets; old 1,100 is not claimed met. | H10/H11/H13/H16; H14 stage/claim decisions. Must never draw a dead member or overwrite a peer's intact body. |
+| **H14** | C decides requested stage and claim/retry; ASM publishes. Fold existing damage request bits 0/1 into the byte already tested by `heavy_breakup_retry`; move breakup pending to bit 7. Mask every breakup reader/clear, preserve death priority and surviving requests. Retain the existing no-pending LDY/BNE/RTS path. | **80–128 B window C/dispatch**, including migration of the current **33-B** breakup claim; keep a 3-B JMP +30-B padding at its arena entry (**0 arena delta**). Budget **6 of 7 pickup-tail B** for nonzero trampoline and masked clear. Existing H15 damage byte becomes reserved, not extra free capacity. | **0 new with no pending** by construction, to be measured. Allow **+80–240** control cycles on a pending/claim frame within H12's event ceiling; breakup-only mask overhead roughly **+6–20**. HP-request producers retain their existing member-bit operations. | Existing event token, `world_rotate_due`, spawn/recycle/reset paths; accepted nonrotate policy below. No additional every-frame poll. |
+| **Bomber readable HP ramp** | C `bomber_colour`, full-colour HP lookup in appended window rodata. Proposed HP1..5 base luminances **4, 6, 8, 8, 8**, hue C; flash/charge remain +4 with current priority. | **6 B window table** (including HP0 sentinel); **3–5 B arena** estimated lookup expansion. Max arena 832/832; if compiler needs more, move helper through a fixed-entry veneer to window rather than spend protected RAM. | Approximately **+4–8 per Bomber tick**, **+8–16 per pair frame**; no Raider or row-tick cost. Replaces the historical unsupported 0-cycle estimate. | Accepted [gameplay-variety Q4](gameplay-variety.md#71-the-owners-answers-2026-10-08) plus [M3-H §8.2a](m3-waves-heavy.md#82a-note--the-bomber-at-1-hp-owner-2026-10-06). Owner authorized this exact ramp for final smoke. |
 
 H10's old `−1 B /−4 cycles` estimate omitted reloading the member slot after
 the archetype height lookup. The proposed cached-height form replaces a
@@ -124,26 +139,21 @@ healthy end of the ramp; holes distinguish the last two HP stages. This is a
 review proposal, not an accepted palette change or a silent application of
 the old four-HP estimate.
 
-### Event contract requiring explicit review
+### Accepted event contract — choice B
 
-The old plan promises both “never on a rotate frame” and “forced on its second
-attempt.” Current token code can deny a **nonrotate** first attempt because
-another event spent the token; its next frame can rotate. Those promises
-cannot both be guaranteed by that retry rule. This is a confirmed contract
-conflict, not a measured overrun. **OWNER_DECISION_REQUIRED before H14 is
-implemented.** Concrete HARD cadence counterexample: accumulator 0 plus rate 20
-is 20/40 (no rotate); a spent token denies the stamp, and next frame 20+20
-rotates. Source: `world_rotate_due`, `light_take_deferrable_token` and the
-authored scroll-rate table. No hypothetical consecutive rotates are needed.
-Two compliant alternatives:
+Owner decision, 2026-10-30: **B — nonrotate-only damage publication**.
+The first attempt predicts rotate and respects token exhaustion. A retry
+ignores token exhaustion but still waits for a nonrotate frame. Rotations
+cannot be consecutive, so publication is bounded at three frames after the
+hit watch. Breakup forcing remains unchanged.
 
-| Choice | Player effect | Bytes /CPU /risk |
-| --- | --- | --- |
-| **A — recommended: preserve bounded second-attempt force** | First claim predicts rotate and uses the token. A denial forces the combined pending stamp next frame; visual response at most 2 frames after the hit watch. Retry can coincide with rotate. Existing breakup forcing remains intact. | Within table budgets; 0 idle cost; worst dual stamp estimated 2,400 native cycles. Focused forced-rotate/occupied-token rows must prove hard frame gate. This corrects the unsupported absolute “never rotate” claim. |
-| **B — preserve nonrotate-only damage publication** | On the retry ignore token exhaustion but still wait for a nonrotate frame. At most 3 frames after hit watch, since rotations cannot be consecutive. Breakup behaviour remains unchanged. | Approximately **+5–12 B** window and **+35–50 cycles** per denied retry; fits the 478-B budget plus contingency below. No stamp/rotate coincidence; visible response may be one frame later. Changes the old two-frame promise. |
+Choice A is rejected: a dual stamp estimated up to 2,400 cycles on a rotate
+frame risks exceeding 32,568; the frame-overrun spike showed that a missed
+frame corrupts publication. Budget approximately 5–12 B and 35–50 cycles for
+the additional retry rotate check within the session's 250-B window target.
 
-Both options coalesce two pending members; otherwise a denied first member
-followed by two separately serialized publications can violate the two-frame
+Coalesce two pending members; otherwise a denied first member
+followed by two separately serialized publications can violate the publication
 bound. A later stage supersedes an earlier pending stage without restoring
 holes. A member killed before publication loses its request; breakup retains
 priority and must not erase a surviving peer's request. Admission invalidates
@@ -152,34 +162,23 @@ during a boss phase or after payload invalidation.
 
 ### Aggregate fit and fallback
 
-Primary budget: **478 window B** (96 H11 +224 H12 +24 H13 +128 H14 +6 ramp),
-leaving **265 of 743 B**. Reserve 128 of that remainder as compiler/integration
-contingency; 137 remain unassigned. H10 uses no net linked space; arena grows
-at most 5 B; pickup grows at most 6 B; resident render state grows 8 B; H16's 32 B
-were already reserved. No Director-high/content/L2 allocation is assumed.
-Table costs are attributed once; claim/control overhead is inside the H12
-event CPU ceiling, not added again.
+The old 478-B all-window estimate is superseded. H12/H13 budget **248 B in
+content home** (224 +24), leaving approximately **1,060 B** of its measured
+1,308-B slack. H11/control/ramp plus the guarded entry target **≤250 new window
+B total**, leaving at least493 usable B. This is a target, not a compiled-size
+claim. H10 keeps linked size fixed; arena allowance5 B; pickup allowance6 B;
+new render metadata8 B; H16's32 B are already reserved. No L2 reserve is spent.
 
-Record 8 raw use would be 2,546 B at that budget. Its 14 sectors have 87 packed B
-free; **estimate +3–4 sectors**, not a compression guarantee. Leave all 28
-available pre-menu sectors visible in the ledger. Record 1 can change packed
-size even with pinned raw size; 20 packed B is thin. If it grows a sector,
-keep dispatch/install work in record 8 and remeasure before changing transport.
-Record 3 has only 2 packed B free and record 5 only 1; an ABI operand change can
-also alter compression. Append new window code/data after the current Heavy
-ASM rather than inserting tables before it, so existing hot addresses stay
-fixed. Inspect all records, not just the one receiving new source bytes.
-No new record slot or initial boot sector is budgeted. Re-check normal build
-gates and actual initial packed delta after every checkpoint.
+The checked content record is currently a fixed15-sector run. Measure its
+final used size, sector count, guarded entry cost and level-load time; never
+infer load timing from code bytes alone. Invalid-home stamp requests must
+clear/drop safely without reading any content instruction or table byte.
 
-If compiler output exceeds the 5-B arena allowance, first use the window
-contingency for a fixed-entry `bomber_colour` relocation (current helper 122 B;
-estimate 128–160 B including veneer/lookup), retaining old arena footprint as
-padding. If window growth then exceeds its boundary, the checked content home
-is the next placement alternative: same visible result, roughly 128–224 B
-content plus a resident validity-guarded veneer; extra entry/lifetime checks
-and their measured CPU cost would be required. Do not implement that fallback
-or enlarge the loader automatically; return the exact shortfall for review.
+Record8 compressed use and all existing records still require measurement;
+record3 has2 packed B free and record5 only1. Append new window code/data after
+existing Heavy ASM so hot addresses stay fixed. No new record slot or initial
+boot sector is budgeted. If the content entry's measured cost or lifetime is
+unworkable, STOP with numbers. **Do not fall back to H12/H13 in the window.**
 
 ## 3. Implementation order and separate smoke checkpoints
 
@@ -240,7 +239,7 @@ costs; native DMA-on worst frame. Preserve raw logs and first assertions.
 
 ## 4. Explicit scope disposition
 
-**PLAN TO IMPLEMENT:** H10, H11, H12, H13, H14 (after policy decision), H16,
+**PLAN TO IMPLEMENT:** H10, H11, H12, H13, H14, H16,
 data-profile Raider split completion, second armoured look, generated variant C
 and Bomber visibility ramp. **No requested feature is silently dropped or
 DEFERRED for space:** the primary conservative estimate fits, subject to
@@ -262,5 +261,4 @@ starts without the next owner instruction.
 Plan deliverable CPU/RAM/residency delta: **0 /0 B /0 B**. Baseline play ATRs
 are for reproduction only, not a session-2 gameplay candidate. Validation,
 current quick peaks and the exact full-suite debt comparison are in
-[the audit](../diagnostics/m3h-session2-plan/audit.md). **NEXT TASK: owner review
-of this plan and H14 choice A/B; STOP.**
+[the audit](../diagnostics/m3h-session2-plan/audit.md). **NEXT TASK: checkpoints1–2, then pause for owner smoke of the two Raider looks.**

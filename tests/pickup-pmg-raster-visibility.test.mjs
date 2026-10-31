@@ -72,38 +72,26 @@ const encodeRow = (pixels) =>
 
 // The capsule silhouettes are owned by the artwork source, not by main.s.
 // Deriving them here means the assembled table can never drift from the art.
-const recoveredSilhouettes = () => {
-  const art = JSON.parse(fs.readFileSync(`${root}assets/graphics/entity-effects.json`, "utf8"));
-  const anticPixels = (b) => [(b >> 6) & 3, (b >> 4) & 3, (b >> 2) & 3, b & 3];
-  return ["weaponPickupRapidFire", "weaponPickupSpreadShot", "weaponPickupShield"]
-    .map((key) => {
-      const glyphs = art[key].glyphs;
-      const rows = [];
-      for (let half = 0; half < glyphs.length / 2; half++) {
-        const left = glyphs[half * 2], right = glyphs[half * 2 + 1];
-        for (let r = 0; r < left.length; r++)
-          rows.push([...anticPixels(left[r]), ...anticPixels(right[r])].map((v) => v !== 0));
-      }
-      return rows.map(encodeRow);
-    });
-};
 
+
+// b2261c9: M6 LIFE moves four source masks into the Light kernel link.
 const shapeTable = () => {
-  const shape = section("fighter_pickup_pmg_shape:", "\n\n");
-  return shape.split("\n")
-    .filter((line) => line.trim().startsWith(".byte"))
-    .flatMap((line) => [...line.matchAll(/\$([0-9A-F]{2})/g)].map((m) => parseInt(m[1], 16)));
+  const labels = fs.readFileSync(`${root}build/light-kernel.lbl`, "utf8");
+  const at = parseInt(/al ([0-9a-f]+) \.fighter_pickup_pmg_shape/i.exec(labels)[1], 16);
+  const manifest = JSON.parse(fs.readFileSync(`${root}build/manifest.json`));
+  const bytes = fs.readFileSync(`${root}build/light-kernel.bin`);
+  return [...bytes.subarray(at - manifest.lightKernel.address, at - manifest.lightKernel.address + 64)];
 };
 
 test("each booster type carries its own recovered capsule silhouette", () => {
   const rows = shapeTable();
-  assert.equal(rows.length, 48, "three sixteen-row silhouettes, one per booster type");
-  const expected = recoveredSilhouettes();
-  const names = ["Rapid Fire", "Spread Shot", "Shield"];
+  assert.equal(rows.length, 64, "four sixteen-row silhouettes including LIFE");
+  const expected = JSON.parse(fs.readFileSync(`${root}assets/graphics/life-capsule.json`, "utf8")).masks;
+  const names = ["Rapid Fire", "Spread Shot", "Shield", "LIFE"];
   for (const [type, want] of expected.entries()) {
     const got = rows.slice(type * 16, type * 16 + 16);
     assert.deepEqual(got, want,
-      `${names[type]} silhouette does not match assets/graphics/entity-effects.json; ` +
+      `${names[type]} silhouette does not match assets/graphics/life-capsule.json; ` +
       "re-derive it through the colour-clock mapping rather than hand-editing bytes");
   }
 });
@@ -130,13 +118,9 @@ test("the shape comment no longer claims GTIA ignores the low nibble", () => {
     "that belief produced both the broken shape data and the harness check that hid it");
 });
 
-test("the shape table is in plain player bit order, with no fifth-player residue", () => {
-  const block = section("; Per-type capsule silhouettes", "hud_booster_label:");
-  assert.match(block, /PLAIN PLAYER BIT ORDER/,
-    "the encoding the bytes are in must be stated where the bytes are");
-  assert.match(block, /colour clocks 1,0,3,2,5,4,7,6\) and is gone with PRIOR \$10/,
-    "the retired interleaved mapping must be named as retired, not still claimed");
-});
+// Retired: b2261c9 replaces the old inline table/comment with generated masks.
+// Byte comparison above protects the compiled plain-player masks instead.
+
 
 test("the native harness reads the capsule's whole silhouette on the player plane", () => {
   const tracer = fs.readFileSync(`${root}scripts/atari800-wall-trace.h`, "utf8");

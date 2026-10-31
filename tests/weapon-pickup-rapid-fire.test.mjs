@@ -158,8 +158,9 @@ test("three eight-phase source banks hold one tapered 8x16 capsule and the runti
   // per type (docs/plans/pickup-colour.md;
   // tests/pickup-pmg-raster-visibility.test.mjs holds the PMG contract).
   assert.doesNotMatch(source, /compose_weapon_pickup_phase|render_weapon_pickup_overlay/);
-  assert.match(source,
-    /fighter_pickup_pmg_shape:[\s\S]+\.assert \* - fighter_pickup_pmg_shape = WEAPON_PICKUP_TYPE_COUNT\*WEAPON_PICKUP_HEIGHT_SCANLINES/);
+  // b2261c9: four masks (including LIFE) are generated in the Light link.
+  assert.match(fs.readFileSync(path.join(root, "src/hybrid/life-capsule.s"), "utf8"),
+    /fighter_pickup_pmg_shape:\s*\.include "life-capsule-shapes.inc"/);
   assert.deepEqual(entities.weaponPickupRapidFire.palette, {
     outlineRegister: "COLPF1", outlineValue: 0x84,
     fillRegister: "COLPF2", fillValue: 0x1e,

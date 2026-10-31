@@ -1,3 +1,4 @@
+// Test debt: 35499ba / owner §BL compact HUD moves HULL to 4–7, SCORE to 35–39.
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
@@ -430,7 +431,7 @@ test("assembled decimal score code carries without inserting partial-game scores
       expected.score, `${expected.name} score`);
     assert.deepEqual([memory[addresses.topLow], memory[addresses.topHigh]],
       expected.top, `${expected.name} TOP`);
-    assert.deepEqual([...memory.subarray(addresses.screen + 6, addresses.screen + 11)],
+    assert.deepEqual([...memory.subarray(addresses.screen + 35, addresses.screen + 40)],
       expected.hud, `${expected.name} HUD screen codes`);
     assert.ok(instructions < 128, `${expected.name} remains bounded`);
   }

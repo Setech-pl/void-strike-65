@@ -1,3 +1,4 @@
+// Test debt: merged 6046c0b M3-H window use 2,302 B leaves 1,282/3,584 B.
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
@@ -36,7 +37,7 @@ test("the window's free tail agrees with the linker map's Light kernel tail", ()
   // The kernel link ends the window, so the two free figures are the same
   // bytes. This is the assertion that fails on the pre-fix manifest: the
   // window claimed 735 free while the map's own tail was 27.
-  assert.equal(basicWindow.freeBytes, 1928);
+  assert.equal(basicWindow.freeBytes, 1282);
   assert.equal(lightKernel.windowLimit, 0x3b00);
   assert.equal(lightKernel.endExclusive + lightKernel.freeBytes, lightKernel.windowLimit);
 });
@@ -128,7 +129,7 @@ test("the window has room for the Director: the free tail stays at 900 B or more
   // RE-PINNED feat/boss-banners (the owner's smoke of 2026-10-18: no WARNING
   // text screen at the boss entry): the screen's 11-B record (WARNING) out of
   // the kernel's last segment; the kernel link 957 -> 946 B, the tail 971 -> 982.
-  assert.equal(basicWindow.freeBytes, 1928,
+  assert.equal(basicWindow.freeBytes, 1282,
     "L1 moves Light out of the BASIC window");
   assert.ok(lightKernel.freeBytes >= 16);
 });

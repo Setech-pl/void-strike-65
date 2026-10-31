@@ -62,6 +62,8 @@ test("every third idle-slot qualifying kill creates one deterministic pending ca
   const y = labels.get("ENTITY_Y");
   run(image, "init_entity_effects");
   prepareDirector(image);
+  // b2261c9 M6 LIFE: eight lives excludes LIFE selection in this ordinary-drop fixture.
+  image[0x4eab] = 8;
   const rng = image[director.rng];
   run(image, "weapon_pickup_record_qualified_kill");
   run(image, "weapon_pickup_record_qualified_kill");

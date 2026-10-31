@@ -1,3 +1,4 @@
+// Test debt: 35499ba / owner §BL compact HUD moves HULL to 4–7, SCORE to 35–39.
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
@@ -10,12 +11,14 @@ import {
   renderEntityEffectsCa65Include,
 } from "../scripts/entity-effects.mjs";
 import { Nmos6502 } from "../scripts/nmos6502.mjs";
-import { installBootArtifact, installRuntimeSegments, publishEnemyProfileScore } from "../scripts/runtime-image.mjs";
+import { installBootArtifact, installRuntimeSegments } from "../scripts/runtime-image.mjs";
 import { canonicalPlayfield } from "../scripts/playfield.mjs";
 import {
   executeDebrisDestructionTrace,
   executeInterceptorBreakupTrace,
 } from "../scripts/debris-destruction-runtime.mjs";
+
+import { compileEnemyRoster, loadEnemyRosterDefinition } from "../scripts/enemy-roster.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const definitionPath = path.join(root, "assets", "graphics", "entity-effects.json");
@@ -53,6 +56,14 @@ const directorLabels = new Map(
     .map((match) => [match[2], Number.parseInt(match[1], 16)]),
 );
 labels.set("director_request", directorLabels.get("director_request"));
+// Harness race: snapshot the authored score and linked C address with this fixture,
+// instead of rereading generated director-abi.inc during thousands of cases.
+const fixtureScore = compileEnemyRoster(loadEnemyRosterDefinition(
+  path.join(root, "assets/graphics/enemy-roster.json"))).implemented[0].scoreBcd;
+function publishEnemyProfileScore(memory) {
+  memory[directorLabels.get("_enemy_profile_score_bcd")] = fixtureScore;
+}
+
 
 const addresses = {
   state: 0x8000,
@@ -1179,7 +1190,7 @@ test("player-debris damage uses fixed EASY/MEDIUM/HARD HULL units atomically", (
 test("debris damage updates HULL plates in the contact frame and enters canonical death flow", () => {
   const live = exercisePlayerDebrisCollision({ difficulty: 1, playerHealth: 10 });
   // RE-PINNED fix/boss-polish (owner request 2026-10-12): a spent HULL quarter is the HUD's blank (0), as a spent BOOST cell, no longer the cracked plate (12).
-  assert.deepEqual([...live.memory.subarray(0x4019, 0x401d)], [5, 5, 0, 0],
+  assert.deepEqual([...live.memory.subarray(0x4004, 0x4008)], [5, 5, 0, 0],
     "MEDIUM 10->5 must be visible in the HUD before the collision routine returns");
 
   const lethal = exercisePlayerDebrisCollision({
@@ -1197,7 +1208,7 @@ test("debris damage updates HULL plates in the contact frame and enters canonica
   // begins on the first DYING tick, not in the contact frame.
   }, { health: 0, lives: 0, lifecycle: 1, deathTimer: 25, damageCalls: 1 });
   // RE-PINNED fix/boss-polish (owner request 2026-10-12): a spent HULL quarter is the HUD's blank (0), as a spent BOOST cell, no longer the cracked plate (12).
-  assert.deepEqual([...lethal.memory.subarray(0x4019, 0x401d)], [0, 0, 0, 0]);
+  assert.deepEqual([...lethal.memory.subarray(0x4004, 0x4008)], [0, 0, 0, 0]);
 
   for (let frame = 0; frame < 25; frame += 1) runRoutine(lethal.memory, "update_player_death");
   assert.equal(lethal.memory[addresses.playerLifecycle], 3,
@@ -1351,7 +1362,7 @@ test("lethal Interceptor contact updates HUD, uses one death event, and reaches 
     damageCalls: trace.callCounts.get("apply_player_damage"),
     deathCalls: trace.callCounts.get("begin_player_fighter_explosion"),
     hudCalls: trace.callCounts.get("update_hud_status"),
-    hullHud: [...memory.subarray(0x4019, 0x401d)],
+    hullHud: [...memory.subarray(0x4004, 0x4008)],
   }, {
     health: 0,
     lives: 0,
@@ -1612,7 +1623,7 @@ test("Interceptor contact result is exact after an ATR cold boot", () => {
     effectPending: memory[addresses.effectPending],
     scoreLo: memory[addresses.scoreLo],
     scoreHi: memory[addresses.scoreHi],
-    hullHud: [...memory.subarray(0x4019, 0x401d)],
+    hullHud: [...memory.subarray(0x4004, 0x4008)],
     damageCalls: trace.callCounts.get("apply_player_damage"),
     deathCalls: trace.callCounts.get("begin_player_fighter_explosion"),
     breakups: trace.callCounts.get("spawn_interceptor_breakup_effects"),

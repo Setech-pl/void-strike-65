@@ -1,0 +1,9 @@
+{
+  "referenceWrites": 1208,
+  "candidateWrites": 1208,
+  "byteExact": true,
+  "tuple": "trace frame, writer PC, screen address, restored byte, X, Y",
+  "referenceSha256": "9938fc3483a107122c3e19a5d3f67706b12189d4315d93260e013cc1989db067",
+  "candidateSha256": "9938fc3483a107122c3e19a5d3f67706b12189d4315d93260e013cc1989db067",
+  "firstDifference": null
+}

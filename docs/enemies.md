@@ -86,8 +86,8 @@ reads as a big Raider. It is green, a colour nothing else in the battle wears.
   on the right. It turns at the lane's edge or after half a second to a
   second, and sinks one line every other frame.
 - **Before a capital run:** it stops firing and flies sideways toward the
-  nearer screen edge, twice as fast as your fighter. It disappears when fully
-  off screen. You can still damage or destroy it while it leaves.
+  nearer screen edge, at an average of three raster pixels per frame.
+  It disappears when fully off screen. You can still damage or destroy it while it leaves.
 - **Contact:** costs your whole hull.
 - **Where:** level 1's first sector (four pairs), and one pair after the
   capital run.

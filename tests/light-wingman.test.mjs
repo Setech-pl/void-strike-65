@@ -809,3 +809,17 @@ test("hooks are operand-only redirections and the Light publishes only in the la
     /\b(?:sta|stx|sty|inc|dec)\s+(?:LIGHT_STATE|LIGHT_HP|LIGHT_X|LIGHT_Y)\b/,
     "ASM never writes C-owned Light lifecycle, HP or position");
 });
+
+
+test("sideways Bomber escort stays inside the two-cell screen bounds for every leader X", () => {
+  for (let x=0; x<=224; x++) {
+    const image=game();
+    run(image,"enemy_spawn_raiders");
+    setLeader(image,x,100);
+    run(image,"enemy_light_tick");
+    assert.equal(light(image).x,Math.max(48,Math.min(200,(x+6)&252)));
+    const rows=image.slice(L("PLAYFIELD_ROW_LO"),L("PLAYFIELD_ROW_HI")+27);
+    run(image,"light_publish");
+    assert.deepEqual(image.slice(L("PLAYFIELD_ROW_LO"),L("PLAYFIELD_ROW_HI")+27),rows,"Light cannot write the row table");
+  }
+});

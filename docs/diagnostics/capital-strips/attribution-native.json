@@ -1,0 +1,200 @@
+{
+  "main": {
+    "frames": 4200,
+    "samples": [
+      {
+        "frame": "2087",
+        "start_host_frame": "2950",
+        "active_gameplay_frame": "2063",
+        "sector_state": "7",
+        "sector_row": "529",
+        "enemy_live_count": "2",
+        "enemy_x0": "63",
+        "enemy_x1": "163",
+        "enemy_y0": "224",
+        "enemy_y1": "210"
+      },
+      {
+        "frame": "2088",
+        "start_host_frame": "2951",
+        "active_gameplay_frame": "2064",
+        "sector_state": "7",
+        "sector_row": "530",
+        "enemy_live_count": "2",
+        "enemy_x0": "63",
+        "enemy_x1": "163",
+        "enemy_y0": "225",
+        "enemy_y1": "211"
+      },
+      {
+        "frame": "2117",
+        "start_host_frame": "2980",
+        "active_gameplay_frame": "2093",
+        "sector_state": "7",
+        "sector_row": "543",
+        "enemy_live_count": "0",
+        "enemy_x0": "63",
+        "enemy_x1": "163",
+        "enemy_y0": "240",
+        "enemy_y1": "240"
+      },
+      {
+        "frame": "2336",
+        "start_host_frame": "3199",
+        "active_gameplay_frame": "2312",
+        "sector_state": "7",
+        "sector_row": "0",
+        "enemy_live_count": "0",
+        "enemy_x0": "63",
+        "enemy_x1": "163",
+        "enemy_y0": "240",
+        "enemy_y1": "240"
+      },
+      {
+        "frame": "2357",
+        "start_host_frame": "3220",
+        "active_gameplay_frame": "2333",
+        "sector_state": "0",
+        "sector_row": "10",
+        "enemy_live_count": "0",
+        "enemy_x0": "63",
+        "enemy_x1": "163",
+        "enemy_y0": "240",
+        "enemy_y1": "240"
+      }
+    ],
+    "peak": 31170
+  },
+  "3468204": {
+    "frames": 4200,
+    "samples": [
+      {
+        "frame": "2087",
+        "start_host_frame": "2958",
+        "active_gameplay_frame": "2063",
+        "sector_state": "7",
+        "sector_row": "529",
+        "enemy_live_count": "2",
+        "enemy_x0": "63",
+        "enemy_x1": "163",
+        "enemy_y0": "224",
+        "enemy_y1": "210"
+      },
+      {
+        "frame": "2088",
+        "start_host_frame": "2959",
+        "active_gameplay_frame": "2064",
+        "sector_state": "7",
+        "sector_row": "530",
+        "enemy_live_count": "2",
+        "enemy_x0": "63",
+        "enemy_x1": "163",
+        "enemy_y0": "225",
+        "enemy_y1": "211"
+      },
+      {
+        "frame": "2117",
+        "start_host_frame": "2988",
+        "active_gameplay_frame": "2093",
+        "sector_state": "7",
+        "sector_row": "543",
+        "enemy_live_count": "0",
+        "enemy_x0": "63",
+        "enemy_x1": "163",
+        "enemy_y0": "240",
+        "enemy_y1": "240"
+      },
+      {
+        "frame": "2336",
+        "start_host_frame": "3207",
+        "active_gameplay_frame": "2312",
+        "sector_state": "7",
+        "sector_row": "0",
+        "enemy_live_count": "0",
+        "enemy_x0": "63",
+        "enemy_x1": "163",
+        "enemy_y0": "240",
+        "enemy_y1": "240"
+      },
+      {
+        "frame": "2357",
+        "start_host_frame": "3228",
+        "active_gameplay_frame": "2333",
+        "sector_state": "0",
+        "sector_row": "10",
+        "enemy_live_count": "0",
+        "enemy_x0": "63",
+        "enemy_x1": "163",
+        "enemy_y0": "240",
+        "enemy_y1": "240"
+      }
+    ],
+    "peak": 31170
+  },
+  "77cbfd1": {
+    "frames": 4200,
+    "samples": [
+      {
+        "frame": "2087",
+        "start_host_frame": "2958",
+        "active_gameplay_frame": "2063",
+        "sector_state": "7",
+        "sector_row": "529",
+        "enemy_live_count": "0",
+        "enemy_x0": "0",
+        "enemy_x1": "224",
+        "enemy_y0": "240",
+        "enemy_y1": "240"
+      },
+      {
+        "frame": "2088",
+        "start_host_frame": "2959",
+        "active_gameplay_frame": "2064",
+        "sector_state": "7",
+        "sector_row": "530",
+        "enemy_live_count": "0",
+        "enemy_x0": "0",
+        "enemy_x1": "224",
+        "enemy_y0": "240",
+        "enemy_y1": "240"
+      },
+      {
+        "frame": "2117",
+        "start_host_frame": "2988",
+        "active_gameplay_frame": "2093",
+        "sector_state": "7",
+        "sector_row": "543",
+        "enemy_live_count": "0",
+        "enemy_x0": "0",
+        "enemy_x1": "224",
+        "enemy_y0": "240",
+        "enemy_y1": "240"
+      },
+      {
+        "frame": "2336",
+        "start_host_frame": "3207",
+        "active_gameplay_frame": "2312",
+        "sector_state": "7",
+        "sector_row": "0",
+        "enemy_live_count": "0",
+        "enemy_x0": "0",
+        "enemy_x1": "224",
+        "enemy_y0": "240",
+        "enemy_y1": "240"
+      },
+      {
+        "frame": "2357",
+        "start_host_frame": "3228",
+        "active_gameplay_frame": "2333",
+        "sector_state": "0",
+        "sector_row": "10",
+        "enemy_live_count": "0",
+        "enemy_x0": "0",
+        "enemy_x1": "224",
+        "enemy_y0": "240",
+        "enemy_y1": "240"
+      }
+    ],
+    "peak": 31170
+  }
+}

@@ -171,7 +171,7 @@ sektorami; pokazuje tylko, gdzie jesteś.
 aż jego aktywna ciężka formacja zniknie z pola walki. Raidery i Bombery
 przecinają pole walki w pionie, a ich formacje utrzymują ostrzał.
 Przed przelotem korytarzem pozostałe Bombery przestają strzelać i odlatują
-w bok ku bliższej krawędzi ekranu, dwa razy szybciej od Twojego myśliwca.
+w bok ku bliższej krawędzi ekranu, średnio trzy piksele rastra na klatkę.
 Raidery nadal opadają. Odlatującego ciężkiego przeciwnika wciąż możesz
 uszkodzić lub zniszczyć; korytarz zaczyna się, gdy ciężka formacja opuści pole walki.
 

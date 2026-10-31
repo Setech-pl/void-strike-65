@@ -8529,9 +8529,33 @@ static void dftrace_l2_observe(void)
 #include "voidstrike65_l2.h"
 #include "voidstrike65_l2_exits.h"
 
+/* Read-only corridor write journal, enabled only for attribution runs. */
+static void dfstrips_observe(unsigned pc, unsigned x, unsigned y)
+{
+    static FILE *out;
+    static int init;
+    static unsigned previous;
+    unsigned address;
+    if (!init) {
+        const char *name = getenv("DFSTRIPS_OUTPUT");
+        init = 1;
+        if (name && *name) {
+            out = fopen(name, "w");
+            if (out) fputs("host,trace,pc,address,value,x,y,phase,sector\n", out);
+        }
+    }
+    if (out && previous && dftrace_first_writer_effective_address(previous,x,y,&address) &&
+        ((address >= DFTRACE_RING_SCREEN && address < DFTRACE_RING_END + 54u) || (address >= DFTRACE_DIVIDER_SCREEN && address < DFTRACE_DIVIDER_SCREEN + 40u))) {
+        fprintf(out,"%u,%u,%u,%u,%u,%u,%u,%u,%u\n",(unsigned)Atari800_nframes,
+            dftrace_count,previous,address,MEMORY_mem[address],x,y,MEMORY_mem[0x9a],MEMORY_mem[dftrace_sector_state]);
+    }
+    previous = pc;
+}
+
 static void DFTrace_Observe(unsigned pc, unsigned a_register, unsigned x_register,
 	unsigned y_register, unsigned s_register)
 {
+    dfstrips_observe(pc,x_register,y_register);
 	/* M5b-S4b.5 (slot E): on every instruction, measured frame or not -
 	 * start_gameplay rebuilds the hull maps outside the measured frames. A
 	 * draw outside a measured frame is carried into the next frame's record. */

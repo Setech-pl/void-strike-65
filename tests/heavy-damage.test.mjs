@@ -316,7 +316,7 @@ test('H14 recovery stays within the owner window budget and preserves full segme
   assert.ok(L('_enemy_c_heavy_departure_notice')>=0xae00&&L('_enemy_c_heavy_departure_notice')<0xae00+manifest.residentCapacity.basicWindow.usedBytes);
   assert.equal(manifest.residentCapacity.arena.usedBytes,830);
   assert.equal(manifest.directorRuntime.bytes,324);assert.equal(manifest.l2.usedBytes,1290);
-  assert.equal(manifest.contentModule.usedBytes,1097,'H12/H13 stay in home; sideways departure adds 68 home bytes');
+  assert.equal(manifest.contentModule.usedBytes,1123,'H12/H13 and the slower departure stay in checked home');
   assert.equal(manifest.directorCodeRuntimes.find(r=>r.name==='extension').bytes,875);
   assert.equal(L('_enemy_c_apply_pending_damage'),0x8d67);
   assert.equal(L('_enemy_c_recycle')-L('_enemy_c_apply_pending_damage'),105,'later extension addresses moved');

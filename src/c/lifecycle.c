@@ -63,6 +63,7 @@
 #define LIGHT_OFFSET_INTERCEPTOR ENEMY_ARCHETYPE_OFFSET(ENEMY_ARCHETYPE_INTERCEPTOR)
 #define LIGHT_CENTRE_OFFSET      4u
 #define LIGHT_ROUND              2u
+#define LIGHT_X_FIRST            48u
 #define LIGHT_X_LAST             200u
 #define LIGHT_LAG_Y              12u
 #define LIGHT_FIRE_TOP           24u
@@ -1310,6 +1311,11 @@ static uint8_t light_tick_body(void)
         if (light_work > LIGHT_X_LAST) {
             light_work = LIGHT_X_LAST;
         }
+        /* A sideways Heavy can leave left of the character playfield. The
+         * escort must stay addressable, just as the upper clamp guarantees. */
+        if (light_work < LIGHT_X_FIRST) {
+            light_work = LIGHT_X_FIRST;
+        }
         light_x[light_slot] = light_work;
         /* 0 above the lag: a leader under LIGHT_LAG_Y wraps the byte to
          * 244 or more, and nothing else reaches it (fix/audit-m5, 3 B
@@ -1799,17 +1805,18 @@ uint8_t cc2_heavy_tick(void)
     if (heavy_departure != 0u) {
         /* QUAD body is 32 HPOS wide; screen is [32,224). Its centre is
          * nearer the left edge below X112, right otherwise (ties right).
-         * Four HPOS = eight raster pixels per frame. Monotonic X keeps the
-         * chosen side stable without another per-member state byte. */
+         * One/two HPOS steps give three raster pixels/frame on average.
+         * Monotonic X keeps the chosen side stable without new state. */
+        heavy_index = (uint8_t)(1u + (FRAME_COUNTER & 1u));
         if (heavy_member_x < 112u) {
-            if (heavy_member_x > 4u) {
-                heavy_member_x -= 4u;
+            if (heavy_member_x > heavy_index) {
+                heavy_member_x -= heavy_index;
                 return 0u;
             }
             heavy_member_x = 0u;
         } else {
-            if (heavy_member_x < 220u) {
-                heavy_member_x += 4u;
+            if (heavy_member_x < (uint8_t)(224u - heavy_index)) {
+                heavy_member_x += heavy_index;
                 return 0u;
             }
             heavy_member_x = 224u;

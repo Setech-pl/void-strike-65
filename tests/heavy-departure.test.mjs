@@ -25,7 +25,7 @@ function solo(m,slot,x,y) {
   v[L('ENEMY_MANEUVER_STATE')+slot]=2;
   call(m,'draw_enemy_member',slot,255);
 }
-test('departing Bomber chooses nearest screen edge, flies eight pixels/frame and clears before retirement',()=>{
+test('departing Bomber chooses nearest screen edge, averages three pixels/frame and clears before retirement',()=>{
   let cases=0,maximum=0;
   for(const difficulty of [0,1,2]) {
     const base=formation(difficulty);
@@ -33,16 +33,16 @@ test('departing Bomber chooses nearest screen edge, flies eight pixels/frame and
       const m=clone(base),v=m.memory;solo(m,slot,x,y);
       let frames=0,old=x;const direction=x<112?-1:1;
       while(v[L('ENEMY_MEMBER_STATE')+slot]) {
-        call(m,'update_enemy');frames++;
+        v[0x86]=frames&255;call(m,'update_enemy');frames++;
         const next=v[L('ENEMY_X')+slot];
         if(v[L('ENEMY_MEMBER_STATE')+slot]) {
-          assert.equal(next-old,direction*4);assert.equal(v[L('ENEMY_Y')+slot],y);
+          assert.equal(next-old,direction*(1+((frames-1)&1)));assert.equal(v[L('ENEMY_Y')+slot],y);
           assert.equal(v[0xd001+slot],next);
         } else {
           assert.equal(next,direction<0?0:224);assert.equal(v[0xd001+slot],0);
           assert.ok(v.slice(0x3d00+slot*256,0x3e00+slot*256).every(b=>!b),'old body completely erased');
         }
-        old=next;assert.ok(frames<=28);assert.ok(v.slice(L('FIGHTER_PROJECTILE_ACTIVE')+5,L('FIGHTER_PROJECTILE_ACTIVE')+10).every(b=>!b),'no departure fire');
+        old=next;assert.ok(frames<=75);assert.ok(v.slice(L('FIGHTER_PROJECTILE_ACTIVE')+5,L('FIGHTER_PROJECTILE_ACTIVE')+10).every(b=>!b),'no departure fire');
       }
       assert.equal(v[L('ENEMY_ACTIVE')],0);assert.equal(v[L('ENEMY_LIVE_COUNT')],0);
       const plane=v.slice(0x3d00,0x3f00);v[L('_heavy_breakup_pending')]=slot+1;
@@ -50,7 +50,7 @@ test('departing Bomber chooses nearest screen edge, flies eight pixels/frame and
       maximum=Math.max(maximum,frames);cases++;
     }
   }
-  console.log(JSON.stringify({departureCases:cases,maximumExitFrames:maximum,speedRasterPixelsPerFrame:8,newStateBytes:0}));
+  console.log(JSON.stringify({departureCases:cases,maximumExitFrames:maximum,speedRasterPixelsPerFrame:3,newStateBytes:0}));
 });
 test('departure hits publish both Bomber hole stages at held Y, then kill and score normally',()=>{
   const stages=compileHeavyDamage().stages[1];
@@ -82,7 +82,7 @@ test('departure hits publish both Bomber hole stages at held Y, then kill and sc
 test('capital admission still waits two fully Heavy-free frames, including frame-counter wrap',()=>{
   let minimum=255;
   for(const difficulty of [0,1,2])for(const frame of [40,254]) {
-    const m=formation(difficulty),v=m.memory;solo(m,0,4,72);
+    const m=formation(difficulty),v=m.memory;solo(m,0,1,72);
     call(m,'_asm_cc2_advance');assert.equal(v[0x80f6],0,'live Heavy blocks admission');
     call(m,'update_enemy');assert.equal(v[L('ENEMY_ACTIVE')],0);
     for(let empty=0;empty<=2;empty++) {

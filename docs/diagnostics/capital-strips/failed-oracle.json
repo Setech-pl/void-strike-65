@@ -1,0 +1,125 @@
+{
+  "build": ".cache/capital-strips/77cbfd1/build/level-2-s0",
+  "journal": ".cache/capital-strips/77cbfd1-oracle.csv",
+  "checkedCapitalFrames": 1864,
+  "badFrames": 639,
+  "firstWrongHull": {
+    "trace": 2357,
+    "cells": [
+      {
+        "address": 34074,
+        "column": 26,
+        "value": 202,
+        "authored": 0,
+        "writer": {
+          "host": 3228,
+          "trace": 2357,
+          "pc": 22272,
+          "address": 34074,
+          "value": 202,
+          "x": 26,
+          "y": 33,
+          "phase": 6,
+          "sector": 0
+        }
+      },
+      {
+        "address": 34075,
+        "column": 27,
+        "value": 212,
+        "authored": 0,
+        "writer": {
+          "host": 3228,
+          "trace": 2357,
+          "pc": 22272,
+          "address": 34075,
+          "value": 212,
+          "x": 26,
+          "y": 34,
+          "phase": 6,
+          "sector": 0
+        }
+      },
+      {
+        "address": 34076,
+        "column": 28,
+        "value": 198,
+        "authored": 0,
+        "writer": {
+          "host": 3228,
+          "trace": 2357,
+          "pc": 22272,
+          "address": 34076,
+          "value": 198,
+          "x": 26,
+          "y": 35,
+          "phase": 6,
+          "sector": 0
+        }
+      },
+      {
+        "address": 34077,
+        "column": 29,
+        "value": 198,
+        "authored": 0,
+        "writer": {
+          "host": 3228,
+          "trace": 2357,
+          "pc": 22272,
+          "address": 34077,
+          "value": 198,
+          "x": 26,
+          "y": 36,
+          "phase": 6,
+          "sector": 0
+        }
+      },
+      {
+        "address": 34078,
+        "column": 30,
+        "value": 198,
+        "authored": 0,
+        "writer": {
+          "host": 3228,
+          "trace": 2357,
+          "pc": 22272,
+          "address": 34078,
+          "value": 198,
+          "x": 26,
+          "y": 37,
+          "phase": 6,
+          "sector": 0
+        }
+      },
+      {
+        "address": 34079,
+        "column": 31,
+        "value": 212,
+        "authored": 0,
+        "writer": {
+          "host": 3228,
+          "trace": 2357,
+          "pc": 22272,
+          "address": 34079,
+          "value": 212,
+          "x": 26,
+          "y": 38,
+          "phase": 6,
+          "sector": 0
+        }
+      }
+    ]
+  },
+  "firstBadRowPointer": {
+    "host": 2959,
+    "trace": 2088,
+    "pc": 14255,
+    "address": 34183,
+    "value": 249,
+    "x": 1,
+    "y": 0,
+    "phase": 6,
+    "sector": 7
+  },
+  "copyPc": 22272
+}

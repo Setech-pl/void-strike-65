@@ -164,7 +164,8 @@ only marks where you are.
 formation to clear before moving on. Raiders and Bombers cross the playfield
 vertically while their formations keep you under fire.
 Before a capital run, remaining Bombers stop firing and fly sideways toward
-the nearer screen edge, twice as fast as your fighter. Raiders keep descending.
+the nearer screen edge, at an average of three raster pixels per frame.
+Raiders keep descending.
 You can still damage or destroy a departing Heavy; the corridor starts after
 the Heavy formation has cleared.
 

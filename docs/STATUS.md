@@ -1,6 +1,6 @@
 # VOID STRIKE 65 — CURRENT STATUS
 
-Last update: 2026-10-31 (M3-H session2 complete; final sideways departure candidate)
+Last update: 2026-10-31 (M3-H session-finish smoke repair candidate)
 
 What is true now. Rules: [reguly-projektu.txt](reguly-projektu.txt). Roadmap:
 [plan-realizacji.md](plan-realizacji.md). Source-of-truth order:
@@ -20,54 +20,43 @@ the values below.
 
 ## Checkpoint
 
-### M3-H session 2 — complete; sideways departure OWNER-SMOKE CANDIDATE
+### M3-H session 2 — smoke repair OWNER-SMOKE CANDIDATE
 
-Owner passed checkpoint6 on 2026-10-31 in both Heavy-sector and level2
-(`3468204`, tuned visuals OWNER-ACCEPTED). H10–H14/H16 and the Heavy looks are
-complete. Armoured Raider: plated silhouette/violet$68 versus assault$44;
-connected outline damage removes15 then19 total bitmap pixels. Bomber HP1..5
-colours$28/$C6/$C8/$C8/$C8; flash/charge priorities and safe luminance remain.
-Heavy-sector shortcut admits armour immediately; campaign pacing is unchanged.
+Checkpoint6 visuals `3468204` remain OWNER-ACCEPTED. Owner smoke of the
+subsequent session-finish `77cbfd1` **FAILED**: strips after level2 capital
+entry and an overly fast sideways exit. That failed candidate is superseded
+by this repair; no new owner acceptance is inferred.
 
-The final owner-requested Bomber departure is implemented in checked content
-home: 8 native raster pixels/frame sideways toward the nearer edge, fixed Y,
-no firing, full off-screen erase/retirement. It remains damageable, publishes
-both hole stages during departure, and dies/scores normally. Raider departure
-is unchanged (168 linked updates identical, including PMG bytes and cycles).
-This last behaviour is **OWNER-SMOKE CANDIDATE**; no new owner PASS is inferred.
-[Finish audit, measurements, test diff and play hashes](diagnostics/m3h-session2/session-finish/report.md).
+Native attribution on main71a38a8,3468204 and77cbfd1 reproduces strips only
+on77cbfd1. At trace2088 the left Bomber's offscreen Wingman escort writes
+$F8/$F9 into the playfield row-pointer table ($8586/$8587, writer$37AF).
+The divider copier$5700 first spreads hull codes into the corridor at
+trace2357/host3228. Main and checkpoint6 do not corrupt the table.
+C now clamps the escort's lower X edge48, matching its existing upper200.
+No turret-shot backing, erase, renderer or scheduler code change.
 
-Final resident window **2,290 B**, **+222 B for session2**, 28 B below the
-+250-B ceiling. Arena830, Director324, L2 1,290/1,792, decoded extension875 B.
-Home **1,097/1,920 B**,823 free; final departure adds68 B there (56 C/12 ASM),
-0 window/state/arena/Director bytes. H12/H13 remain in checked content home
-with existing phase/validity guards. Heavy policy13 B, damage metadata8 B,
-existing32-B damaged bodies reused. Home15 sectors, extension7, window15;
-total213 sectors (+2 for session2); departure adds0 sectors/load cycles.
+Bomber exits average3 raster pixels/frame, alternating1/2 HPOS steps on
+existing frame parity. Linked2,322 cases: maximum75 frames, damage/hole and
+full-erase checks pass. Capital retains the2-frame Heavy-free invariant;
+MEDIUM full level2 has229 empty frames before admission. Independent native
+terrain audit:1,864 capital/post-capital frames, zero invalid corridor cells
+or row-pointer corruption. All1,208 turret-shot restore tuples match the
+normal3468204 run byte-exactly; main matches too.
 
-Measured row-tick delta0 cycles; ordinary/nondeparting behaviour delta0.
-Departing Bomber member motion+20/+23 instruction cycles left/right; terminal
-erase+363/+368. Whole pair update saves1,026 cycles during motion and181 when
-both retire, because held Y avoids PMG copies. Native quick Spread NORMAL
-**30,465**, capital-960 **31,153**; zero misses/VBI/DLI/shift/stale-L2 events,
-boss entry325. Natural EASY/MEDIUM/HARD capital handoffs have287/255/**220**
-fully Heavy-free frames; linked admission tests retain the2-frame guarantee.
+Window2,302 B (+234/250 B for session2), home1,123/1,920 B; arena830,
+Director324 and L2 1,290 unchanged. No new state or reserved range. Normal
+computed gates pass; runtime release evidence remains pending. Quick Spread
+NORMAL30,465; capital-960 NORMAL31,153 (zero timing anomalies, boss entry325).
+Escort C tick+9 cycles in range/+14 at lower clamp; representative departure
+updates+19/+23 moving,+18/+19 terminal versus failed77cbfd1.
 
-Normal computed build gates PASS. Focused57 PASS/0 FAIL/1 review-only SKIP,
-strengthened departure4/4 PASS (2,322 exit cases, max28 frames), map3/3 and
-optional emulator-location cases12/12 PASS. One full npm test: raw1,510 PASS/
-138 FAIL/4 SKIP of1,652; after stale generated-map regeneration and three
-optional setup reruns: audited1,514/137/1. **A137/B0/C0** against main71a38a8
-by file/name/first failing assertion/message. Shared debt is recorded;
-canonical legacy unit reconciliation remains nonzero, trace NEW/MOVED0.
-Normal build has pending runtime evidence; no milestone/release claim.
+Full test audit versus main: **A137/B0/C0**, candidate1512 PASS/137 shared
+FAIL/4 SKIP after two focused self-resolutions; no release/full-suite-green claim.
 
-Main71a38a8 was merged (no rebase) in `bbc34a9`, parents8bceac0/71a38a8.
-No code conflicts. The sole docs registry conflict preserves both sides and
-main's text unchanged. EN/PL enemy/player docs and memory map are current.
-Fresh campaign, level2 and Heavy-sector ATRs are under
-`build/play/m3h-session2/session-finish/` (hashes in delivery.json).
-**NEXT TASK: owner review/smoke of sideways departure, then owner merge; STOP.**
+Fresh campaign,level2 and Heavy-sector ATRs replace the failed session-finish
+files under `build/play/m3h-session2/session-finish/`.
+[Attribution, native invariant, test audit and delivery hashes](diagnostics/capital-strips/report.md).
+**NEXT TASK: owner smoke of the repaired candidate; STOP.**
 
 ### Loop-phase resync — partial OWNER-SMOKE CANDIDATE
 

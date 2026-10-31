@@ -38,14 +38,29 @@ test('H13 generated variant C is 24 checked-home bytes with cumulative holes',()
   }
 });
 
-test('H13 rejects empty/nonexistent bits, silhouette erosion, duplicate rows and noncumulative stages',()=>{
+test('H13 rejects empty/nonexistent bits, row erasure, duplicate rows and noncumulative stages',()=>{
   for(const mutate of [s=>s.heavyDamage.armouredRaider[0][0][1]=0,
     s=>s.heavyDamage.bomber[0][0][0]=13,
-    s=>s.heavyDamage.bomber[0][0][1]=0x80,
+    s=>s.heavyDamage.armouredRaider[0][0][1]=0xff,
     s=>s.heavyDamage.armouredRaider[0][1][0]=2,
     s=>s.heavyDamage.armouredRaider[1][0][1]=4,
     s=>s.heavyDamage.variant='B']) {
     const s=damageSource();mutate(s);assert.throws(()=>compileHeavyDamage(s),/heavyDamage/);
+  }
+});
+
+test('H13 damage removes 15 then 19 pixels as one connected outline notch; rows and tail survive',()=>{
+  for(const [intact,...stages] of compileHeavyDamage().stages)for(const [stage,body] of stages.entries()) {
+    const removed=[];
+    for(let y=0;y<16;y++)for(let x=0;x<8;x++)if((intact[y]&~body[y])&(128>>x))removed.push(y*8+x);
+    assert.equal(removed.length,[15,19][stage]);
+    const remaining=new Set(removed),queue=[removed[0]];remaining.delete(queue[0]);
+    for(const p of queue)for(const q of [p-8,p+8,...(p%8?[p-1]:[]),...(p%8<7?[p+1]:[])])
+      if(remaining.delete(q))queue.push(q);
+    assert.equal(remaining.size,0,'damage is one contiguous patch, not scattered dots');
+    assert.ok(removed.some(p=>p%8===0),'left outline changes');
+    assert.deepEqual(body.slice(9),intact.slice(9),'rear/tail stays recognisable');
+    assert.ok(body.every((row,y)=>!intact[y]||row),'no occupied row disappears');
   }
 });
 

@@ -20,9 +20,9 @@ export function compileHeavyDamage(source=damageSource(),look=compileHeavyLook(s
         const [row,mask]=pair;
         if(!Number.isInteger(row)||row<1||row>=body.length-1||seen.has(row)||!Number.isInteger(mask)||mask<1||mask>255||(body[row]&mask)!==mask)
           throw Error(`heavyDamage.${name}: invalid row or clear-mask`);
-        // Preserve the outer silhouette and every occupied row.
-        const occupied=[];for(let bit=0;bit<8;bit++)if(body[row]&(1<<bit))occupied.push(bit);
-        if(mask&((1<<occupied[0])|(1<<occupied.at(-1))))throw Error(`heavyDamage.${name}: mask erodes silhouette`);
+        // Owner 2026-10-31: erode one wing/outline, but keep at least one body
+        // bit in every occupied row rather than erase a full row.
+        if((body[row]&~mask)===0)throw Error(`heavyDamage.${name}: mask erases an occupied row`);
         seen.add(row);result[row]&=~mask;bytes.push(row,mask);
       }
       if(stage&&result.some((v,row)=>(v&rendered[0][row])!==v))throw Error(`heavyDamage.${name}: stages must be cumulative`);

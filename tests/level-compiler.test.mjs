@@ -516,8 +516,11 @@ test("levels:check runs the validator alone and the build compiles the authored 
   // RE-POINTED S5-1 (plan s5-boss-regions §5): a --boss-region route compiles
   // level 1's authored file under its run's id (levelSourceIdForRun); every
   // other build compiles the run's own file, as before.
-  assert.match(buildSource, /compileLevelFile\(levelSourcePath\(levelSourceIdForRun\(run\.id\)\)/,
+  // Owner 2026-10-31: the Heavy shortcut applies its data-only override to
+  // this same authored source; ordinary builds compile the selected file.
+  assert.match(buildSource, /: levelSourcePath\(levelSourceIdForRun\(run\.id\)\)\);/,
     "the build must compile the authored JSON, not carry the bytes");
+  assert.match(buildSource, /: compileLevelFile\(file,\{hullAsset:capitalHullsAsset\}\)/);
   assert.match(buildSource, /const levelSourceIdForRun = \(id\) => \(bossRegionValue !== null \? 1 : id\);/);
 });
 

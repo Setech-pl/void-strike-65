@@ -46,11 +46,11 @@ migasz po odrodzeniu.
 Podstawowy wrogi myśliwiec, latający parą.
 
 Na poziomie 2 pojawia się też opancerzona odmiana: szersze skrzydła osłonięte
-płytami, jaśniejszy kolor wrogiego kadłuba, 2 /2 /3 trafienia do zniszczenia,
+płytami, fioletowy kolor kadłuba, 2 /2 /3 trafienia do zniszczenia,
 zaplanowany postój strzelecki i unik w bok po trafieniu, które przeżyje.
 Szturmowe Raidery zachowują dawną sylwetkę i giną od jednego trafienia.
 Obie odmiany mają tę samą broń, punktację i sposób rysowania.
-Opancerzona odmiana zyskuje trwałe dziury przy 2 i 1 HP; Raider zaczynający z
+Opancerzona odmiana traci widoczny fragment jednego skrzydła przy 2 i 1 HP; Raider zaczynający z
 2 HP po pierwszym przeżytym trafieniu od razu pokazuje ostatni wygląd uszkodzeń.
 
 - **Trafień do zniszczenia:** 1. **Punkty:** 10.
@@ -78,9 +78,9 @@ Ciężki bombowiec o sylwetce katamaranu (dwa kadłuby, jeden mostek), więc nig
 nie wygląda jak duży Raider. Jest zielony, a tego koloru nie nosi nic innego w
 tej bitwie.
 
-- **Trafień do zniszczenia:** 4 / 4 / 5. Przy 2 i 1 HP zielony kadłub ciemnieje,
-  ale przy 1 HP pozostaje czytelny. Błyska przy przeżytym trafieniu
-  i zyskuje trwałe dziury przy 2 i 1 HP.
+- **Trafień do zniszczenia:** 4 / 4 / 5. Przy 2 HP zielony kadłub ciemnieje;
+  przy 1 HP staje się pomarańczowoczerwony. Błyska przy przeżytym trafieniu
+  i traci widoczny fragment jednego boku przy 2 i 1 HP.
 - **Punkty:** 50.
 - **Broń:** nalot. Bomber zatrzymuje się, jego kadłub rozjaśnia się na 20
   klatek, gdy celuje, a potem wystrzeliwuje dwa pociski co 8 klatek z tego

@@ -20,5 +20,5 @@ for(const [index,{rows,colour}] of [{rows:assault,colour:0x44},{rows:armour.suba
 }
 const out=path.resolve(process.argv[2]??'build/m3h-session2/checkpoint-2');fs.mkdirSync(out,{recursive:true});
 fs.writeFileSync(path.join(out,'looks.png'),encodePng(rgb,width,height));
-fs.writeFileSync(path.join(out,'looks.svg'),`<svg xmlns="http://www.w3.org/2000/svg" width="640" height="180" viewBox="0 0 640 180"><rect width="640" height="180" fill="#040404"/><g fill="#ddd" font-family="monospace" font-size="16"><text x="64" y="25">ASSAULT $44</text><text x="384" y="25">ARMOURED $46</text></g>${rects.join('')}<text x="64" y="165" fill="#999" font-family="monospace" font-size="12">PMG DOUBLE / source pixels x6 / Atari800 PAL palette</text></svg>\n`);
+fs.writeFileSync(path.join(out,'looks.svg'),`<svg xmlns="http://www.w3.org/2000/svg" width="640" height="180" viewBox="0 0 640 180"><rect width="640" height="180" fill="#040404"/><g fill="#ddd" font-family="monospace" font-size="16"><text x="64" y="25">ASSAULT $44</text><text x="384" y="25">ARMOURED $${armour[16].toString(16).toUpperCase()}</text></g>${rects.join('')}<text x="64" y="165" fill="#999" font-family="monospace" font-size="12">PMG DOUBLE / source pixels x6 / Atari800 PAL palette</text></svg>\n`);
 console.log(path.join(out,'looks.svg'));

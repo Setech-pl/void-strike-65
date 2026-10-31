@@ -1400,5 +1400,6 @@
     "existing_entries_reference": "m3h_session2_unit_debt_2026_10_30 (same137 exact tuples)",
     "new_entries": [],
     "note": "A137/B0/C0 by file/name/first assertion/message after one accepted packing-pin correction, passing focused. Raw1507/138/1 skip of1646; audited1508/137/1 skip. Canonical release predicates and unit registry unchanged."
-  }
+  },
+  "m3h_session2_visual_tuning_unit_debt_2026_10_31": {"comparedMain":"71a38a847ab1d3702b77b292d6873159ecf4c2ff","comparison":"docs/diagnostics/m3h-session2/checkpoint-6-tuned/tests-ab.json","classification":"pre-existing-unclassified","count":137,"existing_entries_reference":"m3h_session2_checkpoint6_unit_debt_2026_10_30 (same 137 exact tuples)","new_entries":[],"note":"One full run: raw1505/139/4 skip of1648. Owner-requested palette hash and equivalent compiler-call expectation corrected; both pass focused. Three optional source-location skips pass after private emulator setup. Audited1510/137/1 skip, A137/B0/C0. Canonical unit/trace release predicates unchanged."}
 }

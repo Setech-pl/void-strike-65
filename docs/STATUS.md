@@ -1,6 +1,6 @@
 # VOID STRIKE 65 — CURRENT STATUS
 
-Last update: 2026-10-30 (M3-H checkpoint6 visual audit; owner review pending)
+Last update: 2026-10-31 (M3-H checkpoint6 stronger visual data; owner smoke pending)
 
 What is true now. Rules: [reguly-projektu.txt](reguly-projektu.txt). Roadmap:
 [plan-realizacji.md](plan-realizacji.md). Source-of-truth order:
@@ -28,12 +28,14 @@ The owner-approved resident C notification resolves the departure gap without
 moving H12/H13 from checked content home. [Play ATRs, hashes, smoke checklist
 and complete audit](diagnostics/m3h-session2/checkpoint-6-final.md).
 
-Owner reported no visible armour/holes/Bomber colour change in the Heavy-sector
-smoke; no acceptance is recorded. The [exact-ATR visual audit](diagnostics/m3h-session2/checkpoint-6-visual/report.md)
-confirms all three active at default MEDIUM using native screenshots and real
-collision hits, without guest-state injection or game changes. Armour appeared
-at52.46s in the successful replay; the shortcut can cut before armour appears
-on a slower route. Comparisons and pixel/luminance counts await owner review.
+Owner confirmed all three features work, but judged their appearance too subtle.
+The [tuned candidate](diagnostics/m3h-session2/checkpoint-6-tuned/report.md)
+removes a connected piece of one wing/side:15 bitmap pixels at stage1,19 total
+at stage2. Armour is violet$68, assault stays$44; Bomber at1 HP is orange-red$28,
+at2 HP green$C6, healthy$C8. Existing +4 flash/charge priority and safe luminance
+limits remain. Only the Heavy-sector shortcut changes its opening wave to
+armoured: native MEDIUM capture at0.68s. Campaign rows/counts/spacing unchanged.
+Updated source comparisons and native frames await owner smoke; no new mechanism.
 
 Final window **2,290 B (+222 for session)**,28 B below the250-B ceiling.
 The recovery adds32 B only in the window; arena830, Director324, L2 1,290,
@@ -48,25 +50,30 @@ when motion watches are bypassed. The helper checks validity/phase before
 reading departure data. Dead/retired requests never draw, including when a
 live peer publishes. No movement, weapon, score or collision-bound change.
 Damage publication stays nonrotate-only, coalesced, bounded to≤3 frames after
-watch;admission restores intact art. Bomber base lumas4/6/8/8/8,hue C,candidate.
+watch;admission restores intact art. Tuned Bomber HP1..5 colours are
+$28/$C6/$C8/$C8/$C8; base luma≤8,effects≤12,no hue spill.
 
-Normal gated build PASS. Focused65 PASS/0 FAIL,one review-only skip;actual level2
-and Heavy variants22 PASS each plus final stronger departure cases2/2 each.
-One full suite raw1507 PASS/138 FAIL/1 SKIP of1646;after one accepted packing-pin
-correction passes focused: audited1508/137/1, **A137/B0/C0** against main71a38a8
-by file/name/first assertion/message. No second full run is claimed. Existing
-unit/release debt remains recorded;canonical release reconciliation is nonzero.
+Normal gated builds PASS. Focused50 PASS/0 FAIL/1 review-only SKIP; actual level2
+and Heavy variants23 PASS/0 FAIL/1 review-only SKIP each.36 linked before/after
+NMOS cases measure0 added cycles; all segment sizes and transport counts unchanged.
+One full suite raw1505 PASS/139 FAIL/4 SKIP of1648. Two stale expectations
+(requested palette hash; equivalent compiler call path) pass corrected focused
+checks; three optional emulator-location skips pass after setup. Audited1510/137/1,
+**A137/B0/C0** against unchanged main71a38a8 by file/name/first assertion/message.
+No second full run is claimed. Shared debt remains recorded; legacy canonical
+unit/trace release reconciliation is nonzero.
 
 Final native Spread30,465 /capital-96031,153;hard margin1,415,target margin347;
 zero misses,extra VBI,DLI/shift/stale-L2 events;boss entry325. A1000-frame Heavy
 fixture peaks30,841,zero PMG mismatches;it seeds only departure flags,then real
 collision hits publish both damage stages. Linked armour/Bomber E/M/H cover
 both slots,death/retirement,clipping,holds,dodge and invalid-home read traps.
-The later exact-ATR visual audit proves native armoured admission and first-hit
-publication; release readiness is not claimed.
+The visual audit and later tuned native replay prove armoured admission and
+damage publication; release readiness is not claimed. Tuned data adds0 bytes
+and0 instruction cycles versus2d4ef8c, including first/later stamps.
 
 Main remains71a38a8;branch stays on owner-cut7fe9040 with no merge/rebase/push.
-**NEXT TASK: owner review of checkpoint6 visual audit; STOP.** Final acceptance belongs to
+**NEXT TASK: owner smoke of tuned checkpoint6 ATRs; STOP.** Final acceptance belongs to
 owner;no new roadmap item or release work starts automatically.
 
 ### Loop-phase resync — partial OWNER-SMOKE CANDIDATE

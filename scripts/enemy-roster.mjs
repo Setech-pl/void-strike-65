@@ -253,8 +253,8 @@ export function compileHeavyLook(look) {
   invariant(rows.some(Boolean), "heavy look draws no pixel");
   const colour = typeof look.colour === "string" && /^\$[0-9a-f]{2}$/i.test(look.colour)
     ? Number.parseInt(look.colour.slice(1), 16) : look.colour;
-  invariant(Number.isInteger(colour) && colour >= 0x44 && colour <= 0x48 && (colour & 1) === 0,
-    "heavy look colour must be hostile red $44, $46 or $48");
+  invariant(Number.isInteger(colour) && [0x44,0x46,0x48,0x64,0x66,0x68].includes(colour),
+    "heavy look colour must be hostile red $44/$46/$48 or armoured violet $64/$66/$68");
   return Buffer.from([...rows, 0, 0, colour]);
 }
 

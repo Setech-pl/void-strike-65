@@ -1,0 +1,10 @@
+✔ the art outside the boss band: build/level-payload.bin is the pinned bytes (0.859333ms)
+✔ levels:check runs the validator alone and the build compiles the authored file (0.670041ms)
+ℹ tests 2
+ℹ suites 0
+ℹ pass 2
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 2266.335917

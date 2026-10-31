@@ -39,6 +39,8 @@ import {
   HULL_STYLE_BLOCK_OFFSETS,
 } from "./capital-hulls.mjs";
 import {
+  compileLevel,
+  loadLevelSource,
   compileLevelFile,
   levelSourcePath,
   LEVEL_CORE_OFFSET,
@@ -62,6 +64,7 @@ import {
   renderLevelDefCHeader,
   CORE_DEBUG_START_SECTOR_OFFSET,
 } from "./level-compiler.mjs";
+import {heavySmokeLevelSource} from './heavy-smoke-level.mjs';
 import {
   compileEnemyRoster,
   loadEnemyRosterDefinition,
@@ -2665,11 +2668,15 @@ async function build() {
   // Roadmap 4.6 step 1: the authored level compiles here, so a level file that
   // asks for something the runtime cannot honour fails the build, not the
   // owner's smoke (plan §5).
-  const compiledLevels = new Map(levelRuns.map((run) =>
-    [run.id, bossVariantLevel(run.id) !== null
-      ? compileLevelFile(bossVariantLevel(run.id), { hullAsset: capitalHullsAsset })
-      : longCapital ? compileLevelFile(path.join(rootDirectory,"assets/levels/diagnostics/l2-capital-960.json"), {hullAsset:capitalHullsAsset})
-      : compileLevelFile(levelSourcePath(levelSourceIdForRun(run.id)), { hullAsset: capitalHullsAsset })]));
+  const compiledLevels = new Map(levelRuns.map((run) => {
+    const file = bossVariantLevel(run.id) ?? (longCapital
+      ? path.join(rootDirectory,"assets/levels/diagnostics/l2-capital-960.json")
+      : levelSourcePath(levelSourceIdForRun(run.id)));
+    return [run.id, levelDebugId === 2 && levelDebugSector === 5
+      ? compileLevel(heavySmokeLevelSource(loadLevelSource(file),levelDebugId,levelDebugSector),
+        {file,hullAsset:capitalHullsAsset})
+      : compileLevelFile(file,{hullAsset:capitalHullsAsset})];
+  }));
   // ... and stamps the sector to enter into the core page's own byte, which
   // director_c_init reads only under LEVEL_DEBUG_START.
   if (levelDebugId !== null) {

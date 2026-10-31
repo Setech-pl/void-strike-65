@@ -184,14 +184,17 @@ pixels while preserving the established hull silhouette and backing behavior.
 
 - **Heavy Raider** — monochrome PMG body on `P1`/`P2`, double-width, one hostile
   colour, no second overlaid colour layer. The M3-H armoured profile uses
-  broader plated wings and hostile `$46`; assault keeps its original crescent
+  broader plated wings and its own violet `$68`; assault keeps its original crescent
   and `$44`. Both use the same 14-row frame, collision bounds and PMG slots.
   Source: `enemy-roster.json` → `heavyLooks.armouredRaider`, or a level's
   `payload.heavyLook`; `node scripts/heavy-look-preview.mjs` rebuilds the sheet.
-  Damage variant C clears authored interior pixels at 2/1 HP without changing
-  the silhouette bounds. The source triples are `heavyDamage` in the same JSON;
-  `node scripts/heavy-damage-preview.mjs` renders intact/stage1/stage2. Bomber
-  base luminances for HP1..5 are 4/6/8/8/8 in hue C, with +4 flash/charge.
+  Damage variant C removes a connected notch from one wing/side at 2/1 HP:
+  15 then 19 cumulative bitmap pixels. Collision bounds stay unchanged.
+  The source triples are `heavyDamage` in the same JSON;
+  `node scripts/heavy-damage-preview.mjs` renders intact/stage1/stage2.
+  Bomber HP1..5 colours are `$28/$C6/$C8/$C8/$C8`: orange-red at 1 HP,
+  green otherwise, with the existing mutually exclusive +4 flash/charge.
+  Base luminance never exceeds 8; flash/charge never exceeds 12 or spills hue.
 - **Light Wingman** — small 2x1 character enemy in the gameplay charset, glyphs
   120-121, installed at runtime in colour 3 with the hostile bit. It allocates
   no PMG player.

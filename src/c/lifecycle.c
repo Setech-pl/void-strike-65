@@ -195,7 +195,7 @@
  * at all, so green separates from burgundy, from steel and from the amber
  * allied faction colour on both hull styles. The frontend/loader greens ($D8,
  * $D0) are hue D on screens gameplay never shares.
- *   HP 5/4/3 -> $C8   HP 2 -> $C6   HP 1 -> $C4 (M3-H session 2)
+ *   HP 5/4/3 -> $C8   HP 2 -> $C6   HP 1 -> orange-red $28 (owner 2026-10-31)
  * HULL_COLOUR_BOMBER is the full-HP entry, published to COLPM1/COLPM2 when
  * the formation is admitted; bomber_colour() derives the rest per tick. The
  * cost is zero: only the value of this constant changes. */
@@ -208,9 +208,10 @@
 #define BOMBER_HULL_HUE          BOMBER_HULL_HUE_OVERRIDE
 #endif
 #pragma rodata-name (push, "HYBRID_C_WINDOW_LOOK")
-/* Owner-approved readable HP ramp; flash/charge are mutually exclusive. */
+/* Critical hue is a table entry, with the same +4 flash/charge priority. */
+#define BOMBER_CRITICAL_COLOUR  0x28u
 static const uint8_t bomber_hull_ramp[6] = {
-    BOMBER_HULL_HUE, BOMBER_HULL_HUE | 4u, BOMBER_HULL_HUE | 6u,
+    BOMBER_HULL_HUE, BOMBER_CRITICAL_COLOUR, BOMBER_HULL_HUE | 6u,
     BOMBER_HULL_HUE | 8u, BOMBER_HULL_HUE | 8u, BOMBER_HULL_HUE | 8u
 };
 #pragma rodata-name (pop)
@@ -327,7 +328,10 @@ typedef char enemy_archetype_must_remain_twelve_bytes[
 typedef char bomber_hull_ramp_must_stay_inside_its_hue[
     (HULL_COLOUR_BOMBER == (BOMBER_HULL_HUE | 8u)) &&
     (HULL_COLOUR_BOMBER + BOMBER_FLASH_LUMA) < (BOMBER_HULL_HUE + 0x10u) &&
-    (HULL_COLOUR_BOMBER + BOMBER_CHARGE_LUMA) < (BOMBER_HULL_HUE + 0x10u) ? 1 : -1
+    (HULL_COLOUR_BOMBER + BOMBER_CHARGE_LUMA) < (BOMBER_HULL_HUE + 0x10u) &&
+    (BOMBER_CRITICAL_COLOUR & 0x0Fu) <= 8u &&
+    ((BOMBER_CRITICAL_COLOUR + BOMBER_FLASH_LUMA) & 0xF0u) == 0x20u &&
+    ((BOMBER_CRITICAL_COLOUR + BOMBER_CHARGE_LUMA) & 0xF0u) == 0x20u ? 1 : -1
 ];
 
 /* Roadmap 4.6 step 2: the escort schedule, the entry-column cycle and the

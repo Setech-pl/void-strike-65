@@ -1,0 +1,15 @@
+Reading Atari800 config file: /Users/marcinkrzetowski/Projects/dark-fighter-m3h-s2/build/atari800-pinned.cfg
+Created by Atari 800 Emulator, Version 7.1.2
+
+Cannot use OpenGL - unable to dynamically open OpenGL library: No dynamic OpenGL support in current SDL video driver (dummy)
+
+Requested resolution 1728x1117 is too big, using 1024x768 instead.
+Video Mode: 1024x768x32 fullscreen
+capture armour-intact frame=34 seconds=0.68 formation=1 slot=0 hp=2 colour=68 stage=0
+frame 500 f1 wave14 remaining5 shape0 flags21 lives3
+capture armour-first-hit frame=737 seconds=14.74 formation=2 slot=0 hp=1 colour=68 stage=2
+frame 1000 f3 wave14 remaining3 shape0 flags20 lives2
+frame 1500 f6 wave15 remaining6 shape0 flags20 lives1
+capture bomber-full frame=1631 seconds=32.62 formation=7 slot=0 hp=4 colour=c8 stage=0
+capture bomber-hp2 frame=1690 seconds=33.80 formation=7 slot=0 hp=2 colour=c6 stage=1
+capture bomber-hp1 frame=1728 seconds=34.56 formation=7 slot=0 hp=1 colour=28 stage=2

@@ -1,0 +1,86 @@
+✔ Bomber is the fourth 12-byte C record: 4 HP, lane sweep, 2-shell salvo, BOMBER class (21.2295ms)
+✔ an alternating pair of waves alternates the formation's roster shape, hull colour and HP (14.50975ms)
+✔ Bomber admission publishes its profile and the lane-sweep formation start (34.701084ms)
+✔ escort column: the escort is the armed wave's field, and a wave naming none admits none (9.840709ms)
+✔ recycle restores the Raider hull colour for the capital broadside missiles (9.59075ms)
+✔ marshalling: the member veneer ticks exactly its own slot bytes (10.129958ms)
+✔ entry depth: one line per frame to 40/16, then one line every other frame, de-phased (14.367292ms)
+✔ lanes: each member sweeps inside its own lane and turns at both edges (16.504208ms)
+✔ turns: an expired turn timer flips the direction and reloads (FRAME_COUNTER & 31) + 24 (37.993958ms)
+✔ attack start: an expired reload inside the band brakes and charges instead of firing (67.638625ms)
+✔ attack run: brake, 20-frame charge, two shells 8 frames apart from one column, resume (32.335208ms)
+✔ resume direction follows FRAME_COUNTER bit 1, never lockstep with the pair (18.305083ms)
+✔ salvo abort: a dying player or a due capital skips the shell and resumes the sweep (18.380125ms)
+✔ charge telegraph and hit flash: per-member COLPM, Raider formations untouched (170.608542ms)
+✔ pair rhythm: both Bombers attack in turn, at most four shells, bounded time on screen (45.164208ms)
+✔ animated shell: the assembled helper publishes the exhaust phase only for BOMBER (9.433417ms)
+✔ emission: the veneer passes the returned class to the generic allocator (ACTIVE $1A/$1B) (9.272167ms)
+✔ placement contract: H9 spawn is in the Director window and the Bomber tick stays in the arena (0.228125ms)
+✔ the Bomber hull hue is green and never collides with the allied steel (0.715125ms)
+✔ --bomber-colour builds a review variant with only the Bomber hue changed (2974.067709ms)
+{"measurement":"NMOS instruction cycles, including guard/copy/masks/draw; no ANTIC DMA","samples":[{"shape":0,"y":0,"stages":[1,0],"first":1073,"later":1170},{"shape":0,"y":0,"stages":[0,2],"first":1073,"later":651},{"shape":0,"y":0,"stages":[1,2],"first":1592,"later":651},{"shape":0,"y":0,"stages":[2,2],"first":1592,"later":132},{"shape":0,"y":15,"stages":[1,0],"first":1229,"later":1482},{"shape":0,"y":15,"stages":[0,2],"first":1229,"later":807},{"shape":0,"y":15,"stages":[1,2],"first":1904,"later":807},{"shape":0,"y":15,"stages":[2,2],"first":1904,"later":132},{"shape":0,"y":16,"stages":[1,0],"first":1241,"later":1506},{"shape":0,"y":16,"stages":[0,2],"first":1241,"later":819},{"shape":0,"y":16,"stages":[1,2],"first":1928,"later":819},{"shape":0,"y":16,"stages":[2,2],"first":1928,"later":132},{"shape":0,"y":40,"stages":[1,0],"first":1241,"later":1506},{"shape":0,"y":40,"stages":[0,2],"first":1241,"later":819},{"shape":0,"y":40,"stages":[1,2],"first":1928,"later":819},{"shape":0,"y":40,"stages":[2,2],"first":1928,"later":132},{"shape":0,"y":72,"stages":[1,0],"first":1241,"later":1506},{"shape":0,"y":72,"stages":[0,2],"first":1241,"later":819},{"shape":0,"y":72,"stages":[1,2],"first":1928,"later":819},{"shape":0,"y":72,"stages":[2,2],"first":1928,"later":132},{"shape":0,"y":225,"stages":[1,0],"first":1241,"later":1506},{"shape":0,"y":225,"stages":[0,2],"first":1241,"later":819},{"shape":0,"y":225,"stages":[1,2],"first":1928,"later":819},{"shape":0,"y":225,"stages":[2,2],"first":1928,"later":132},{"shape":0,"y":239,"stages":[1,0],"first":878,"later":780},{"shape":0,"y":239,"stages":[0,2],"first":878,"later":456},{"shape":0,"y":239,"stages":[1,2],"first":1202,"later":456},{"shape":0,"y":239,"stages":[2,2],"first":1202,"later":132},{"shape":2,"y":0,"stages":[1,0],"first":1110,"later":1244},{"shape":2,"y":0,"stages":[0,2],"first":1110,"later":688},{"shape":2,"y":0,"stages":[1,2],"first":1666,"later":688},{"shape":2,"y":0,"stages":[2,2],"first":1666,"later":132},{"shape":2,"y":15,"stages":[1,0],"first":1290,"later":1604},{"shape":2,"y":15,"stages":[0,2],"first":1290,"later":868},{"shape":2,"y":15,"stages":[1,2],"first":2026,"later":868},{"shape":2,"y":15,"stages":[2,2],"first":2026,"later":132},{"shape":2,"y":16,"stages":[1,0],"first":1302,"later":1628},{"shape":2,"y":16,"stages":[0,2],"first":1302,"later":880},{"shape":2,"y":16,"stages":[1,2],"first":2050,"later":880},{"shape":2,"y":16,"stages":[2,2],"first":2050,"later":132},{"shape":2,"y":40,"stages":[1,0],"first":1302,"later":1628},{"shape":2,"y":40,"stages":[0,2],"first":1302,"later":880},{"shape":2,"y":40,"stages":[1,2],"first":2050,"later":880},{"shape":2,"y":40,"stages":[2,2],"first":2050,"later":132},{"shape":2,"y":72,"stages":[1,0],"first":1302,"later":1628},{"shape":2,"y":72,"stages":[0,2],"first":1302,"later":880},{"shape":2,"y":72,"stages":[1,2],"first":2050,"later":880},{"shape":2,"y":72,"stages":[2,2],"first":2050,"later":132},{"shape":2,"y":225,"stages":[1,0],"first":1287,"later":1598},{"shape":2,"y":225,"stages":[0,2],"first":1287,"later":865},{"shape":2,"y":225,"stages":[1,2],"first":2020,"later":865},{"shape":2,"y":225,"stages":[2,2],"first":2020,"later":132},{"shape":2,"y":239,"stages":[1,0],"first":881,"later":786},{"shape":2,"y":239,"stages":[0,2],"first":881,"later":459},{"shape":2,"y":239,"stages":[1,2],"first":1208,"later":459},{"shape":2,"y":239,"stages":[2,2],"first":1208,"later":132}]}
+{"event":"live-damage","shape":0,"difficulty":0,"hp":1,"cycles":2392}
+{"event":"live-damage","shape":0,"difficulty":1,"hp":1,"cycles":2392}
+{"event":"live-damage","shape":0,"difficulty":2,"hp":2,"cycles":2392}
+{"event":"live-damage","shape":0,"difficulty":2,"hp":1,"cycles":1970}
+{"event":"live-damage","shape":2,"difficulty":0,"hp":3,"cycles":12}
+{"event":"live-damage","shape":2,"difficulty":0,"hp":2,"cycles":2528}
+{"event":"live-damage","shape":2,"difficulty":0,"hp":1,"cycles":2106}
+{"event":"live-damage","shape":2,"difficulty":1,"hp":3,"cycles":12}
+{"event":"live-damage","shape":2,"difficulty":1,"hp":2,"cycles":2528}
+{"event":"live-damage","shape":2,"difficulty":1,"hp":1,"cycles":2106}
+{"event":"live-damage","shape":2,"difficulty":2,"hp":4,"cycles":12}
+{"event":"live-damage","shape":2,"difficulty":2,"hp":3,"cycles":12}
+{"event":"live-damage","shape":2,"difficulty":2,"hp":2,"cycles":2528}
+{"event":"live-damage","shape":2,"difficulty":2,"hp":1,"cycles":2106}
+{"event":"forced-dual","shape":0,"cycles":2337}
+{"event":"forced-dual","shape":2,"cycles":2473}
+✔ H13 generated variant C is 24 checked-home bytes with cumulative holes (21.360208ms)
+✔ H13 rejects empty/nonexistent bits, row erasure, duplicate rows and noncumulative stages (0.643417ms)
+✔ H13 damage removes 15 then 19 pixels as one connected outline notch; rows and tail survive (0.235167ms)
+✔ H13 linked NMOS fixture clears the actual home masks into both H16 bodies exactly (15.2475ms)
+✔ H12 guarded publisher forces exact current-Y planes; members and stages are independent (639.099417ms)
+✔ H12 invalid home/phase drops requests with no content read or draw (123.803708ms)
+✔ H12 skips dead members, does not re-copy damaged bodies and admission restores intact sources (11.3505ms)
+﹣ H12 review build holds the preselected stages through flight, hold, dodge and retirement (0.062917ms) # SKIP
+✔ H14 natural hit watches publish HP stages on both Heavy profiles and every difficulty (69.828ms)
+✔ H14 token denial then rotate retry coalesces both members by the third frame (22.581ms)
+✔ H14 first rotate denial leaves the token untouched and publishes on the next nonrotate (11.621708ms)
+✔ H14 breakup retains priority and surviving requests, including the nonrotate deadline (11.43975ms)
+✔ H14 stale/dead/assault requests and invalid-home events drop safely; admission clears all damage (57.448917ms)
+✔ H14 idle pending entry remains byte-exact LDY/BNE/RTS with zero added cycles (11.105375ms)
+✔ H14 resident notice covers surviving departure hits on both profiles, slots and difficulties (135.544ms)
+✔ H14 notification preserves death bits and ordinary motion-watch timing (44.396375ms)
+✔ H14 queued departure damage never draws a member killed or retired before publication (89.841708ms)
+✔ H14 recovery stays within the owner window budget and preserves full segment sizes (1.363208ms)
+✔ H14 departure notice followed by an invalid home/phase drops before any home read or draw (22.033291ms)
+✔ H11 admission resets poisoned metadata and installs both default bodies before drawing (22.008708ms)
+✔ heavyLook compiler uses exactly 17 reserved bytes and rejects unsafe shapes/colours (2238.907208ms)
+✔ armoured look publishes payload rows and C colour; escort-loop bits do not change the look (144.368083ms)
+✔ armoured payload planes remain exact through flight, authored hold, hit dodge and retirement (65.738542ms)
+✔ H10 clipped body copies equal main on both planes and save eight cycles; idle path is unchanged (954.999166ms)
+{"family":"assault","maximum":1190,"mean":1053.0175131348512,"frames":668}
+{"family":"heavy-reset","profile":"assault","difficulty":0,"cycles":1844,"phase0":1612,"delta":232,"nominalCombinedDelta":150}
+{"family":"heavy-reset","profile":"armoured","difficulty":0,"cycles":1874,"phase0":1612,"delta":262,"nominalCombinedDelta":150}
+{"family":"heavy-reset","profile":"bomber","difficulty":0,"cycles":2491,"phase0":2245,"delta":246,"nominalCombinedDelta":150}
+{"family":"heavy-reset","profile":"assault","difficulty":1,"cycles":1844,"phase0":1612,"delta":232,"nominalCombinedDelta":150}
+{"family":"heavy-reset","profile":"armoured","difficulty":1,"cycles":1874,"phase0":1612,"delta":262,"nominalCombinedDelta":150}
+{"family":"heavy-reset","profile":"bomber","difficulty":1,"cycles":2491,"phase0":2245,"delta":246,"nominalCombinedDelta":150}
+{"family":"heavy-reset","profile":"assault","difficulty":2,"cycles":1844,"phase0":1612,"delta":232,"nominalCombinedDelta":150}
+{"family":"heavy-reset","profile":"armoured","difficulty":2,"cycles":1874,"phase0":1612,"delta":262,"nominalCombinedDelta":150}
+{"family":"heavy-reset","profile":"bomber","difficulty":2,"cycles":2491,"phase0":2245,"delta":246,"nominalCombinedDelta":150}
+✔ M3-H assault: opposite descent parity, unchanged pursuit, exact planes and bounded standing cost (55.100584ms)
+✔ M3-H HP, flash hue, and spawn delta on every difficulty (104.929958ms)
+✔ M3-H armoured authored hold and surviving-hit dodge retain Y and the stop (26.444209ms)
+✔ M3-H Bomber flying hit dodges, authored stop survives hit, and flash stays in hue C (24.312667ms)
+✔ M3-H placement: appended H2, thirteen BSS bytes and unchanged protected capacities (1.518333ms)
+✔ M3-H shared wave arm leaves Heavy metadata untouched on Light/boss escort paths (13.038625ms)
+✔ only the Heavy shortcut changes one wave kind; campaign data and pacing stay exact (2291.423041ms)
+ℹ tests 51
+ℹ suites 0
+ℹ pass 50
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 1
+ℹ todo 0
+ℹ duration_ms 3581.926

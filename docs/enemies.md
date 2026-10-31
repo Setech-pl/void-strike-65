@@ -45,11 +45,11 @@ respawn.
 
 The standard enemy fighter, flying as a pair.
 
-Level 2 also uses an armoured profile: broader plated wings, a brighter hostile
+Level 2 also uses an armoured profile: broader plated wings, a violet
 hull, 2 /2 /3 hits to kill, an authored firing stop and a sideways dodge after
 a surviving hit. Assault Raiders keep their original silhouette and one-hit
 health. Both profiles share the Raider's weapons, score and renderer.
-Armour gains lasting holes at 2 and 1 HP; a 2-HP Raider jumps straight to the
+Armour loses a visible piece of one wing at 2 and 1 HP; a 2-HP Raider jumps straight to the
 last damage look after its first surviving hit.
 
 - **Hits to kill:** 1. **Points:** 10.
@@ -74,9 +74,9 @@ last damage look after its first surviving hit.
 A heavy bomber with a catamaran silhouette (two hulls, one bridge), so it never
 reads as a big Raider. It is green, a colour nothing else in the battle wears.
 
-- **Hits to kill:** 4 / 4 / 5. At 2 and 1 HP the green hull gets darker,
-  with enough brightness left to read at 1 HP. It flashes on a surviving hit
-  and gains lasting damage holes at 2 and 1 HP.
+- **Hits to kill:** 4 / 4 / 5. At 2 HP the green hull gets darker; at 1 HP it
+  turns orange-red. It flashes on a surviving hit and loses a visible piece
+  of one side at 2 and 1 HP.
 - **Points:** 50.
 - **Weapon:** an attack run. The Bomber stops, its hull brightens for 20
   frames while it aims, then it fires two shells 8 frames apart from the same

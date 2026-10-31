@@ -40,6 +40,7 @@ test('H11 admission resets poisoned metadata and installs both default bodies be
 
 test('heavyLook compiler uses exactly 17 reserved bytes and rejects unsafe shapes/colours',()=>{
   const expected=compileHeavyLook(defaultArmouredRaiderLook());
+  assert.equal(expected[16],0x68,'armour has its own violet hue, unlike assault $44');
   for(const id of [1,2]) {
     const level=compileLevelFile(levelSourcePath(id));
     assert.deepEqual(level.payload.slice(HEAVY_LOOK_OFFSET,HEAVY_LOOK_OFFSET+17),expected);

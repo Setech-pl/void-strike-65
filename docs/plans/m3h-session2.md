@@ -327,4 +327,30 @@ post-departure Heavy fixture PASS. Audited full-suite comparison **A137/B0/C0**
 after the approved packing-pin correction, with raw/focused evidence retained.
 No requested H10–H14/H16/look feature remains deferred. The earlier departure
 blocker and interrupted run are historical. [Final audit and play ATRs](../diagnostics/m3h-session2/checkpoint-6-final.md).
+
+## Owner visual review — 2026-10-31
+
+The owner confirmed all three features work, but judged them too subtle in
+play. Tune data only; do not add mechanisms. This supersedes the earlier
+smoke ramp and interior-only hole rule, while retaining H12/H13 placement,
+the 250-B session window ceiling and choice B publication.
+
+- Damage should visibly erode one wing/side and the outline, about 15–20
+  bitmap pixels at each cumulative stage, using the existing three row/mask
+  pairs. The candidate uses **15 removed at stage1, 19 total at stage2**.
+  Stage2 includes stage1 even when a hit skips the first threshold. It keeps
+  every occupied row nonempty and preserves the tail. No table/loop growth.
+- Bomber at 1 HP changes hue to orange-red. Candidate HP1..5 table:
+  `$28/$C6/$C8/$C8/$C8`; existing mutually exclusive +4 flash/charge stays.
+  Base luminance ≤8, effect luminance ≤12, no carry into another hue.
+- Armoured Raider gets its own hostile colour in addition to plated art:
+  candidate violet `$68`; assault stays `$44`. Level2's explicit payload
+  override and the compiler default agree.
+- Only `--level=2:sector=5` changes its first wave's kind to armoured, so
+  armour appears immediately. One compiled wave-flag byte changes; campaign
+  waves, counts, rows, spacing and later waves remain exact.
+
+All tuned values are **OWNER-SMOKE CANDIDATE**, not accepted visuals. Deliver
+normal gated builds, focused checks, the two quick routes, updated source
+comparison PNGs and checkpoint6 play ATRs; commit and pause for owner smoke.
 **STOP for final owner smoke.**

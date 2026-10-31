@@ -1,0 +1,181 @@
+{
+  "atrs": [
+    {
+      "file": "build/play/m3h-session2/checkpoint-6/campaign.atr",
+      "bytes": 133136,
+      "sha256": "119bc32409ebcd91a583108974f079e13f708b0a6441f56e11ea19c8c4b2b50b"
+    },
+    {
+      "file": "build/play/m3h-session2/checkpoint-6/level-2.atr",
+      "bytes": 133136,
+      "sha256": "686099b1c20af5ed8664a029cdb03caecb2c2f8e39921845e711fb54d362d51f"
+    },
+    {
+      "file": "build/play/m3h-session2/checkpoint-6/heavy-sector.atr",
+      "bytes": 133136,
+      "sha256": "d4f2b14a4bdc93a0c0b2847d9310bae81046af8fa4ee69b2975dd4e95c5499d7"
+    },
+    {
+      "file": "build/play/m3h-session2/checkpoint-6/capital-960.atr",
+      "bytes": 133136,
+      "sha256": "14180a79caa6fccff0362e9414f6fbd855893ce97f40277b5a3075e4bf42b1f4"
+    }
+  ],
+  "shortcutDifferences": [
+    {
+      "offset": 12,
+      "ordinary": 0,
+      "shortcut": 5
+    },
+    {
+      "offset": 129,
+      "ordinary": 10,
+      "shortcut": 42
+    }
+  ],
+  "earlyArmourSeconds": 0.68,
+  "criticalBomberSeconds": 34.56,
+  "quick": [
+    {
+      "measurement": "MEASURED Atari800 PAL DMA on; standard runtime-wall-trace timer",
+      "results": [
+        {
+          "id": "campaign-1-spread-capital",
+          "difficulty": 1,
+          "brake": false,
+          "dir": "build/frame-peak-fixed-campaign",
+          "campaign": true,
+          "spread": true,
+          "code": 0,
+          "passed": true,
+          "gateFailures": [],
+          "frames": 1800,
+          "capitalFrames": 1192,
+          "spaceFrames": 608,
+          "bossFrames": 0,
+          "peak": 30465,
+          "capitalPeak": 29547,
+          "capitalWithoutAudio": 28966,
+          "composedCapital": 30153,
+          "spacePeak": 30465,
+          "bossPeak": null,
+          "targetOverruns": 0,
+          "fence": 2172,
+          "misses": 0,
+          "extraVbi": 0,
+          "dliErrors": 0,
+          "shifted": 0,
+          "staleL2": 0,
+          "bossEntryFrames": null,
+          "coincidenceFrames": 0,
+          "artifact": "119bc32409ebcd91a583108974f079e13f708b0a6441f56e11ea19c8c4b2b50b",
+          "stateFileSha256": "4cbfc60dee0e5eac2dbcba0e5ff97beb29315af5b5f4c361e1a0c35658fdd181",
+          "traceSha256": "451123fbfa45a838a7d6fbfe6ccc21a514c34afcf6b5106d858dd58d75f89b2d"
+        }
+      ],
+      "overruns": [],
+      "worst5": [
+        {
+          "route": "campaign-1-spread-capital",
+          "frame": 246,
+          "sector": "SPACE",
+          "cycles": 30465
+        },
+        {
+          "route": "campaign-1-spread-capital",
+          "frame": 222,
+          "sector": "SPACE",
+          "cycles": 30456
+        },
+        {
+          "route": "campaign-1-spread-capital",
+          "frame": 204,
+          "sector": "SPACE",
+          "cycles": 30427
+        },
+        {
+          "route": "campaign-1-spread-capital",
+          "frame": 207,
+          "sector": "SPACE",
+          "cycles": 30382
+        },
+        {
+          "route": "campaign-1-spread-capital",
+          "frame": 216,
+          "sector": "SPACE",
+          "cycles": 30377
+        }
+      ]
+    },
+    {
+      "measurement": "MEASURED Atari800 PAL DMA on; standard runtime-wall-trace timer",
+      "results": [
+        {
+          "id": "l2-960-1-flight",
+          "length": 960,
+          "difficulty": 1,
+          "brake": false,
+          "dir": "build/frame-peak-fixed-960",
+          "code": 0,
+          "passed": true,
+          "gateFailures": [],
+          "frames": 3967,
+          "capitalFrames": 2273,
+          "spaceFrames": 1575,
+          "bossFrames": 119,
+          "peak": 31153,
+          "capitalPeak": 29166,
+          "capitalWithoutAudio": 28346,
+          "composedCapital": 29533,
+          "spacePeak": 31153,
+          "bossPeak": 28738,
+          "targetOverruns": 0,
+          "fence": 6395,
+          "misses": 0,
+          "extraVbi": 0,
+          "dliErrors": 0,
+          "shifted": 0,
+          "staleL2": 0,
+          "bossEntryFrames": 325,
+          "coincidenceFrames": 0,
+          "artifact": "14180a79caa6fccff0362e9414f6fbd855893ce97f40277b5a3075e4bf42b1f4",
+          "stateFileSha256": "00ec878fad0aba0652e6f31d3ce792326953e8b86811b96d62fdfa35e540298b",
+          "traceSha256": "ca38ad2275f827214ee4a3ac7139cdb517123eb3ccd05c77f39ff22b99e72e36"
+        }
+      ],
+      "overruns": [],
+      "worst5": [
+        {
+          "route": "l2-960-1-flight",
+          "frame": 2448,
+          "sector": "SPACE",
+          "cycles": 31153
+        },
+        {
+          "route": "l2-960-1-flight",
+          "frame": 2837,
+          "sector": "SPACE",
+          "cycles": 30981
+        },
+        {
+          "route": "l2-960-1-flight",
+          "frame": 2447,
+          "sector": "SPACE",
+          "cycles": 30977
+        },
+        {
+          "route": "l2-960-1-flight",
+          "frame": 2460,
+          "sector": "SPACE",
+          "cycles": 30976
+        },
+        {
+          "route": "l2-960-1-flight",
+          "frame": 2422,
+          "sector": "SPACE",
+          "cycles": 30956
+        }
+      ]
+    }
+  ]
+}

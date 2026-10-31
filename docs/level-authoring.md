@@ -567,8 +567,10 @@ is why the density and the cadence were reproduced and the order was not.
 
 `assets/graphics/enemy-roster.json` owns `heavyDamage`: variant `C`, two shapes
 (`armouredRaider`, `bomber`), two stages each, exactly three `[row,clearMask]`
-pairs per stage. Masks clear existing interior bits only, preserve occupied
-rows and outer silhouette, and stage2 must include all stage1 holes. Runtime
+pairs per stage. Masks clear existing bits from one wing/outline, preserve at
+least one bit in each occupied row, and stage2 must include all stage1 holes.
+The current masks remove 15 then 19 total pixels, in one connected notch.
+Runtime
 uses the same generated 24-byte home table as the preview. No packed alternate
 sprites are stored. Rebuild preview with
 `node scripts/heavy-damage-preview.mjs build/heavy-damage-variant-c.png`.

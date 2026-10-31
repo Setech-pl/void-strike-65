@@ -1,6 +1,6 @@
 # VOID STRIKE 65 — CURRENT STATUS
 
-Last update: 2026-10-31 (M3-H session-finish smoke repair candidate)
+Last update: 2026-10-31 (M3 wave-path plan for owner review)
 
 What is true now. Rules: [reguly-projektu.txt](reguly-projektu.txt). Roadmap:
 [plan-realizacji.md](plan-realizacji.md). Source-of-truth order:
@@ -19,6 +19,22 @@ the values below.
 ---
 
 ## Checkpoint
+
+### M3 wave paths — OWNER REVIEW CANDIDATE, planning only
+
+Branch `codex/m3-plan`, main baseline `6046c0b` including M3-H session 2.
+[Plan](plans/m3-waves.md) gives fresh resource/frame baselines, P1–P8 and
+chain scope, checked-content placement, five smoke checkpoints, owner
+questions Q1–Q6 and explicit deferrals. New content/window budgets are
+ESTIMATES: 732/224 B, window target ≤300 B; no implementation is authorized.
+Actual CPU/RAM/residency delta is 0/0/0.
+
+Normal build computed gates PASS; quick Spread NORMAL 30,465 and capital-960
+NORMAL 31,153 cycles (1,415 hard margin), no timing anomalies. Full unit
+comparison A137/B0/C0 by input identity and exact failure tuples; 1,512 PASS,
+137 shared FAIL, 4 SKIP. Release evidence remains pending; no release or new
+gameplay acceptance. [Planning audit](diagnostics/m3-plan/audit.md).
+**NEXT TASK: owner reviews the plan and Q1–Q6; STOP before implementation.**
 
 ### M3-H session 2 — smoke repair OWNER-SMOKE CANDIDATE
 

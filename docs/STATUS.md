@@ -1,6 +1,6 @@
 # VOID STRIKE 65 — CURRENT STATUS
 
-Last update: 2026-10-31 (M3 wave-path plan for owner review)
+Last update: 2026-10-31 (M3 core plan accepted; regional-skin extension for review)
 
 What is true now. Rules: [reguly-projektu.txt](reguly-projektu.txt). Roadmap:
 [plan-realizacji.md](plan-realizacji.md). Source-of-truth order:
@@ -20,21 +20,29 @@ the values below.
 
 ## Checkpoint
 
-### M3 wave paths — OWNER REVIEW CANDIDATE, planning only
+### M3 core plan accepted; regional skins — OWNER REVIEW CANDIDATE
 
 Branch `codex/m3-plan`, main baseline `6046c0b` including M3-H session 2.
-[Plan](plans/m3-waves.md) gives fresh resource/frame baselines, P1–P8 and
-chain scope, checked-content placement, five smoke checkpoints, owner
-questions Q1–Q6 and explicit deferrals. New content/window budgets are
-ESTIMATES: 732/224 B, window target ≤300 B; no implementation is authorized.
-Actual CPU/RAM/residency delta is 0/0/0.
+[Core plan](plans/m3-waves.md) Q1–Q6 were accepted as recommended A on
+2026-10-31; [owner decisions](decisions/2026-10-31-m3-waves.md). The new §7
+is planning only and still needs owner review: measured glyph/palette/HP
+storage, regional/per-wave options and costs. Recommendation: regional packs
+using current payloads, existing per-wave Light appearance, plus a four-byte
+per-skin Light HP table as a separate M3 checkpoint extension if approved.
+Core content/window budgets remain ESTIMATES 732/224 B; with the proposed HP
+extension, extra 48/16 B leaves 17 content /269 usable window B. No implementation
+is authorized in this task. Actual CPU/RAM/residency delta is 0/0/0.
 
-Normal build computed gates PASS; quick Spread NORMAL 30,465 and capital-960
-NORMAL 31,153 cycles (1,415 hard margin), no timing anomalies. Full unit
-comparison A137/B0/C0 by input identity and exact failure tuples; 1,512 PASS,
-137 shared FAIL, 4 SKIP. Release evidence remains pending; no release or new
-gameplay acceptance. [Planning audit](diagnostics/m3-plan/audit.md).
-**NEXT TASK: owner reviews the plan and Q1–Q6; STOP before implementation.**
+Fresh normal build computed gates PASS; full unit comparison A137/B0/C0
+against task-start main `6046c0b`, by input identity and exact tuples:
+1,512 PASS /137 shared FAIL /4 SKIP. Main advanced to `4e84bc4` with test-debt
+repairs during the task; those test edits are not imported and this is not
+a fresh comparison against the advanced suite.
+Previous quick native baselines remain 30,465 /31,153, not remeasured for this
+documentation-only extension; artifact/runtime inputs are unchanged. Release
+evidence remains pending; no release or new gameplay acceptance.
+[Regional planning audit](diagnostics/m3-regional-skins/audit.md).
+**NEXT TASK: owner reviews §7 and its recommendation; STOP before implementation.**
 
 ### M3-H session 2 — smoke repair OWNER-SMOKE CANDIDATE
 

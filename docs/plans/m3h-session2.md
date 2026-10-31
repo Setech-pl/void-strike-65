@@ -370,3 +370,10 @@ with main text unchanged; STOP on any code conflict. Finish normal gates,
 focused checks, two quick routes, one full suite with A/B/C against main,
 EN/PL docs, memory map, STATUS and campaign/level2/Heavy play media.
 **STOP for final owner smoke.**
+
+Final merged implementation and measurements are recorded in the
+[session finish audit](../diagnostics/m3h-session2/session-finish/report.md).
+Owner acceptance of the tuned checkpoint6 visuals is preserved; sideways
+departure is the final smoke candidate. Window2,290 B/session+222; home1,097 B;
+no new departure state. Native empty-window minimum220 observed frames,
+2-frame linked admission guarantee. Full-test diff A137/B0/C0.

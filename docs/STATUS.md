@@ -1,6 +1,6 @@
 # VOID STRIKE 65 — CURRENT STATUS
 
-Last update: 2026-10-31 (M3-H checkpoint6 stronger visual data; owner smoke pending)
+Last update: 2026-10-31 (M3-H session2 complete; final sideways departure candidate)
 
 What is true now. Rules: [reguly-projektu.txt](reguly-projektu.txt). Roadmap:
 [plan-realizacji.md](plan-realizacji.md). Source-of-truth order:
@@ -20,61 +20,54 @@ the values below.
 
 ## Checkpoint
 
-### M3-H session 2 — checkpoint6 OWNER-SMOKE CANDIDATE
+### M3-H session 2 — complete; sideways departure OWNER-SMOKE CANDIDATE
 
-Owner passed checkpoint2 (`f33fcdc`) on 2026-10-30. Checkpoints3 `0e4160d`,
-4 `d9dce3f`, 5 `2064aa8` and completed checkpoint6 await final owner smoke.
-The owner-approved resident C notification resolves the departure gap without
-moving H12/H13 from checked content home. [Play ATRs, hashes, smoke checklist
-and complete audit](diagnostics/m3h-session2/checkpoint-6-final.md).
+Owner passed checkpoint6 on 2026-10-31 in both Heavy-sector and level2
+(`3468204`, tuned visuals OWNER-ACCEPTED). H10–H14/H16 and the Heavy looks are
+complete. Armoured Raider: plated silhouette/violet$68 versus assault$44;
+connected outline damage removes15 then19 total bitmap pixels. Bomber HP1..5
+colours$28/$C6/$C8/$C8/$C8; flash/charge priorities and safe luminance remain.
+Heavy-sector shortcut admits armour immediately; campaign pacing is unchanged.
 
-Owner confirmed all three features work, but judged their appearance too subtle.
-The [tuned candidate](diagnostics/m3h-session2/checkpoint-6-tuned/report.md)
-removes a connected piece of one wing/side:15 bitmap pixels at stage1,19 total
-at stage2. Armour is violet$68, assault stays$44; Bomber at1 HP is orange-red$28,
-at2 HP green$C6, healthy$C8. Existing +4 flash/charge priority and safe luminance
-limits remain. Only the Heavy-sector shortcut changes its opening wave to
-armoured: native MEDIUM capture at0.68s. Campaign rows/counts/spacing unchanged.
-Updated source comparisons and native frames await owner smoke; no new mechanism.
+The final owner-requested Bomber departure is implemented in checked content
+home: 8 native raster pixels/frame sideways toward the nearer edge, fixed Y,
+no firing, full off-screen erase/retirement. It remains damageable, publishes
+both hole stages during departure, and dies/scores normally. Raider departure
+is unchanged (168 linked updates identical, including PMG bytes and cycles).
+This last behaviour is **OWNER-SMOKE CANDIDATE**; no new owner PASS is inferred.
+[Finish audit, measurements, test diff and play hashes](diagnostics/m3h-session2/session-finish/report.md).
 
-Final window **2,290 B (+222 for session)**,28 B below the250-B ceiling.
-The recovery adds32 B only in the window; arena830, Director324, L2 1,290,
-content home1,029/1,920 and decoded extension875 B remain unchanged from the
-blocked integration. Session RAM use+656 B within existing reservations;
-metadata+8 B and existing32-B H16 reused. Record5 is750 B packed /7 sectors
-(+4 B /+1 sector for recovery),record8 stays15 sectors. Total213 sectors
-(+2 for session);fixed content15-sector load adds0 CPU cycles/reads.
+Final resident window **2,290 B**, **+222 B for session2**, 28 B below the
++250-B ceiling. Arena830, Director324, L2 1,290/1,792, decoded extension875 B.
+Home **1,097/1,920 B**,823 free; final departure adds68 B there (56 C/12 ASM),
+0 window/state/arena/Director bytes. H12/H13 remain in checked content home
+with existing phase/validity guards. Heavy policy13 B, damage metadata8 B,
+existing32-B damaged bodies reused. Home15 sectors, extension7, window15;
+total213 sectors (+2 for session2); departure adds0 sectors/load cycles.
 
-Surviving departure hits notify C's existing damage-stage/claim policy even
-when motion watches are bypassed. The helper checks validity/phase before
-reading departure data. Dead/retired requests never draw, including when a
-live peer publishes. No movement, weapon, score or collision-bound change.
-Damage publication stays nonrotate-only, coalesced, bounded to≤3 frames after
-watch;admission restores intact art. Tuned Bomber HP1..5 colours are
-$28/$C6/$C8/$C8/$C8; base luma≤8,effects≤12,no hue spill.
+Measured row-tick delta0 cycles; ordinary/nondeparting behaviour delta0.
+Departing Bomber member motion+20/+23 instruction cycles left/right; terminal
+erase+363/+368. Whole pair update saves1,026 cycles during motion and181 when
+both retire, because held Y avoids PMG copies. Native quick Spread NORMAL
+**30,465**, capital-960 **31,153**; zero misses/VBI/DLI/shift/stale-L2 events,
+boss entry325. Natural EASY/MEDIUM/HARD capital handoffs have287/255/**220**
+fully Heavy-free frames; linked admission tests retain the2-frame guarantee.
 
-Normal gated builds PASS. Focused50 PASS/0 FAIL/1 review-only SKIP; actual level2
-and Heavy variants23 PASS/0 FAIL/1 review-only SKIP each.36 linked before/after
-NMOS cases measure0 added cycles; all segment sizes and transport counts unchanged.
-One full suite raw1505 PASS/139 FAIL/4 SKIP of1648. Two stale expectations
-(requested palette hash; equivalent compiler call path) pass corrected focused
-checks; three optional emulator-location skips pass after setup. Audited1510/137/1,
-**A137/B0/C0** against unchanged main71a38a8 by file/name/first assertion/message.
-No second full run is claimed. Shared debt remains recorded; legacy canonical
-unit/trace release reconciliation is nonzero.
+Normal computed build gates PASS. Focused57 PASS/0 FAIL/1 review-only SKIP,
+strengthened departure4/4 PASS (2,322 exit cases, max28 frames), map3/3 and
+optional emulator-location cases12/12 PASS. One full npm test: raw1,510 PASS/
+138 FAIL/4 SKIP of1,652; after stale generated-map regeneration and three
+optional setup reruns: audited1,514/137/1. **A137/B0/C0** against main71a38a8
+by file/name/first failing assertion/message. Shared debt is recorded;
+canonical legacy unit reconciliation remains nonzero, trace NEW/MOVED0.
+Normal build has pending runtime evidence; no milestone/release claim.
 
-Final native Spread30,465 /capital-96031,153;hard margin1,415,target margin347;
-zero misses,extra VBI,DLI/shift/stale-L2 events;boss entry325. A1000-frame Heavy
-fixture peaks30,841,zero PMG mismatches;it seeds only departure flags,then real
-collision hits publish both damage stages. Linked armour/Bomber E/M/H cover
-both slots,death/retirement,clipping,holds,dodge and invalid-home read traps.
-The visual audit and later tuned native replay prove armoured admission and
-damage publication; release readiness is not claimed. Tuned data adds0 bytes
-and0 instruction cycles versus2d4ef8c, including first/later stamps.
-
-Main remains71a38a8;branch stays on owner-cut7fe9040 with no merge/rebase/push.
-**NEXT TASK: owner smoke of tuned checkpoint6 ATRs; STOP.** Final acceptance belongs to
-owner;no new roadmap item or release work starts automatically.
+Main71a38a8 was merged (no rebase) in `bbc34a9`, parents8bceac0/71a38a8.
+No code conflicts. The sole docs registry conflict preserves both sides and
+main's text unchanged. EN/PL enemy/player docs and memory map are current.
+Fresh campaign, level2 and Heavy-sector ATRs are under
+`build/play/m3h-session2/session-finish/` (hashes in delivery.json).
+**NEXT TASK: owner review/smoke of sideways departure, then owner merge; STOP.**
 
 ### Loop-phase resync — partial OWNER-SMOKE CANDIDATE
 

@@ -20,6 +20,9 @@ function solo(m,slot,x,y) {
   const v=m.memory,peer=slot^1;
   v[L('ENEMY_MEMBER_STATE')+peer]=0;v[L('ENEMY_HP')+peer]=0;v[L('ENEMY_LIVE_COUNT')]=1;
   v[L('ENEMY_X')+slot]=x;v[L('ENEMY_Y')+slot]=y;
+  // A live salvo would emit on this tick without the departure early return.
+  v[L('ENEMY_VELOCITY_X')+slot]=0;v[L('ENEMY_MOVE_ACCUMULATOR')+slot]=1;
+  v[L('ENEMY_MANEUVER_STATE')+slot]=2;
   call(m,'draw_enemy_member',slot,255);
 }
 test('departing Bomber chooses nearest screen edge, flies eight pixels/frame and clears before retirement',()=>{

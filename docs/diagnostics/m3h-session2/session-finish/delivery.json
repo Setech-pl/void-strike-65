@@ -1,0 +1,34 @@
+{
+  "sourceHead": "bbc34a98f5631260da405ffccee9d76479cc60d5",
+  "productionSource": "8bceac05cc7b9c8e2c69f3c8de6d345bf86ad582 merged with main 71a38a847ab1d3702b77b292d6873159ecf4c2ff",
+  "artifacts": [
+    {
+      "name": "campaign",
+      "path": "build/play/m3h-session2/session-finish/campaign.atr",
+      "source": "dist/void-strike-65.atr",
+      "sha256": "f2778b7a6a123b8de81cdbb29d94433eb4f2b7815794887a712d61aa3cfdfd5e",
+      "bytes": 133136,
+      "buildFlags": []
+    },
+    {
+      "name": "level-2",
+      "path": "build/play/m3h-session2/session-finish/level-2.atr",
+      "source": "build/level-2-s0/void-strike-65.atr",
+      "sha256": "5a9d4057b7866226f798866291615f5b3297802aa4fcbcdf4da31c50140f2679",
+      "bytes": 133136,
+      "buildFlags": [
+        "--level=2"
+      ]
+    },
+    {
+      "name": "heavy-sector",
+      "path": "build/play/m3h-session2/session-finish/heavy-sector.atr",
+      "source": "build/level-2-s5/void-strike-65.atr",
+      "sha256": "6076585c1a6977673c844248576312e9178e6acf2a66b2d5d4608c04a1e2942d",
+      "bytes": 133136,
+      "buildFlags": [
+        "--level=2:sector=5"
+      ]
+    }
+  ]
+}

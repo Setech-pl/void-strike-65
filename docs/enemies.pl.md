@@ -89,6 +89,9 @@ tej bitwie.
 - **Ruch:** każdy z pary przeczesuje własny pas, jeden po lewej, drugi po
   prawej. Zawraca na brzegu pasa albo po pół sekundy do sekundy i opada o
   jedną linię co drugą klatkę.
+- **Przed przelotem korytarzem:** przestaje strzelać i odlatuje w bok ku
+  bliższej krawędzi ekranu, dwa razy szybciej od Twojego myśliwca. Znika,
+  gdy cały opuści ekran. Podczas odlotu nadal możesz go uszkodzić lub zniszczyć.
 - **Zderzenie:** zabiera cały kadłub.
 - **Gdzie:** pierwszy sektor poziomu 1 (cztery pary) i jedna para po
   przelocie korytarzem.

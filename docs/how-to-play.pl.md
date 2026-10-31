@@ -149,14 +149,14 @@ z tabelą wyników.
 Raider śledzi Twoją kolumnę w każdej klatce, choć w pionie porusza się co
 drugą. Niektóre formacje korzystają z opancerzonej odmiany: zatrzymują się na
 stałej wysokości, by strzelać, i robią unik w bok po trafieniu, które przeżyją.
-Opancerzone Raidery mają szersze, osłonięte płytami skrzydła i jaśniejszy kolor
-wrogiego kadłuba. Na poziomie 2 występują obok szturmowych Raiderów o dawnej sylwetce.
-Opancerzone Raidery i Bombery zyskują trwałe dziury przy 2 i 1 HP. Opancerzony
+Opancerzone Raidery mają szersze, osłonięte płytami skrzydła i własny fioletowy
+kolor kadłuba. Na poziomie 2 występują obok szturmowych Raiderów o dawnej sylwetce.
+Opancerzone Raidery i Bombery tracą widoczny fragment skrzydła lub boku przy 2 i 1 HP. Opancerzony
 Raider zaczynający z 2 HP po trafieniu przechodzi od razu do ostatniego wyglądu
 uszkodzeń. Dziury zostają podczas lotu, postoju i uniku; pole trafień się nie zmienia.
 Przeżyte trafienie może dodać dziury także podczas odlotu.
 
-Kadłub Bombera ciemnieje przy 2 i 1 HP, ale przy 1 HP pozostaje czytelny. Rozjaśnia się, gdy Bomber hamuje, by celować, i ciemnieje po powrocie
+Zielony kadłub Bombera ciemnieje przy 2 HP, a przy 1 HP staje się pomarańczowoczerwony. Rozjaśnia się, gdy Bomber hamuje, by celować, i ciemnieje po powrocie
 do lotu. Po przeżytym trafieniu Bomber przez sześć klatek robi unik w bok,
 bez zmiany wysokości. Trafienie podczas zaplanowanego postoju nie skraca
 tego postoju. Interceptor ginie od trzeciego trafienia: gdy twój strzał go trafi, a
@@ -170,6 +170,10 @@ sektorami; pokazuje tylko, gdzie jesteś.
 **Ciężkie fale wstrzymują przejście do następnego sektora.** Sektor czeka,
 aż jego aktywna ciężka formacja zniknie z pola walki. Raidery i Bombery
 przecinają pole walki w pionie, a ich formacje utrzymują ostrzał.
+Przed przelotem korytarzem pozostałe Bombery przestają strzelać i odlatują
+w bok ku bliższej krawędzi ekranu, dwa razy szybciej od Twojego myśliwca.
+Raidery nadal opadają. Odlatującego ciężkiego przeciwnika wciąż możesz
+uszkodzić lub zniszczyć; korytarz zaczyna się, gdy ciężka formacja opuści pole walki.
 
 **Lekkie przelatują.** Fala leci swoją trasą i odchodzi. Zestrzeliwanie jej to
 wybór między punktami a bezpieczeństwem.

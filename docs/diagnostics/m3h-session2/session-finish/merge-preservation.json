@@ -1,0 +1,19 @@
+{
+  "main": "71a38a8",
+  "preMergeHead": "8bceac0",
+  "conflicts": [
+    "docs/recorded-gate-failures.json"
+  ],
+  "codeConflicts": [],
+  "mainTextSHA256": "88972cc610e53e1c558823d1ae7f8ea7e596932ee502dcbe64921a2d82fe3c2d",
+  "projectedMainTextSHA256": "88972cc610e53e1c558823d1ae7f8ea7e596932ee502dcbe64921a2d82fe3c2d",
+  "mainTextUnchanged": true,
+  "oursAddedKeys": [
+    "m3h_session2_plan_unit_debt_2026_10_30",
+    "m3h_session2_unit_debt_2026_10_30",
+    "m3h_session2_checkpoint6_unit_debt_2026_10_30",
+    "m3h_session2_visual_tuning_unit_debt_2026_10_31"
+  ],
+  "finalMainTextUnchanged": true,
+  "finalProjectionSHA256": "88972cc610e53e1c558823d1ae7f8ea7e596932ee502dcbe64921a2d82fe3c2d"
+}

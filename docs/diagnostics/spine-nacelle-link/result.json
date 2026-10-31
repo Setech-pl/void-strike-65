@@ -1,0 +1,118 @@
+{
+  "status": "OWNER-SMOKE CANDIDATE",
+  "base": "ab5e5ed",
+  "planCommit": "3c4987f",
+  "artifacts": [
+    {
+      "name": "campaign",
+      "path": "build/play/spine-nacelle-link/campaign-56f15f260cf2.atr",
+      "sha256": "56f15f260cf22a0ea7e3bc0b117217ca3eafe3a2dae507ef8b3edd9239208dfc"
+    },
+    {
+      "name": "spine-direct",
+      "path": "build/play/spine-nacelle-link/spine-direct-17f66fc463a6.atr",
+      "sha256": "17f66fc463a6a1e0d8e70d415653db968b5372e7f878ead0c32a17d6c99b5f9d"
+    }
+  ],
+  "overlayF": {
+    "before": 323,
+    "after": 353,
+    "capacity": 512,
+    "freeBefore": 189,
+    "freeAfter": 159,
+    "codeDelta": 30,
+    "lookTailBefore": 80,
+    "lookTailAfter": 98
+  },
+  "charset": {
+    "before": 864,
+    "after": 952,
+    "capacity": 1024,
+    "rightGlyphBytes": 48,
+    "leftAdditionalGlyphBytes": 40,
+    "mapBytesPerSide": 9,
+    "additionalDiskSectors": 1
+  },
+  "stress": {
+    "before": {
+      "rows": [
+        {
+          "level": 7,
+          "lance": "off",
+          "cycles": 7771,
+          "case": "7771 (f1) lasers warn, p 16, 2 meeting(s): 2 kill, destroyed [5,12,0,2] (reachable)"
+        },
+        {
+          "level": 7,
+          "lance": "lost",
+          "cycles": 8186,
+          "case": "8186 (f1) lasers warn, p 16, 2 meeting(s): 2 kill, destroyed [5,12,0,2] (reachable)"
+        },
+        {
+          "level": 9,
+          "lance": "off",
+          "cycles": 8025,
+          "case": "8025 (f1) lasers warn, p 0, 2 meeting(s): 2 kill, destroyed [5,12,0,1,2,3] (reachable)"
+        },
+        {
+          "level": 9,
+          "lance": "lost",
+          "cycles": 8440,
+          "case": "8440 (f1) lasers warn, p 0, 2 meeting(s): 2 kill, destroyed [5,12,0,1,2,3] (reachable)"
+        }
+      ]
+    },
+    "after": {
+      "rows": [
+        {
+          "level": 7,
+          "lance": "off",
+          "cycles": 7771,
+          "case": "7771 (f1) lasers warn, p 16, 2 meeting(s): 2 kill, destroyed [5,12,0,2] (reachable)",
+          "delta": 0
+        },
+        {
+          "level": 7,
+          "lance": "lost",
+          "cycles": 8186,
+          "case": "8186 (f1) lasers warn, p 16, 2 meeting(s): 2 kill, destroyed [5,12,0,2] (reachable)",
+          "delta": 0
+        },
+        {
+          "level": 9,
+          "lance": "off",
+          "cycles": 8025,
+          "case": "8025 (f1) lasers warn, p 0, 2 meeting(s): 2 kill, destroyed [5,12,0,1,2,3] (reachable)",
+          "delta": 0
+        },
+        {
+          "level": 9,
+          "lance": "lost",
+          "cycles": 8440,
+          "case": "8440 (f1) lasers warn, p 0, 2 meeting(s): 2 kill, destroyed [5,12,0,1,2,3] (reachable)",
+          "delta": 0
+        }
+      ]
+    }
+  },
+  "entry": {
+    "nativeHostFrames": 344,
+    "acceptedBaseline": 340,
+    "limit": 350,
+    "note": "JS harness VCOUNT polling counters are not host frames and were excluded."
+  },
+  "nativeAcceptance": {
+    "measured_frames": 119,
+    "maximum_wall_cycles": 28051,
+    "wall_ceiling": 32568,
+    "physical_headroom": 7517,
+    "missed_frames": 0,
+    "extra_vbi_boundaries": 0,
+    "physical_overruns": 0,
+    "deadline_overruns": 0,
+    "dli_ordering_errors": 0,
+    "passed": true
+  },
+  "patternDeviations": [],
+  "captures": "6502 harness band memory after actual shot kills; decoded at 2:1 pixel aspect, not native emulator screenshots."
+}

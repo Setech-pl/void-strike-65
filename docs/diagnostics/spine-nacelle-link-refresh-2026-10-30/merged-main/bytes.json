@@ -1,0 +1,141 @@
+{
+  "mainHead": "7fe9040",
+  "changedSegments": [
+    {
+      "map": "boss.map",
+      "segment": "BOSS_F_CODE",
+      "main": {
+        "start": 21102,
+        "end": 21314,
+        "bytes": 213
+      },
+      "candidate": {
+        "start": 21102,
+        "end": 21344,
+        "bytes": 243
+      },
+      "delta": 30
+    }
+  ],
+  "allComparedSegments": 135,
+  "mainSpine": {
+    "region": 3,
+    "name": "Siege Spine",
+    "style": 1,
+    "codes": 108,
+    "stageStep": 21,
+    "charsetBytes": 864,
+    "charsetSectors": 7,
+    "modules": 13,
+    "finaleCooldown": 12,
+    "twin": null,
+    "bandShownRows": 8,
+    "stillAt": null,
+    "field": {
+      "row": 7,
+      "code": 99,
+      "rowCells": 44224,
+      "halves": [
+        {
+          "from": 14,
+          "to": 31,
+          "generators": [
+            "gen-l"
+          ]
+        },
+        {
+          "from": 32,
+          "to": 48,
+          "generators": [
+            "gen-r"
+          ]
+        }
+      ],
+      "codeBytes": 213,
+      "blockBytes": 323
+    },
+    "gravity": null,
+    "rowSwitches": [],
+    "entrySectors": 88,
+    "banner": {
+      "picture": "siege-spine-side",
+      "file": "assets/graphics/boss-banners/siege-spine-side.png",
+      "packedBytes": 429,
+      "payloadBytes": 768,
+      "pictureSha256": "59497bd0e673a39442eee7135caaec809d66210a0db9b2390f22367cb703d0e7",
+      "dataBytes": 429,
+      "runBytes": 1154,
+      "runSectors": 10,
+      "startSector": 300,
+      "bossDataSectors": 76,
+      "barStep": 539,
+      "nameScrolled": true,
+      "codeBytes": 725,
+      "screenSectors": 2,
+      "lateSectors": 8,
+      "headOffset": 191,
+      "headBytes": 48
+    }
+  },
+  "candidateSpine": {
+    "region": 3,
+    "name": "Siege Spine",
+    "style": 1,
+    "codes": 122,
+    "stageStep": 21,
+    "charsetBytes": 976,
+    "charsetSectors": 8,
+    "modules": 13,
+    "finaleCooldown": 12,
+    "twin": null,
+    "bandShownRows": 8,
+    "stillAt": null,
+    "field": {
+      "row": 7,
+      "code": 99,
+      "rowCells": 44224,
+      "halves": [
+        {
+          "from": 14,
+          "to": 31,
+          "generators": [
+            "gen-l"
+          ]
+        },
+        {
+          "from": 32,
+          "to": 48,
+          "generators": [
+            "gen-r"
+          ]
+        }
+      ],
+      "codeBytes": 243,
+      "blockBytes": 353
+    },
+    "gravity": null,
+    "rowSwitches": [],
+    "entrySectors": 89,
+    "banner": {
+      "picture": "siege-spine-side",
+      "file": "assets/graphics/boss-banners/siege-spine-side.png",
+      "packedBytes": 429,
+      "payloadBytes": 768,
+      "pictureSha256": "59497bd0e673a39442eee7135caaec809d66210a0db9b2390f22367cb703d0e7",
+      "dataBytes": 429,
+      "runBytes": 1154,
+      "runSectors": 10,
+      "startSector": 300,
+      "bossDataSectors": 77,
+      "barStep": 532,
+      "nameScrolled": true,
+      "codeBytes": 725,
+      "screenSectors": 2,
+      "lateSectors": 8,
+      "headOffset": 191,
+      "headBytes": 48
+    }
+  },
+  "mainPayload": 27008,
+  "candidatePayload": 27008
+}

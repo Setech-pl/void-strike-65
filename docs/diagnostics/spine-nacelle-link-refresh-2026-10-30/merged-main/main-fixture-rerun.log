@@ -1,0 +1,12 @@
+✔ all four 2x1 debris phases map both cells through every logical row and A2 ring head (27530.047875ms)
+✔ divider and HUD coordinates cannot render or collide (53.05425ms)
+✔ spawn deterministically selects two variants, two phases and three trajectories (4391.284375ms)
+✔ both Heavy slots materialise no character destruction effect (137.809708ms)
+ℹ tests 4
+ℹ suites 0
+ℹ pass 4
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 32061.68375

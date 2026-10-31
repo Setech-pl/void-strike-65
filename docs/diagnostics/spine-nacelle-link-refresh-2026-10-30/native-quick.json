@@ -1,0 +1,67 @@
+{
+  "baselineEvidence": "../shot-solid-impact/implementation-2026-10-30/native-gates.json",
+  "baselineNote": "Published main-equivalent measurements, not newly rerun main traces.",
+  "routes": [
+    {
+      "id": "campaign-1-spread-capital",
+      "passed": true,
+      "frames": 1800,
+      "worstFrame": 246,
+      "peak": 30443,
+      "capitalPeak": 29528,
+      "mainPublishedPeak": 30443,
+      "deltaToMainPublishedPeak": 0,
+      "hardMargin": 2125,
+      "targetMargin": 1057,
+      "acceptance": {
+        "measured_frames": 1800,
+        "maximum_wall_cycles": 30443,
+        "wall_ceiling": 32568,
+        "physical_headroom": 5125,
+        "missed_frames": 0,
+        "extra_vbi_boundaries": 0,
+        "physical_overruns": 0,
+        "deadline_overruns": 0,
+        "dli_ordering_errors": 0,
+        "passed": true
+      },
+      "artifact": {
+        "path": "build/frame-peak-fixed-campaign/void-strike-65.atr",
+        "bytes": 133136,
+        "sha256": "cc41be9c1aff2582ef9b2f76bb45d9d7f283f3d152c0284ba2a12d9fa4a223f2"
+      },
+      "csvSha256": "c0521667177e9322de73eaaa7b835289eff09aa0a803855804f8e2215ba3d8d1"
+    },
+    {
+      "id": "l2-960-2-brake",
+      "passed": true,
+      "frames": 4741,
+      "worstFrame": 3603,
+      "peak": 31297,
+      "capitalPeak": 28801,
+      "mainPublishedPeak": 31297,
+      "deltaToMainPublishedPeak": 0,
+      "hardMargin": 1271,
+      "targetMargin": 203,
+      "acceptance": {
+        "measured_frames": 4741,
+        "maximum_wall_cycles": 31297,
+        "wall_ceiling": 32568,
+        "physical_headroom": 4271,
+        "missed_frames": 0,
+        "extra_vbi_boundaries": 0,
+        "physical_overruns": 0,
+        "deadline_overruns": 0,
+        "dli_ordering_errors": 0,
+        "passed": true
+      },
+      "artifact": {
+        "path": "build/l2-capital-960/void-strike-65.atr",
+        "bytes": 133136,
+        "sha256": "dfab3cf02b7370c56332879154efc2bd5b2991215a98719e57d91e95eab98610"
+      },
+      "csvSha256": "dc70769008d2b77c2ea2ca5ac973585a7bb447755e38483f63d580d71818ee45"
+    }
+  ],
+  "worst": 31297
+}

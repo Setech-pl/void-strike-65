@@ -1,0 +1,40 @@
+{
+  "sourceHead": "e4aaeec",
+  "main": "a066098",
+  "status": "BUILT — generated-map gate pending owner preservation exception",
+  "release_certified": false,
+  "artifacts": [
+    {
+      "file": "/Users/marcinkrzetowski/Projects/dark-fighter-spine-b3/build/play/spine-nacelle-link/campaign.atr",
+      "route": "Normal campaign",
+      "bytes": 133136,
+      "sha256": "cc41be9c1aff2582ef9b2f76bb45d9d7f283f3d152c0284ba2a12d9fa4a223f2",
+      "launch": [
+        "atari800",
+        "-xl",
+        "-pal",
+        "-config",
+        "/Users/marcinkrzetowski/Projects/dark-fighter-spine-b3/build/atari800-pinned.cfg",
+        "-nopatch",
+        "-nobasic",
+        "/Users/marcinkrzetowski/Projects/dark-fighter-spine-b3/build/play/spine-nacelle-link/campaign.atr"
+      ]
+    },
+    {
+      "file": "/Users/marcinkrzetowski/Projects/dark-fighter-spine-b3/build/play/spine-nacelle-link/spine-direct.atr",
+      "route": "Direct Siege Spine: region 3, level 7, boss sector",
+      "bytes": 133136,
+      "sha256": "4cb13be1cf9ecf355c36716688037bbecb5c360abb055ddbc7b32b3fa6d398e5",
+      "launch": [
+        "atari800",
+        "-xl",
+        "-pal",
+        "-config",
+        "/Users/marcinkrzetowski/Projects/dark-fighter-spine-b3/build/atari800-pinned.cfg",
+        "-nopatch",
+        "-nobasic",
+        "/Users/marcinkrzetowski/Projects/dark-fighter-spine-b3/build/play/spine-nacelle-link/spine-direct.atr"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,14 @@
+✔ region 3 is Siege Spine from its own draft: the layout, the hit points, the field, on the built disk (1.374416ms)
+✔ region 3's escort and finale: region 1's escort cadence, the finale on (0.1365ms)
+✔ the art rule: every damage stage of every region 3 module has colour-3 pixels (550.860458ms)
+✔ the palette reads as the enemy on levels 7-9: no hull, trim or field colour near the ally steel's hue (0.498ms)
+✔ the field: a powered half stops every shot, a half falls with its own generator, the other stays (7.195167ms)
+✔ a hit a generator lives through flashes it (b3); a kill shows the spark (0.758542ms)
+ℹ tests 6
+ℹ suites 0
+ℹ pass 6
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1586.10075

@@ -1,0 +1,9 @@
+{
+  "source": "build/boss-region-3-level-1-s6/runtime-wall-trace/spine-nacelle-entry-focused-run.json",
+  "sourceSha256": "c95ef24a3c7856e216ad9d69ef577d4b887935e15f9342dea6912f7b24f60b38",
+  "scope": "Adapter of successful focused report; focused format omits gate. No full-trace failures are claimed resolved.",
+  "gate": {
+    "timing_and_dli_passed": true,
+    "behavioural_clause_failures": []
+  }
+}

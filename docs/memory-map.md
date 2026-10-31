@@ -1,5 +1,32 @@
 # Current memory map
 
+## Spine B3 refreshed onto main — 2026-10-30
+
+MEASURED against main `a066098`: R3 `BOSS_F_CODE` **213 -> 243 B**
+(+30), F occupied span **323 -> 353/512 B** (159 free), look data
+**80 -> 98/110 B** (18 B reclaimed padding). R3 glyphs **864 -> 976/1024 B**
+(+112, 48 free); charset disk run **896 -> 1024 B**, 7 -> 8 sectors.
+F disk run remains 384 B / 3 sectors. All other linked segment starts/sizes
+and reserved ranges are unchanged; resident allocation delta 0.
+Shared boss image, R3 theme and banner have size delta 0; only generated
+R3 sector-count/integrity/progress-bar metadata changes in those runs.
+[Complete main/candidate segment table](diagnostics/spine-nacelle-link-refresh-2026-10-30/byte-comparison.json).
+The older B-to-B3 accounting below remains historical.
+
+## Siege Spine B3 link candidate — 2026-10-26
+
+Current candidate delta from B (`73f7512`), MEASURED by the compiler/build:
+R3 overlay F `$5200–$53FF` remains **353/512 B, 159 free**, last occupied
+byte `$5360`. Layouts remain 9 B per side, look tail 98/110 B, transport three
+sectors; helper/call/tables unchanged. R3 charset `$0C00–$0FFF` grows
+**952 -> 976 B**, 119 -> 122 codes, free **72 -> 48 B**, last glyph byte
+`$0FCF`; transport remains eight sectors. B3 adds 7 right glyphs (56 B) and
+7 mirror-only glyphs (56 B), replacing B's 48+40 B: net **+24 B**.
+No reserved address/range or resident allocation change. L2, window, summary
+and start-block sources untouched. This candidate-specific accounting
+supplements the historical snapshots below.
+[Plan and B3 evidence](plans/spine-nacelle-link.md).
+
 Accepted runtime checkpoint: `b4b942e` on `experiment/hybrid-c-director`
 (XEX `96546807…`, owner smoke PASS 2026-09-16). The linked-segment and BSS
 tables below are still the earlier `41ace65` snapshot (Light Wingman M1 + solid
@@ -96,7 +123,7 @@ Ranges are inclusive. Rows overlap where bytes change owner between phases; over
 | `$0500-$06FF` | 512 B | segment | `BOOT_SPLASH` — boot splash blob (ADR-003 hold, cassette sound, fade, loader_dli) | `splash` | build/void-strike-65.map |
 | `$0C00-$1FFF` | 5,120 B | slot | phase-exclusive low RAM: checked menu at $0C00-$117F in menus; checked L2 at $1900-$1FFF during fighter/capital play; boss charset, C/scratch/D and death image in their installed phases; no unrelated link or boot allocation | `overlay` | manifest `boss.claim`, tests/boss-claim.test.mjs |
 | `$0C00-$1117` | 1,304 B | segment | `MENU_OVERLAY` — checked L1 menu data run; refilled on every menu entry | `menu` | build/void-strike-65.map |
-| `$0C00-$0FFF` | 1,024 B | slot | boss region charset (CHBASE `$0C` under the band), read at every boss entry; codes 0-6 the divider's, copied by the install; each region's run: R1 93 codes / 6 sectors, R2 108 codes / 7 sectors, R3 108 codes / 7 sectors, R4 100 codes / 7 sectors (region 2's two nozzle codes, never drawn, at 126-127 outside its run: the engine writes them unseen) | `overlay` | manifest `boss.charset` |
+| `$0C00-$0FFF` | 1,024 B | slot | boss region charset (CHBASE `$0C` under the band), read at every boss entry; codes 0-6 the divider's, copied by the install; each region's run: R1 93 codes / 6 sectors, R2 108 codes / 7 sectors, R3 122 codes / 8 sectors, R4 100 codes / 7 sectors (region 2's two nozzle codes, never drawn, at 126-127 outside its run: the engine writes them unseen) | `overlay` | manifest `boss.charset` |
 | `$1000-$19FE` | 2,559 B | slot | boss breakup B: disk-only post-defeat C policy, ASM executor and region palettes; replaces dead fight C/D storage | `boss` `death` | manifest `boss.death`, cfg/boss-death.cfg |
 | `$1000-$17FF` | 2,048 B | slot | boss slot C: the C controller, run `boss-slot-c` (15 sectors) | `overlay` | manifest `boss.slotC` |
 | `$1000-$14FB` | 1,276 B | segment | `BOSS_C_CODE` — boss slot C: the C controller (cover and exposure, stages, tier, defeat, fire countdown, the finale, chain, bonus, clock) | `overlay` | build/boss.map |
@@ -176,7 +203,7 @@ Ranges are inclusive. Rows overlap where bytes change owner between phases; over
 | `$523D-$5240` | 4 B | transient | boot payload trailer `DFB1` | `boot` | manifest `bootPayloadTrailer` |
 | `$526E-$53FB` | 398 B | segment | `BOSS_R_CODE` — region 2's sliding rails and hangar (S5-5): a front gun's kill slides its rail one pitch inward and opens its bay (the stop lines up to the muzzle row), the cover, the warning pulse, the doors' escort cue, the doors' and the bays' unlock cue, the core's armoured flank; the rails' tables and state after the code; its code in region 2's block (slot F, after the look tail's 110 B, at the field's and the well's address - one region's block is in memory at a time); read with that block at region 2's boss entry only | `overlay` | build/boss.map |
 | `$526E-$53AC` | 319 B | segment | `BOSS_G_CODE` — region 4's gravity well (S5-4): the pull, the core's pulse and the gravity column (missile M3, capsule gold; one-shot stale LIFE normalization), its code, wave table and state in region 4's block (slot F, after the look tail's 110 B, at region 3's field's address - one region's block is in memory at a time); read with that block at region 4's boss entry only | `overlay` | build/boss.map |
-| `$526E-$5342` | 213 B | segment | `BOSS_F_CODE` — region 3's force field (S5-3): its code, tables and state in region 3's block (slot F, after the look tail's 110 B); read with that block at region 3's boss entry only | `overlay` | build/boss.map |
+| `$526E-$5360` | 243 B | segment | `BOSS_F_CODE` — region 3's force field (S5-3): its code, tables and state in region 3's block (slot F, after the look tail's 110 B); read with that block at region 3's boss entry only | `overlay` | build/boss.map |
 | `$5318-$5D1A` | 2,563 B | transient | ENTITY_CODE packed source after its backward staging copy | `boot` | manifest `entityEffects` |
 | `$5400-$54C5` | 198 B | segment | `PROJECTILES` — PairShot pool, burst controllers, fighter explosions, Raider records, menu music voice state, M3-H damaged-body reservation | `resident` | build/void-strike-65.map |
 | `$549E-$54BD` | 32 B | reserved | M3-H 32-B damaged-body buffer; admission invalidates its lazy copy | `resident` | src/main.s `M3H_DAMAGED_BODY_BUFFER` |
@@ -378,7 +405,7 @@ ld65 does not report overlaps between separate memory areas or separate links. E
 | --- | --- | --- |
 | `$0C00-$1FFF` | `overlay` | phase-exclusive low RAM: checked menu at $0C00-$117F in menus; checked L2 at $1900-$1FFF during fighter/capital play; boss charset, C/scratch/D and death image in their installed phases; no unrelated link or boot allocation |
 | `$0C00-$1117` | `menu` | `MENU_OVERLAY` — checked L1 menu data run; refilled on every menu entry |
-| `$0C00-$0FFF` | `overlay` | boss region charset (CHBASE `$0C` under the band), read at every boss entry; codes 0-6 the divider's, copied by the install; each region's run: R1 93 codes / 6 sectors, R2 108 codes / 7 sectors, R3 108 codes / 7 sectors, R4 100 codes / 7 sectors (region 2's two nozzle codes, never drawn, at 126-127 outside its run: the engine writes them unseen) |
+| `$0C00-$0FFF` | `overlay` | boss region charset (CHBASE `$0C` under the band), read at every boss entry; codes 0-6 the divider's, copied by the install; each region's run: R1 93 codes / 6 sectors, R2 108 codes / 7 sectors, R3 122 codes / 8 sectors, R4 100 codes / 7 sectors (region 2's two nozzle codes, never drawn, at 126-127 outside its run: the engine writes them unseen) |
 | `$1000-$19FE` | `boss` `death` | boss breakup B: disk-only post-defeat C policy, ASM executor and region palettes; replaces dead fight C/D storage |
 | `$1000-$17FF` | `overlay` | boss slot C: the C controller, run `boss-slot-c` (15 sectors) |
 | `$1000-$14FB` | `overlay` | `BOSS_C_CODE` — boss slot C: the C controller (cover and exposure, stages, tier, defeat, fire countdown, the finale, chain, bonus, clock) |
@@ -479,7 +506,7 @@ ld65 does not report overlaps between separate memory areas or separate links. E
 | `$523D-$5240` | `boot` | boot payload trailer `DFB1` |
 | `$526E-$53FB` | `overlay` | `BOSS_R_CODE` — region 2's sliding rails and hangar (S5-5): a front gun's kill slides its rail one pitch inward and opens its bay (the stop lines up to the muzzle row), the cover, the warning pulse, the doors' escort cue, the doors' and the bays' unlock cue, the core's armoured flank; the rails' tables and state after the code; its code in region 2's block (slot F, after the look tail's 110 B, at the field's and the well's address - one region's block is in memory at a time); read with that block at region 2's boss entry only |
 | `$526E-$53AC` | `overlay` | `BOSS_G_CODE` — region 4's gravity well (S5-4): the pull, the core's pulse and the gravity column (missile M3, capsule gold; one-shot stale LIFE normalization), its code, wave table and state in region 4's block (slot F, after the look tail's 110 B, at region 3's field's address - one region's block is in memory at a time); read with that block at region 4's boss entry only |
-| `$526E-$5342` | `overlay` | `BOSS_F_CODE` — region 3's force field (S5-3): its code, tables and state in region 3's block (slot F, after the look tail's 110 B); read with that block at region 3's boss entry only |
+| `$526E-$5360` | `overlay` | `BOSS_F_CODE` — region 3's force field (S5-3): its code, tables and state in region 3's block (slot F, after the look tail's 110 B); read with that block at region 3's boss entry only |
 | `$5318-$5D1A` | `boot` | ENTITY_CODE packed source after its backward staging copy |
 | `$5400-$54C5` | `resident` | `PROJECTILES` — PairShot pool, burst controllers, fighter explosions, Raider records, menu music voice state, M3-H damaged-body reservation |
 | `$549E-$54BD` | `resident` | M3-H 32-B damaged-body buffer; admission invalidates its lazy copy |

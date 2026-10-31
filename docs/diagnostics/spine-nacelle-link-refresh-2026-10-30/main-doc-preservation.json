@@ -1,0 +1,25 @@
+{
+  "main": "a066098",
+  "checks": [
+    {
+      "file": "docs/STATUS.md",
+      "main_lines_preserved": true
+    },
+    {
+      "file": "docs/game-design.md",
+      "main_lines_preserved": true
+    },
+    {
+      "file": "docs/hardware-testing.md",
+      "main_lines_preserved": true
+    },
+    {
+      "file": "docs/memory-map.md",
+      "main_lines_preserved": true
+    },
+    {
+      "file": "docs/owner-decisions-2026-09-11.md",
+      "main_lines_preserved": true
+    }
+  ]
+}

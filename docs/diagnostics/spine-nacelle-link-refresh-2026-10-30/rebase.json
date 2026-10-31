@@ -1,0 +1,30 @@
+{
+  "original_head": "e6ec8cdd6a2a65d395b3f838fc6ddd8cb93500e8",
+  "onto": "a0660986a4c45d54ed7022d7fd0edd2206f17703",
+  "rebased_head": "e4aaeec",
+  "art_source_unchanged": true,
+  "art_source_sha256": "27200794d6b8730a5ba7b78713d99fad2914ff4a03b3e9a79373398b254b2468",
+  "conflicts": [
+    {
+      "original_commit": "73f7512",
+      "path": "docs/STATUS.md",
+      "resolution": "Preserved main verbatim, including Last update and shot-impact/M3-H checkpoints; inserted Spine checkpoint after M3-H and before L2 (newest first)."
+    },
+    {
+      "original_commit": "73f7512",
+      "path": "docs/owner-decisions-2026-09-11.md",
+      "resolution": "Preserved main verbatim, including the BX reservation note, BY island-contact decision and next-free BZ marker; inserted Spine BX before the reservation note/BY. Omitted only the Spine branch stale next-free BY marker."
+    },
+    {
+      "original_commit": "e6ec8cd",
+      "path": "docs/STATUS.md",
+      "resolution": "Preserved main Last update and all main text; replaced only the branch-added Spine B checkpoint with B3 in the same chronological position."
+    },
+    {
+      "original_commit": "e6ec8cd",
+      "path": "docs/owner-decisions-2026-09-11.md",
+      "resolution": "Added B3 revision inside Spine BX, before unchanged main reservation note/BY. No section renumbering: main explicitly reserves BX for Spine."
+    }
+  ],
+  "non_document_conflicts": []
+}

@@ -1,0 +1,11 @@
+
+> void-strike-65@0.1.1 failures:reconcile
+> node scripts/reconcile-failures.mjs --trace build/spine-nacelle-reconcile-input.json
+
+trace report build/spine-nacelle-reconcile-input.json
+  gate: timing_and_dli_passed true, clause failures 0
+  matched (session and message): 0
+  NEW: 0
+  MOVED: 0
+  disappeared: 0
+Reconciliation: PASS

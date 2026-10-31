@@ -3616,6 +3616,7 @@ async function build() {
       `FIELD_FRAMES            = ${bossField.framesPerPhase}`,
       `FIELD_CODE              = ${hex(bossField.code)}`,
       `FIELD_HALVES            = ${halves.length}`,
+      ...(region.generatorLinks.length === 0 ? [] : ["FIELD_GENERATOR_LINK = 1"]),
       ...halves.map((half, i) => `FIELD_H${i}_START          = ${half.start}`),
       ".macro FIELD_TABLES",
       `field_from:     .byte ${halves.map((h) => h.from).join(", ")}`,
@@ -3625,6 +3626,10 @@ async function build() {
       `field_gen_a:    .byte ${halves.map((h) => h.generators[0]).join(", ")}`,
       `field_gen_b:    .byte ${halves.map((h) => (h.generators[1] ?? 0xff)).map(hex).join(", ")}`,
       `field_glyphs:   .byte ${[...bossField.phases[0], ...bossField.phases[1]].map(hex).join(", ")}`,
+      ...(region.generatorLinks.length === 0 ? [] : [
+        `field_link_start: .byte ${halves.map((h) => h.start).join(", ")}`,
+        `field_link_look: .byte ${halves.map((h) => region.generatorLinks.find((l) => l.module === h.generators[0]).lookOffset).join(", ")}`,
+      ]),
       ".endmacro",
       "",
     ];

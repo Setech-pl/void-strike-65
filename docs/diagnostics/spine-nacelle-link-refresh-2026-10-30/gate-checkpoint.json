@@ -1,0 +1,41 @@
+{
+  "raw_full_suite": {
+    "A": 137,
+    "B": 3,
+    "C": 0
+  },
+  "focused_fixture_reruns": {
+    "main": "3 PASS / 0 FAIL",
+    "candidate": "3 PASS / 0 FAIL",
+    "resolved": [
+      {
+        "file": "tests/hardware-audio.test.mjs",
+        "declared_at": "tests/hardware-audio.test.mjs:94",
+        "test": "the boss entry's loads leave async receive off (debug route --level=1:sector=6, real SIO)",
+        "message": "AssertionError [ERR_ASSERTION]:",
+        "first_failing_assertion": "tests/hardware-audio.test.mjs:103"
+      },
+      {
+        "file": "tests/hardware-boot.test.mjs",
+        "declared_at": "tests/hardware-boot.test.mjs:33",
+        "test": "the built ATR boots through real SIO to gameplay, BASIC on and off (scripts/sio-boot-repro.mjs)",
+        "message": "AssertionError [ERR_ASSERTION]:",
+        "first_failing_assertion": "tests/hardware-boot.test.mjs:39"
+      }
+    ]
+  },
+  "effective": {
+    "A": 137,
+    "B": [
+      {
+        "file": "tests/memory-map-generated.test.mjs",
+        "declared_at": "tests/memory-map-generated.test.mjs:20",
+        "test": "the generated memory map matches the current build",
+        "message": "docs/memory-map.md: the generated block does not match the build; run npm run memory-map after the build and commit the result.",
+        "first_failing_assertion": "tests/memory-map-generated.test.mjs:27"
+      }
+    ],
+    "C": 0
+  },
+  "status": "Awaiting scoped owner authorization to regenerate four Spine memory-map data rows."
+}

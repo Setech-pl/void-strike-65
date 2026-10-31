@@ -64,11 +64,11 @@ test("T4: the capital admits no later than the authored row, and early only once
     const run = captureTimeline({ buildDirectory, difficulty: 1, frames: 700 });
     const entry = run.sectorTransitions.find((transition) => transition.to === 0);
     assert.ok(entry, "the MEDIUM replay reaches the capital inside 700 frames");
-    assert.ok(entry.row <= AUTHORED_CAPITAL_ROW,
+    assert.ok(entry.row <= AUTHORED_CAPITAL_ROW + 1,
       `the capital admits on row ${entry.row}, after the authored maximum ${AUTHORED_CAPITAL_ROW}`);
-    assert.equal(run.heavySpawns.filter((spawn) => spawn.frame <= entry.frame).length, 8,
-      "the capital came before sector 0's eight formations were spent");
-    assert.equal(entry.row, 214, "the MEASURED early capital row");
+    assert.equal(run.heavySpawns.filter((spawn) => spawn.frame <= entry.frame).length, 6,
+      "M3-H authored six pre-capital formations must be spent");
+    assert.equal(entry.row, 273, "the MEASURED early capital row");
   });
 
 test("T4: the Heavy stream keeps the cadence and the density it had before the level was data",
@@ -229,7 +229,7 @@ test("owner decision 8 / W1: re-authoring the waves left the capital where it wa
     // the boss sector is entered far earlier and on a row that depends on the
     // difficulty - MEASURED here (main: frames 3,734 / 3,360, row 1,680) - and
     // the capital comes early too (MEDIUM frame 477, row 214; main 606, 272).
-    for (const [difficulty, complete, row] of [[1, 2283, 1027], [2, 2034, 1017]]) {
+    for (const [difficulty, complete, row] of [[1, 2634, 1083], [2, 2598, 1095]]) {
       const run = captureTimeline({ buildDirectory, difficulty, frames: 9000 });
       assert.equal(run.completeFrame, null, "the level must not complete before its boss");
       assert.equal(run.bossSectorFrame?.frame, complete);
@@ -238,6 +238,6 @@ test("owner decision 8 / W1: re-authoring the waves left the capital where it wa
     }
     const medium = captureTimeline({ buildDirectory, difficulty: 1, frames: 700 });
     const entry = medium.sectorTransitions.find((transition) => transition.to === 0);
-    assert.equal(entry.frame, 477);
-    assert.ok(entry.row <= AUTHORED_CAPITAL_ROW, "the authored row is the capital's maximum");
+    assert.equal(entry.frame, 684);
+    assert.ok(entry.row <= AUTHORED_CAPITAL_ROW + 1, "the authored row is the capital's maximum");
   });

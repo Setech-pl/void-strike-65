@@ -1,3 +1,5 @@
+> Current handoff: [test debt part 2](part2/report.md). Nine root families; 109/120 baseline failures addressed; audited 1632 PASS / 11 FAIL / 4 SKIP. The report below is the historical part-1 audit.
+
 # Test debt triage before v0.4.0
 
 Baseline/main: 6046c0b; branch codex/test-debt. Test infrastructure only; no game source changes.

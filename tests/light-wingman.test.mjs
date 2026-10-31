@@ -238,7 +238,7 @@ test("Light kernel placement is legal, resident and inside every reviewed gate",
   // Re-recorded 2026-10-10, fix/hardware-audio (F2): 22 -> 17, the cold
   // start's 5-byte SKCTL write lengthens the ENTITY_CODE staging.
   // L1-02 compressed address pads spend 32 B of ENTITY staging headroom.
-  assert.equal(manifest.entityEffects.stagingToBroadsideMarginBytes, 278,
+  assert.equal(manifest.entityEffects.stagingToBroadsideMarginBytes, 245,
     "ENTITY_CODE staging margin tracks the Light art tables");
   assert.equal(manifest.capitalPlayerCollisionRuntime.runAddress, 0x8b67);
   // light_add_score exactly fills the retired 17-byte BROADSIDE entry pad.

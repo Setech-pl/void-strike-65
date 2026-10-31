@@ -67,6 +67,11 @@ const main = (name) => {
   return address;
 };
 
+// §BW + capital content: checked L2/content reloads follow the level, even on cache hits.
+const checkedReloadSectors = () => ["fighter-capital-l2", "content-module"].flatMap(name => {
+  const run = manifest.overlays.runs.find(r => r.name === name);
+  return Array.from({length: run.sectors}, (_, i) => run.startSector + i);
+});
 const READER_BASE = 0xa000;
 const SUMMARY_BASE = 0x0500;
 const LEVEL_BUFFER = 0xa600;
@@ -337,6 +342,8 @@ function runtimeMemory() {
   const memory = new Uint8Array(0x10000);
   installRuntimeSegments(memory, root);
   memory.set(readerImage, READER_BASE);
+  // 0285cd5: installRuntimeSegments warms the level cache for L2; this fixture starts cold.
+  memory[LEVEL_BUFFER] = 0; // resident-hit is encoded by the level magic, not a BSS flag.
   return memory;
 }
 
@@ -398,6 +405,8 @@ test("the reader's stat vectors sit at $A00C-$A01B behind the frozen four", () =
 function statMemory() {
   const memory = new Uint8Array(0x10000);
   memory.set(readerImage, READER_BASE);
+  // 0285cd5: installRuntimeSegments warms the level cache for L2; this fixture starts cold.
+  memory[LEVEL_BUFFER] = 0; // resident-hit is encoded by the level magic, not a BSS flag.
   // Continuations the hooks jump on to: plain `rts` here.
   for (const address of [kernelLabels.get("life_colour_vector"), kernelLabels.get("light_publish"), main("entity_debris_publish"),
     main("update_score_display"), main("add_debris_score"), directorAbi.get("ENEMY_LIGHT_HIT")]) {
@@ -763,7 +772,7 @@ test("the summary stays up at least 3 s and FIRE continues only after the level 
   assert.ok(Number.isInteger(shown));
   assert.ok(run.frames - shown >= 150, `the summary was up ${run.frames - shown} frames`);
   const lastRead = drive.readSectors.at(-1);
-  assert.ok(lastRead >= 320 && lastRead < 512, "the level was not the last read");
+  assert.equal(lastRead, checkedReloadSectors().at(-1), "checked module reloads follow the level");
 });
 
 test("the art and the restore precede the level, the level is read tail first, the record last of the reads", () => {
@@ -783,6 +792,7 @@ test("the art and the restore precede the level, the level is read tail first, t
     SAVE_SECTOR,
     ...Array.from({ length: level.sectors - 5 }, (_, i) => level.startSector + 5 + i),
     ...Array.from({ length: 5 }, (_, i) => level.startSector + i),
+    ...checkedReloadSectors(),
   ];
   assert.deepEqual(sectors, expected);
 });
@@ -798,7 +808,7 @@ test("the second START GAME of a session reads no code and no level", () => {
   runUntil(cpu, { start_gameplay: main("start_gameplay") });
   const art = manifest.levelSummary.art.runs[0];
   assert.deepEqual(again.readSectors,
-    [...Array.from({ length: art.sectors }, (_, i) => art.startSector + i), SAVE_SECTOR],
+    [...Array.from({ length: art.sectors }, (_, i) => art.startSector + i), SAVE_SECTOR, ...checkedReloadSectors()],
     "the summary code and the resident level must not be read again");
   assert.ok(before > again.readSectors.length);
 });
@@ -1126,6 +1136,8 @@ test("sector_reader_load reads the level tail first: sectors 6..N, then 1..5", (
   const drive = new Drive();
   const memory = new Uint8Array(0x10000);
   memory.set(readerImage, READER_BASE);
+  // 0285cd5: installRuntimeSegments warms the level cache for L2; this fixture starts cold.
+  memory[LEVEL_BUFFER] = 0; // resident-hit is encoded by the level magic, not a BSS flag.
   // audit-hardening: the reader folds each sector into the disk guard's sum,
   // which rides the Light kernel's record, resident from the boot on.
   memory.set(fs.readFileSync(build("light-kernel.bin")), manifest.lightKernel.address);

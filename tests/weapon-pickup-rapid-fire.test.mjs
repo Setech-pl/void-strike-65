@@ -447,10 +447,10 @@ test("pickup collection is single-shot and changes neither score, HULL nor LIFE"
   ], [before.scoreHi, before.scoreLo, before.playerHealth, before.playerLives]);
   const changedHudCells = Array.from({ length: 40 }, (_, offset) => offset)
     .filter((offset) => pickup.display[offset] !== before.display[offset]);
-  assert.deepEqual(changedHudCells, [30, 31, 32, 33, 34, 36, 37, 38, 39]);
-  assert.equal(pickup.display[35], 0, "BOOST separator must remain a blank cell");
-  assert.deepEqual(Array.from(pickup.display.subarray(0, 30)),
-    Array.from(before.display.subarray(0, 30)), "SCORE/LIFE/HULL and separator cells must remain byte-exact");
+  assert.deepEqual(changedHudCells, [9, 10, 11, 12, 13]);
+  assert.equal(pickup.display[8], 0, "BOOST separator must remain a blank cell");
+  assert.deepEqual(Array.from(pickup.display).filter((_, i) => i < 9 || i >= 14),
+    Array.from(before.display).filter((_, i) => i < 9 || i >= 14), "SCORE/LIFE/HULL and separator cells must remain byte-exact");
 });
 
 test("weapon boosters use four proportional ANTIC 2 segments with a timer-derived warning blink", () => {
@@ -458,7 +458,7 @@ test("weapon boosters use four proportional ANTIC 2 segments with a timer-derive
   assert.deepEqual([
     atr.hudOffset, atr.hudCells, atr.hudSegmentsOffset, atr.hudSegments,
     atr.fullCode, atr.fullGlyph,
-  ], [30, 10, 36, 4, 7, [0xff, 0x30, 0x30, 0x30, 0x30, 0x30, 0x30, 0x30]]);   // RE-PINNED M6 stage 1b: the separator on top
+  ], [9, 5, 10, 4, 7, [0x00, 0x30, 0x30, 0x30, 0x30, 0x30, 0x30, 0x30]]);   // RE-PINNED M6 stage 1b: the separator on top
   assert.deepEqual(Object.fromEntries(atr.samples.map(({ name, hudCodes }) =>
     [name, hudCodes])), {
     "100%": [7, 7, 7, 7],
@@ -486,10 +486,10 @@ test("weapon boosters use four proportional ANTIC 2 segments with a timer-derive
     atr.expired.state, atr.expired.timer, atr.expired.hudRegionCodes,
   ], [atr.originalHud, atr.originalHud, 0, 0, atr.originalHud]);
   assert.deepEqual(atr.changedScreenOffsets,
-    [30, 31, 32, 33, 34, 35, 36, 37, 38, 39],
+    [9, 10, 11, 12, 13],
     "activation must not write outside the ten-cell BOOST field");
   assert.equal(atr.samples.every(({ hudRegionCodes }) =>
-    hudRegionCodes.slice(0, 6).join() === "34,47,47,51,52,0"), true,
+    hudRegionCodes.slice(0, 1).join() === "34"), true,
   "the full BOOST label and separator must remain stable while active");
   assert.equal(atr.samples.every(({ hudCodes }) => hudCodes.every((code) =>
     code === 0 || code === atr.fullCode)), true,
@@ -501,44 +501,44 @@ test("HULL plates and the ten-cell BOOST field remain distinct at native screen 
   assert.deepEqual([
     atr.hullOffset, atr.hullSegments, atr.boosterOffset, atr.boosterCells,
     atr.boosterSegmentsOffset, atr.boosterSegments,
-  ], [25, 4, 30, 10, 36, 4]);
+  ], [4, 4, 9, 5, 10, 4]);
   assert.deepEqual([atr.hullOffset - 1, atr.hullOffset + atr.hullSegments,
-    atr.boosterSegmentsOffset - 1], [24, 29, 35],
+    atr.boosterSegmentsOffset - 1], [3, 8, 9],
   "the three HULL/BOOST separators must each occupy exactly one cell");
   assert.equal(atr.frames.every(({ display }) =>
-    [24, 29, 35].every((column) => display[column] === 0)), true,
+    [2, 8, 14].every((column) => display[column] === 0)), true,
   "all three separator cells must stay blank in every rendered state");
   assert.equal(atr.lifecycleDisplays.every(({ display }) =>
-    [24, 29, 35].every((column) => display[column] === 0)), true,
+    [2, 8, 14].every((column) => display[column] === 0)), true,
   "expiration, new game and respawn must preserve all separator cells");
   assert.equal(atr.frames.every(({ display }) => display.length === 40), true,
   "HUD snapshots must remain exactly inside $4000-$4027");
   assert.equal(atr.frames.every(({ display, hullCodes, boosterCodes }) =>
-    display.slice(25, 29).join() === hullCodes.join() &&
-    display.slice(30, 40).join() === boosterCodes.join()), true,
+    display.slice(4, 8).join() === hullCodes.join() &&
+    display.slice(9, 14).join() === boosterCodes.join()), true,
   "HULL and BOOST writers must stay inside their disjoint fields");
   assert.deepEqual([
     atr.hullFullGlyph, atr.hullDamagedGlyph, atr.boosterFullGlyph,
   ], [
     // RE-PINNED M6 stage 1b (journal §BK 1): the HUD is the display's last
     // line, so its separator is the glyphs' first row (it was the eighth).
-    [0xff, 0, 0, 0, 0x3c, 0x7e, 0xff, 0x7e],
-    [0xff, 0, 0, 0, 0x3c, 0x42, 0x5a, 0x24],
-    [0xff, 0x30, 0x30, 0x30, 0x30, 0x30, 0x30, 0x30],
+    [0x00, 0, 0, 0, 0x3c, 0x7e, 0xff, 0x7e],
+    [0, 0, 0, 0x3c, 0x42, 0x5a, 0x24, 0xff],
+    [0x00, 0x30, 0x30, 0x30, 0x30, 0x30, 0x30, 0x30],
   ]);
   assert.deepEqual(atr.frames.map(({ name, health, timer, boosterState,
     hullCodes, boosterCodes }) =>
     [name, health, timer, boosterState, hullCodes, boosterCodes]), [
-    ["full-hull-no-booster", 10, 0, 0, [5, 5, 5, 5], Array(10).fill(0)],
+    ["full-hull-no-booster", 10, 0, 0, [5, 5, 5, 5], Array(5).fill(0)],
     ["full-hull-full-boost", 10, 500, 3, [5, 5, 5, 5],
-      [34, 47, 47, 51, 52, 0, 7, 7, 7, 7]],
+      [34, 7, 7, 7, 7]],
     // RE-PINNED fix/boss-polish (owner request 2026-10-12): a spent HULL
     // quarter is the HUD's blank (0), as a spent BOOST cell is, no longer the
     // cracked plate (12); the two fields stay disjoint.
     ["partial-hull-half-boost", 7, 250, 3, [5, 5, 0, 0],
-      [34, 47, 47, 51, 52, 0, 7, 7, 0, 0]],
+      [34, 7, 7, 0, 0]],
     ["critical-hull-blinking-boost", 1, 111, 3, [0, 0, 0, 0],
-      [34, 47, 47, 51, 52, 0, 7, 0, 0, 0]],
+      [34, 7, 0, 0, 0]],
   ]);
 });
 

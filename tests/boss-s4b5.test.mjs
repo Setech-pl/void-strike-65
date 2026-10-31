@@ -127,7 +127,8 @@ test("slot E's contract, by the source: only draw_hull_row reads the hull maps; 
       users.add(`${file}:${routineOf(text, m.index)}`);
     }
   }
-  assert.deepEqual([...users].sort(), ["src/main.s:set_allied_hull_source", "src/main.s:set_enemy_hull_source",
+  assert.deepEqual([...users].sort(), ["src/hybrid/boss-death-boot.s:death_boot", "src/hybrid/boss-death.s:null",
+    "src/main.s:set_allied_hull_source", "src/main.s:set_enemy_hull_source",
     "src/main.s:unpack_capital_hull_maps"].sort(), "who names $4C00-$4E3F");
   const text = fs.readFileSync(path.join(root, "src/main.s"), "utf8");
   const callers = (name) => [...text.matchAll(new RegExp(`(?:jsr|jmp)\\s+${name}\\b`, "g"))]

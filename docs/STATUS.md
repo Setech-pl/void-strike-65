@@ -1,6 +1,6 @@
 # VOID STRIKE 65 — CURRENT STATUS
 
-Last update: 2026-10-31 (test debt triage; gameplay baseline unchanged)
+Last update: 2026-10-31 (test debt part 2; gameplay baseline unchanged)
 
 What is true now. Rules: [reguly-projektu.txt](reguly-projektu.txt). Roadmap:
 [plan-realizacji.md](plan-realizacji.md). Source-of-truth order:
@@ -20,9 +20,13 @@ the values below.
 
 ## Checkpoint
 
-### Pre-v0.4.0 test debt triage — uncommitted infrastructure changes
+### Pre-v0.4.0 test debt part 2 — uncommitted infrastructure handoff
 
-Main baseline 6046c0b. Full suite 1512 PASS/137 FAIL/4 SKIP before; raw after 1527/121/4. One generated-ABI fixture race repaired and full affected file rerun; audited 1528/120/4, A120/B0/C17 (line-only assertion shifts audited). 119 unit cases and all 32 native assertions remain unknown; the known preview-tool defect remains. No game source, CPU/RAM layout or canonical runtime evidence changed. Commits blocked by linked-worktree Git metadata permissions. [Per-test classification, audit and remaining work](diagnostics/test-debt/report.md). NEXT TASK: investigate remaining unknowns and refresh milestone release evidence; no release-readiness claim.
+Branch codex/test-debt, HEAD b6bf627; main 4e84bc4 has the identical tree. Merge and commits are blocked by linked Git metadata permissions. No game source, asset, layout or native predicate changed.
+
+Nine root families cover all 120 baseline unit failures (119 former unknowns plus the known preview defect). **109 addressed**, including five obsolete tests retired with replacement coverage. Raw full suite **1625 PASS/18 FAIL/4 SKIP**; after seven §BR stale expectations and 35/35 affected-file checks, audited **1632/11/4**. No task-only failing names. Two first-assertion moves expose existing baseline collision/evidence debt and are recorded explicitly.
+
+Remaining: eight milestone-evidence unit checks; a linked NMOS collision regression first bad 5bc8d51; the preview clipping bug (source condition first bad effe71c); and a no-kill authored-wave/fixture candidate requiring native/intent confirmation. All 32 native ledger assertions are grouped as needing fresh milestone reproduction, not cleared. [Groups, bisects, exact assertions and audit](diagnostics/test-debt/part2/report.md). **NEXT TASK: owner records the merge/commits, then selects defect follow-up and milestone evidence refresh; no release certification.**
 
 ### M3-H session 2 — smoke repair OWNER-SMOKE CANDIDATE
 

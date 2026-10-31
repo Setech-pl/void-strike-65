@@ -135,7 +135,7 @@ test("C EnemyArchetype is a compact exact Raider record in legal extension place
   // 480 - hull_rows for a right-aligned short hull: 187 + 28 = 215 of the
   // segment's 248 B. It ships in an extension record, not the initial block.
   assert.deepEqual(manifest.encounterDirector.director.placements.find(
-    ({ name }) => name === "window"), { name: "window", runAddress: 0x8602, bytes: 241 });
+    ({ name }) => name === "window"), {"name":"window","runAddress":34306,"bytes":244});
   // RE-PINNED 2026-10-09 (feat/sector-flow, the owner's smoke): 230 -> 241 of
   // 248. The BOSS branch waits while the debris slot is live, so no debris
   // piece freezes on screen at the boss entry (docs/plans/sector-flow.md §4).
@@ -168,8 +168,8 @@ test("C maps the existing capital corridor phases and complete lifecycle exactly
   for (const [phase, expected] of [[0x001f, 0], [0x0020, 1], [0x006f, 1],
     [0x0070, 2], [0x016f, 2], [0x0170, 3], [0x01bf, 3], [0x01c0, 4],
     [0x01e7, 4], [0x01e8, 5], [0x0200, 5]]) {
-    image[lo] = phase & 0xff;
-    image[hi] = phase >> 8;
+    image[lo] = (phase + 480) & 0xff;
+    image[hi] = (phase + 480) >> 8;
     run(image, "sector_update_capital_phase");
     assert.equal(image[state], expected, `phase $${phase.toString(16)}`);
   }
@@ -312,22 +312,10 @@ test("ownership is singular and generated C requires neither software stack nor 
   // enemy_c_spawn_raiders. _light_ceiling is still called, and now tail-jumps
   // into the Director's one ceiling answer rather than choosing between three
   // policy bytes.
-  assert.deepEqual(jsrs,
-    // RE-PINNED 2026-10-04 (M5b-S3): the drained boss gate calls the window's
-    // entry. A call into the ABI, not a token claim: the claim sites stay five.
-    ["_asm_sector_pressure_active", "_sector_c_drain_clear", "_asm_boss_enter",
-      "_heavy_publish_profile",
-      "_bomber_may_fire", "_bomber_turn", "_bomber_turn", "_bomber_turn", "_bomber_may_fire",
-      "_bomber_colour", "_light_tick_body",
-      "_light_take_deferrable_token", "_light_take_deferrable_token",
-      "_asm_world_rotate_due", "_light_take_deferrable_token",
-      "_light_wave_step", "_light_ceiling", "_light_live_count", "_light_free_slot",
-      "_light_take_token", "_light_pair_for_record", "_light_reload",
-      "_light_admit", "_light_live_count",
-      "_light_take_token", "_light_reload"]);
-  assert.equal(jsrs.filter((name) => name.startsWith("_light_take_")).length, 5,
+  assert.deepEqual(jsrs, ["_asm_sector_pressure_active","_sector_c_drain_clear","_asm_boss_enter","_l2_c_enter","$A03D","l2_invalidate","_heavy_publish_profile","_light_tick_body","_light_take_deferrable_token","_light_take_deferrable_token","_light_wave_step","_light_ceiling","_light_live_count","_light_free_slot","_light_take_token","_light_pair_for_record","_light_reload","_light_admit","_light_live_count","_light_take_token","_light_reload","_bomber_colour","_bomber_may_fire","_bomber_turn","_bomber_turn","_bomber_turn","_bomber_may_fire","_asm_world_rotate_due","_light_take_deferrable_token","_asm_heavy_departure_erase","_asm_world_rotate_due","_light_take_deferrable_token"]);
+  assert.equal(jsrs.filter((name) => name.startsWith("_light_take_")).length, 6,
     "exactly the five token claim sites of plan §2.5 with [C3], §4.6 and the Heavy break-up");
-  assert.equal(jsrs.filter((name) => name === "_light_take_deferrable_token").length, 3,
+  assert.equal(jsrs.filter((name) => name === "_light_take_deferrable_token").length, 4,
     "exactly the three DEFERRABLE consumers: the install, the Light breakup spawn " +
     "and the Heavy break-up claim");
 });

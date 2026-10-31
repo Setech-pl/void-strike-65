@@ -137,33 +137,20 @@ for (const directory of [1, 2, 3, 4]) {
   });
 }
 
-test("§BL 5 (§BH): a miss - no target under the ship - the torpedo flies to the band's foot at the ship's column; the lance kept, the reticle back", () => {
+test("§BO: no target retains full charge until release, without launching or damaging a module", () => {
   const { memory } = fight(1);
   const c = emptyColumn(memory);
   assert.ok(c !== undefined);
   const hp = [...memory.subarray(lbl("_boss_hp"), lbl("_boss_hp") + 16)];
-  fire(memory, c);
-  const x = (memory[main("player_x")] + 4) & 0xff;
-  assert.equal(memory[lbl("lance_top")], memory[lbl("lance_y")] - 1, "to the band's foot");
-  let frames = 0;
-  while (memory[lbl("lance_beam")] !== 0) {
-    tick(memory);
-    frames += 1;
-    assert.ok(frames < 400);
-    if (memory[lbl("lance_beam")] === 1) {
-      assert.equal(memory[HPOSP1], x, "the ship's column");
-      assert.equal(memory[HPOSP2], x);
-    }
-  }
-  assert.deepEqual([...memory.subarray(lbl("_boss_hp"), lbl("_boss_hp") + 16)], hp, "nothing hit");
-  assert.deepEqual(rowsOf(memory, P2), [], "P2 released");
-  tick(memory);                                           // the lance shown again: the reticle's rows, the cue
-  assert.equal(memory[lbl("lance_ready")], 0xff, "the lance kept");
-  const y = memory[lbl("lance_y")];
-  const mark = [...memory.subarray(P1 + y, P1 + y + 8)];
-  assert.ok(JSON.stringify(mark) === JSON.stringify(HOLLOW) || JSON.stringify(mark) === JSON.stringify(CROSSHAIR),
-    `the reticle's rows back (${mark})`);
-  assert.deepEqual(rowsOf(memory, P1).filter((r) => r < y || r >= y + 8), [], "P1 holds the reticle only");
+  memory[main("player_x")] = shipX(memory, c);
+  hold(memory, true);
+  for (let f = 0; f < lance.chargeFrames + 100; f++) tick(memory);
+  assert.equal(memory[lbl("lance_beam")], 0);
+  assert.equal(memory[lbl("_lance_charge")], lance.chargeFrames);
+  assert.equal(memory[lbl("lance_ready")], 0xff);
+  assert.deepEqual([...memory.subarray(lbl("_boss_hp"), lbl("_boss_hp") + 16)], hp);
+  hold(memory, false); tick(memory);
+  assert.equal(memory[lbl("_lance_charge")], 0);
 });
 
 test("§BL 5 (§BH): the locked module destroyed on the way - the torpedo flies on to its line and hits nothing; the lance kept", () => {

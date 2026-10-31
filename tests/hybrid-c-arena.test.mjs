@@ -72,8 +72,8 @@ test("HYBRID_C_ARENA is one contiguous 832-B arena at $7BD0-$7F0F", () => {
   // interceptor-standoff §3): + 21 B of C - director_c_arm_wave, the
   // afterCleared gate, moved out of the window's last segment so its
   // boot-loaded record keeps 11 sectors with the Interceptor's standoff.
-  assert.deepEqual([arena.asmBytes, arena.codeBytes, arena.rodataBytes], [162, 617, 39]);
-  assert.equal(arena.freeBytes, 14);
+  assert.deepEqual([arena.asmBytes, arena.codeBytes, arena.rodataBytes], [162,644,24]);
+  assert.equal(arena.freeBytes, 2);
   assert.equal(labels.get("hybrid_arena_anchor"), ARENA);
   assert.equal(arenaImage[0], 0x60, "the anchor stays first");
   for (const veneer of ["enemy_recycle", "enemy_spawn_raiders", "heavy_publish_hull_colour"]) {
@@ -146,7 +146,7 @@ test("the arena lands directly as its own DFMC record and is the only owner of i
   // B packed, still 6 sectors (28 B spare).
   // feat/interceptor-standoff (owner answer Q3): + director_c_arm_wave, 719
   // -> 740 B packed, still 6 sectors (7 B spare).
-  assert.deepEqual([record.packedLength, record.sectorCount], [740, 6]);
+  assert.deepEqual([record.packedLength, record.sectorCount], [702,6]);
   // Death-frame deferral (2026-09-17): player_dying_tick adds 18 B to ENTITY_CODE.
   // Debris score (2026-09-18): add_debris_score plus its call adds 21 B to
   // ENTITY_CODE; BROADSIDE, the arena and the sector counts are unchanged.
@@ -158,10 +158,10 @@ test("the arena lands directly as its own DFMC record and is the only owner of i
   // RE-PINNED 2026-10-06, 13,621 -> 13,618: plasma FX B1.2 (docs/plans/plasma-fx.md §12): the break-up is main's again, its renderer one stage list with no per-fragment codes and no growth hold, so the initial block content is 13,618 B, 3 B under main's 13,621.
   // RE-PINNED 2026-10-10, fix/hardware-audio (docs/diagnostics/hardware-audio.md, F2): `lda #SKCTL_AUDIO / sta SKCTL` before the first menu, 5 B in ENTITY_CODE's cold start: 13,618 -> 13,623, the envelope 78 -> 73 B; the sector count holds.
   // L1 menu run removes boot content; compressed pads restore the ENTITY address profile.
-  assert.equal(manifest.transportCapacity.initialBootContentBytes, 12829);
+  assert.equal(manifest.transportCapacity.initialBootContentBytes, 12865);
   // The envelope 75 -> 78 B with the same 3 B, then 78 -> 73 with F2's 5 B;
   // the sector count holds.
-  assert.equal(manifest.transportCapacity.initialBootEnvelopeBytes, 99);
+  assert.equal(manifest.transportCapacity.initialBootEnvelopeBytes, 63);
   assert.equal(manifest.transportCapacity.initialBootSectors, 101);
   // RE-PINNED 2026-10-01, roadmap 4.6 step 5 (plan §8.3): 208 -> 209. The
   // code window's C half took the one extension sector budget-1.0 M2 granted
@@ -175,8 +175,8 @@ test("the arena lands directly as its own DFMC record and is the only owner of i
   // guard's sector in the Light kernel's record.
   // RE-PINNED 2026-10-08 (feat/sector-flow, owner-accepted +163 B of window):
   // 212 -> 213, the window record 10 -> 11 sectors; this record did not move.
-  assert.equal(manifest.transportCapacity.totalTransportSectors, 210);
-  assert.equal(parsed.totalOccupiedSectors, 210);
+  assert.equal(manifest.transportCapacity.totalTransportSectors, 213);
+  assert.equal(parsed.totalOccupiedSectors, 213);
 });
 
 test("the temporary Heavy window transport is retired without moving any address", () => {

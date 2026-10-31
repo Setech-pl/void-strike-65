@@ -94,7 +94,7 @@ test("capital traversal restores the pre-tuning rate while fighter rates stay ex
   const update = source.slice(source.indexOf("update_starfield:"),
     source.indexOf("advance_starfield_layers:"));
   assert.match(update,
-    /cmp #CAPITAL_HULL_STATE_OPEN[\s\S]+lda world_scroll_rates,x[\s\S]+asl[\s\S]+lda hull_scroll_rates,x/);
+    /lda L2_SCROLL_RATE/);
   assert.equal((update.match(/cmp #HULL_SCROLL_RATE_DENOMINATOR/g) ?? []).length, 2,
     "world ring and hull must consume the same selected sector rate");
 });

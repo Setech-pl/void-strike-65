@@ -1,0 +1,2621 @@
+{
+  "head": "b6bf627",
+  "main": "4e84bc4",
+  "tree": "66ee6e04b70b87a8ff510c4ebd7d8bc0fe53271e",
+  "merge": "Blocked writing ORIG_HEAD; identical trees so no content merge was necessary. Owner must record Git ancestry.",
+  "baseline_full_audited": {
+    "tests": 1652,
+    "pass": 1528,
+    "fail": 120,
+    "skipped": 4
+  },
+  "focused_before": {
+    "tests": 120,
+    "suites": 0,
+    "pass": 0,
+    "fail": 120,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0,
+    "duration_ms": 13120.516833
+  },
+  "raw_after": {
+    "tests": 1647,
+    "suites": 0,
+    "pass": 1625,
+    "fail": 18,
+    "cancelled": 0,
+    "skipped": 4,
+    "todo": 0,
+    "duration_ms": 1908801.894667
+  },
+  "after": {
+    "tests": 1647,
+    "suites": 0,
+    "pass": 1632,
+    "fail": 11,
+    "cancelled": 0,
+    "skipped": 4,
+    "todo": 0,
+    "duration_ms": 1908801.894667
+  },
+  "post_run_audit": {
+    "corrected": [
+      {
+        "file": "tests/runtime-timing.test.mjs",
+        "declared_at": "tests/runtime-timing.test.mjs:65",
+        "test": "measured DMA-on fields come only from an artifact-matched Atari800 trace",
+        "message": "runtime wall trace is missing",
+        "first_failing_assertion": "tests/runtime-timing.test.mjs:67"
+      },
+      {
+        "file": "tests/runtime-wall-trace.test.mjs",
+        "declared_at": "tests/runtime-wall-trace.test.mjs:70",
+        "test": "wall trace is artifact-bound and adds no guest timing work",
+        "message": "Expected values to be strictly deep-equal:",
+        "first_failing_assertion": "tests/runtime-wall-trace.test.mjs:75"
+      },
+      {
+        "file": "tests/runtime-wall-trace.test.mjs",
+        "declared_at": "tests/runtime-wall-trace.test.mjs:606",
+        "test": "Spread Shot passes PAL wall budget with a legal capsule and projectile-heavy frame",
+        "message": "Expected values to be strictly deep-equal:",
+        "first_failing_assertion": "tests/runtime-wall-trace.test.mjs:668"
+      },
+      {
+        "file": "tests/runtime-wall-trace.test.mjs",
+        "declared_at": "tests/runtime-wall-trace.test.mjs:790",
+        "test": "debris visual polish preserves foundation history and passes its +256 PAL gate",
+        "message": "Expected values to be strictly equal:",
+        "first_failing_assertion": "tests/runtime-wall-trace.test.mjs:843"
+      },
+      {
+        "file": "tests/runtime-wall-trace.test.mjs",
+        "declared_at": "tests/runtime-wall-trace.test.mjs:847",
+        "test": "explosion colour flash passes its +64 PAL gate with exact GTIA traces",
+        "message": "Expected values to be strictly deep-equal:",
+        "first_failing_assertion": "tests/runtime-wall-trace.test.mjs:895"
+      },
+      {
+        "file": "tests/runtime-wall-trace.test.mjs",
+        "declared_at": "tests/runtime-wall-trace.test.mjs:910",
+        "test": "destructible debris passes PAL, inactive-path and linked-code budgets",
+        "message": "Expected values to be strictly deep-equal:",
+        "first_failing_assertion": "tests/runtime-wall-trace.test.mjs:938"
+      },
+      {
+        "file": "tests/runtime-wall-trace.test.mjs",
+        "declared_at": "tests/runtime-wall-trace.test.mjs:970",
+        "test": "enemy breakup passes the hard PAL gate and draws no character effect",
+        "message": "Expected values to be strictly deep-equal:",
+        "first_failing_assertion": "tests/runtime-wall-trace.test.mjs:1009"
+      }
+    ],
+    "focused": {
+      "tests": 35,
+      "suites": 0,
+      "pass": 35,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "duration_ms": 124.092958
+    },
+    "log": ".cache/test-debt-part2/pending-policy.log"
+  },
+  "groups": {
+    "G1": {
+      "name": "Linked layout and source ownership snapshots",
+      "cause": "Assertions pin pre-L1/L2/M3-H byte counts, table offsets or inline owners although accepted code/data now occupies different linked records.",
+      "fixClass": "stale expectation",
+      "sample": "level image ends before $AC80",
+      "firstChange": "0285cd5",
+      "method": "git bisect of the exact first size predicate: LEVEL_IMAGE_SECTORS * 128 <= $680",
+      "artifacts": "normal build manifest, linked maps/binaries, compiler source",
+      "helper": "assert.equal/deepEqual over linked artifacts and source inventories",
+      "before": 36,
+      "remaining": 0,
+      "retired": 0
+    },
+    "G2": {
+      "name": "M6 compact HUD and lance-lock contract",
+      "cause": "Tests read old HUD columns/glyph rows or require launching into an empty column; M6 compact fields and §BO intentionally replaced those contracts.",
+      "fixClass": "stale expectation / obsolete",
+      "sample": "HUD template keeps full LIFE/HULL labels",
+      "firstChange": "b79f667",
+      "method": "git bisect of the exact hud_ascii first-assertion regex; secondary lock predicate bisected to d165927",
+      "artifacts": "normal ATR, HUD charset/source, NMOS boss fixture",
+      "helper": "HUD snapshots / boss fixture / independent raster oracle",
+      "before": 15,
+      "remaining": 1,
+      "retired": 0
+    },
+    "G3": {
+      "name": "Checked-load and late-publication fixtures",
+      "cause": "installRuntimeSegments now performs checked level/L2 setup, warming the level cache; boss late publication also requires a scanline and retains write hooks.",
+      "fixClass": "harness",
+      "sample": "START GAME cold level reads and corruption check",
+      "firstChange": "0285cd5",
+      "method": "git bisect of checked-load side effect in installRuntimeSegments; current cold/hot/corruption tests exercise real reader paths",
+      "artifacts": "ATR, sector-reader, L2/content overlays, POKEY/VCOUNT Drive fixture",
+      "helper": "installRuntimeSegments/loadCheckedL2, Drive, runBossEntry, boss_shots_late",
+      "before": 10,
+      "remaining": 0,
+      "retired": 0
+    },
+    "G4": {
+      "name": "Ordinary booster fixture admits LIFE",
+      "cause": "The ordinary Rapid/Spread/Shield harness starts with a fresh LIFE latch, so its first expected booster becomes LIFE and runBurst sees state=0.",
+      "fixClass": "harness",
+      "sample": "executeWeaponPickupTrace → runBurst",
+      "firstChange": "b2261c9",
+      "method": "binary candidate builds and git bisect; unchanged original helper passes the parent and fails at b2261c9 with the recorded state/pickup/Y tuple",
+      "artifacts": "ATR, generated ABI/roster, NMOS runtime",
+      "helper": "initialiseRuntime / executeWeaponPickupTrace / runBurst",
+      "before": 14,
+      "remaining": 0,
+      "retired": 0
+    },
+    "G5": {
+      "name": "Finite-capital and Heavy policy contracts",
+      "cause": "Fixtures assume 480-coordinate tables, frozen frame parity, small capital debris, no pre-capital clear fence or unchanged M3-H timelines; accepted policies changed all of these.",
+      "fixClass": "stale expectation / harness / obsolete",
+      "sample": "half-rate Heavy entry with a frozen frame_counter",
+      "firstChange": "d7b764c",
+      "method": "source-predicate git bisects: half-rate gate d7b764c, cached L2 scroll 104a94d, islands db661b9, Heavy-free fence a4e1197",
+      "artifacts": "compiled level pages, C policy, NMOS frame counter and Director state",
+      "helper": "direct update_enemy loops / finite geometry resolver / captureTimeline",
+      "before": 25,
+      "remaining": 1,
+      "retired": 3
+    },
+    "G6": {
+      "name": "Replaced inline boss-death path",
+      "cause": "The old inline chain/return-to-fighter cleanup and memory-writer inventory predate the accepted checked disk/DLI death engine.",
+      "fixClass": "obsolete / stale expectation",
+      "sample": "old inline boss chain handoff",
+      "firstChange": "e97244c",
+      "method": "git bisect of the replacement handoff target; replacement coverage is tests/boss-death.test.mjs",
+      "artifacts": "boss overlay/death runs, DLI source and checked death fixtures",
+      "helper": "boss_completion / deathFixture / source writer inventory",
+      "before": 4,
+      "remaining": 0,
+      "retired": 2
+    },
+    "G7": {
+      "name": "Historical evidence and release-bound artifacts",
+      "cause": "Committed traces, boot/menu captures, curve measurements, media and package evidence describe older ATRs; a normal pending build deliberately supplies no fresh DMA-on measurements.",
+      "fixClass": "needs milestone release trace",
+      "sample": "measured DMA-on fields require artifact-matched trace",
+      "firstChange": "12d35c1",
+      "method": "source-policy git bisect; this locates pending normal-build semantics, not the introduction of each native gameplay observation",
+      "artifacts": "matching Atari800 source, current ATR, complete canonical trace, menu/boot captures, boss curve and release media",
+      "helper": "runtime evidence binding / artifact SHA comparison / native clause observers",
+      "before": 8,
+      "remaining": 8,
+      "retired": 0
+    },
+    "G9": {
+      "name": "Normal pending evidence treated as measured",
+      "cause": "Legacy unit expectations copy historical DMA-on measurements into a normal pending manifest, contrary to accepted §BR.",
+      "fixClass": "stale expectation",
+      "sample": "measured DMA-on fields require artifact-matched trace",
+      "firstChange": "12d35c1",
+      "method": "source-policy git bisect plus focused runtime evidence/binding tests, including real strict-release rejection",
+      "artifacts": "normal manifest and historical report; no new native measurement needed",
+      "helper": "runtime evidence metadata / currentMeasurement assertions",
+      "before": 7,
+      "remaining": 0,
+      "retired": 0
+    },
+    "G8": {
+      "name": "Preview canvas clipping (known tool defect)",
+      "cause": "The static preview allocates 24×8 rows while the fighter initial Y moved beyond that canvas; changing player_shape therefore leaves the image unchanged.",
+      "fixClass": "real defect (tool)",
+      "sample": "preview consumes canonical source / shape mutation",
+      "firstChange": "effe71c",
+      "method": "git bisect of the exact first-row visibility condition using linked-source numeric asserts; 24×8 canvas and initial player Y, not an entire historical suite",
+      "artifacts": "Node PNG preview and source constants",
+      "helper": "createGameplayPreview / overlayCanonicalPmg / drawPlayer",
+      "before": 1,
+      "remaining": 1,
+      "retired": 0
+    }
+  },
+  "members": [
+    {
+      "id": "U001",
+      "baseline_index": 0,
+      "group": "G1",
+      "file": "tests/boot-loading-blank-screen.test.mjs",
+      "test": "the blanking costs 9 bytes of the initial block and no sector",
+      "first_assertion": "tests/boot-loading-blank-screen.test.mjs:63",
+      "first_message": "Expected values to be strictly equal:",
+      "failing_helpers": [
+        "assert.equal/deepEqual over linked artifacts and source inventories"
+      ],
+      "required_artifact": "normal build manifest, linked maps/binaries, compiler source",
+      "outcome": "cleared/replaced",
+      "after": null
+    },
+    {
+      "id": "U002",
+      "baseline_index": 1,
+      "group": "G1",
+      "file": "tests/boss-band.test.mjs",
+      "test": "the level image still ends before $AC80, where band rows 6-7 and the tables land",
+      "first_assertion": "tests/boss-band.test.mjs:168",
+      "first_message": "level 1 is 2048 B and would reach band B at $AC80",
+      "failing_helpers": [
+        "assert.equal/deepEqual over linked artifacts and source inventories"
+      ],
+      "required_artifact": "normal build manifest, linked maps/binaries, compiler source",
+      "outcome": "cleared/replaced",
+      "after": null
+    },
+    {
+      "id": "U003",
+      "baseline_index": 2,
+      "group": "G1",
+      "file": "tests/boss-banners.test.mjs",
+      "test": "decision AY: each region's banner picture, its packed size and its sectors are the pinned ones",
+      "first_assertion": "tests/boss-banners.test.mjs:87",
+      "first_message": "region 1 (Blockade Breaker): the entry's sectors",
+      "failing_helpers": [
+        "file:///Users/marcinkrzetowski/Projects/dark-fighter-test-debt/"
+      ],
+      "required_artifact": "normal build manifest, linked maps/binaries, compiler source",
+      "outcome": "cleared/replaced",
+      "after": null
+    },
+    {
+      "id": "U004",
+      "baseline_index": 3,
+      "group": "G3",
+      "file": "tests/boss-banners.test.mjs",
+      "test": "region 1 (Blockade Breaker): the reads - theme, banner, then the boss's data in today's order - and the main loop",
+      "first_assertion": "tests/boss-banners.test.mjs:188",
+      "first_message": "Expected values to be strictly deep-equal:",
+      "failing_helpers": [
+        "installRuntimeSegments/loadCheckedL2, Drive, runBossEntry, boss_shots_late"
+      ],
+      "required_artifact": "ATR, sector-reader, L2/content overlays, POKEY/VCOUNT Drive fixture",
+      "outcome": "cleared/replaced",
+      "after": null
+    },
+    {
+      "id": "U005",
+      "baseline_index": 4,
+      "group": "G3",
+      "file": "tests/boss-banners.test.mjs",
+      "test": "region 2 (Void Citadel): the reads - theme, banner, then the boss's data in today's order - and the main loop",
+      "first_assertion": "tests/boss-banners.test.mjs:188",
+      "first_message": "Expected values to be strictly deep-equal:",
+      "failing_helpers": [
+        "installRuntimeSegments/loadCheckedL2, Drive, runBossEntry, boss_shots_late"
+      ],
+      "required_artifact": "ATR, sector-reader, L2/content overlays, POKEY/VCOUNT Drive fixture",
+      "outcome": "cleared/replaced",
+      "after": null
+    },
+    {
+      "id": "U006",
+      "baseline_index": 5,
+      "group": "G3",
+      "file": "tests/boss-banners.test.mjs",
+      "test": "region 3 (Siege Spine): the reads - theme, banner, then the boss's data in today's order - and the main loop",
+      "first_assertion": "tests/boss-banners.test.mjs:188",
+      "first_message": "Expected values to be strictly deep-equal:",
+      "failing_helpers": [
+        "installRuntimeSegments/loadCheckedL2, Drive, runBossEntry, boss_shots_late"
+      ],
+      "required_artifact": "ATR, sector-reader, L2/content overlays, POKEY/VCOUNT Drive fixture",
+      "outcome": "cleared/replaced",
+      "after": null
+    },
+    {
+      "id": "U007",
+      "baseline_index": 6,
+      "group": "G3",
+      "file": "tests/boss-banners.test.mjs",
+      "test": "region 4 (Bastion): the reads - theme, banner, then the boss's data in today's order - and the main loop",
+      "first_assertion": "tests/boss-banners.test.mjs:188",
+      "first_message": "Expected values to be strictly deep-equal:",
+      "failing_helpers": [
+        "installRuntimeSegments/loadCheckedL2, Drive, runBossEntry, boss_shots_late"
+      ],
+      "required_artifact": "ATR, sector-reader, L2/content overlays, POKEY/VCOUNT Drive fixture",
+      "outcome": "cleared/replaced",
+      "after": null
+    },
+    {
+      "id": "U008",
+      "baseline_index": 7,
+      "group": "G6",
+      "file": "tests/boss-lasers.test.mjs",
+      "test": "leaving by the win: the lasers off, the column erased, COLPM1 / COLPM2 restored, PRIOR never written",
+      "first_assertion": "tests/boss-lasers.test.mjs:481",
+      "first_message": "the win: COLPM1 not restored",
+      "failing_helpers": [
+        "leftAsGameplay"
+      ],
+      "required_artifact": "boss overlay/death runs, DLI source and checked death fixtures",
+      "outcome": "retired with replacement coverage",
+      "after": null
+    },
+    {
+      "id": "U009",
+      "baseline_index": 8,
+      "group": "G7",
+      "file": "tests/boss-order-scale.test.mjs",
+      "test": "the curve evidence was measured on this data, three replays a cell, every fight finished",
+      "first_assertion": "tests/boss-order-scale.test.mjs:70",
+      "first_message": "the curve is stale: the boss data or the bossDef changed since",
+      "failing_helpers": [
+        "runtime evidence binding / artifact SHA comparison / native clause observers"
+      ],
+      "required_artifact": "matching Atari800 source, current ATR, complete canonical trace, menu/boot captures, boss curve and release media",
+      "outcome": "remaining",
+      "after": {
+        "file": "tests/boss-order-scale.test.mjs",
+        "declared_at": "tests/boss-order-scale.test.mjs:67",
+        "test": "the curve evidence was measured on this data, three replays a cell, every fight finished",
+        "message": "the curve is stale: the boss data or the bossDef changed since",
+        "first_failing_assertion": "tests/boss-order-scale.test.mjs:70"
+      }
+    },
+    {
+      "id": "U010",
+      "baseline_index": 9,
+      "group": "G1",
+      "file": "tests/boss-overlay.test.mjs",
+      "test": "the window pays the entry's resident half inside the plan's S3 figure, and last",
+      "first_assertion": "tests/boss-overlay.test.mjs:227",
+      "first_message": "Expected values to be strictly equal:",
+      "failing_helpers": [
+        "assert.equal/deepEqual over linked artifacts and source inventories"
+      ],
+      "required_artifact": "normal build manifest, linked maps/binaries, compiler source",
+      "outcome": "cleared/replaced",
+      "after": null
+    },
+    {
+      "id": "U011",
+      "baseline_index": 10,
+      "group": "G1",
+      "file": "tests/boss-region-2.test.mjs",
+      "test": "region 2 is the Bastion from its own draft: the wide hangar, the bays, the rails, on the built disk",
+      "first_assertion": "tests/boss-region-2.test.mjs:164",
+      "first_message": "the Bastion's boss entry is 88 sectors (RE-PINNED M6 stage 1b: the lance run's two more)",
+      "failing_helpers": [
+        "assert.equal/deepEqual over linked artifacts and source inventories"
+      ],
+      "required_artifact": "normal build manifest, linked maps/binaries, compiler source",
+      "outcome": "cleared/replaced",
+      "after": null
+    },
+    {
+      "id": "U012",
+      "baseline_index": 11,
+      "group": "G3",
+      "file": "tests/boss-region-2.test.mjs",
+      "test": "the doors: locked until every cannon and rail gun is destroyed or covered; then open, flashing, sounding; the core behind them, last",
+      "first_assertion": "tests/boss-region-2.test.mjs:340",
+      "first_message": "routine $366a did not return",
+      "failing_helpers": [
+        "call",
+        "frame",
+        "shoot"
+      ],
+      "required_artifact": "ATR, sector-reader, L2/content overlays, POKEY/VCOUNT Drive fixture",
+      "outcome": "cleared/replaced",
+      "after": null
+    },
+    {
+      "id": "U013",
+      "baseline_index": 12,
+      "group": "G3",
+      "file": "tests/boss-region-4.test.mjs",
+      "test": "the pull: towards the axis, 2 clocks every 4 frames (G2), only while a spire stands, the fight on and the ship alive",
+      "first_assertion": "tests/boss-region-4.test.mjs:202",
+      "first_message": "routine $366a did not return",
+      "failing_helpers": [
+        "call",
+        "frame"
+      ],
+      "required_artifact": "ATR, sector-reader, L2/content overlays, POKEY/VCOUNT Drive fixture",
+      "outcome": "cleared/replaced",
+      "after": null
+    },
+    {
+      "id": "U014",
+      "baseline_index": 13,
+      "group": "G6",
+      "file": "tests/boss-runtime.test.mjs",
+      "test": "the win: the chain, the shake and the flash, then the hand-off to the level summary with the fight's time",
+      "first_assertion": "tests/boss-runtime.test.mjs:639",
+      "first_message": "the boss never handed off to the level summary",
+      "failing_helpers": [
+        "boss_completion / deathFixture / source writer inventory"
+      ],
+      "required_artifact": "boss overlay/death runs, DLI source and checked death fixtures",
+      "outcome": "retired with replacement coverage",
+      "after": null
+    },
+    {
+      "id": "U015",
+      "baseline_index": 14,
+      "group": "G6",
+      "file": "tests/boss-s4b5.test.mjs",
+      "test": "slot E's contract, by the source: only draw_hull_row reads the hull maps; only start_gameplay rebuilds them",
+      "first_assertion": "tests/boss-s4b5.test.mjs:130",
+      "first_message": "who names $4C00-$4E3F",
+      "failing_helpers": [
+        "boss_completion / deathFixture / source writer inventory"
+      ],
+      "required_artifact": "boss overlay/death runs, DLI source and checked death fixtures",
+      "outcome": "cleared/replaced",
+      "after": null
+    },
+    {
+      "id": "U016",
+      "baseline_index": 15,
+      "group": "G2",
+      "file": "tests/broadside-fire.test.mjs",
+      "test": "capital/player collision agrees with independently reconstructed final raster Y",
+      "first_assertion": "tests/broadside-fire.test.mjs:453",
+      "first_message": "top edge: independent raster premise; PMG 118..132, screen $8320 glyph 105..110",
+      "failing_helpers": [
+        "HUD snapshots / boss fixture / independent raster oracle"
+      ],
+      "required_artifact": "normal ATR, HUD charset/source, NMOS boss fixture",
+      "outcome": "remaining",
+      "after": {
+        "file": "tests/broadside-fire.test.mjs",
+        "declared_at": "tests/broadside-fire.test.mjs:443",
+        "test": "capital/player collision agrees with independently reconstructed final raster Y",
+        "message": "owner 0, slot 0, ring 0: lower third; PMG 93..107, screen $8320 glyph 105..110, cache 113",
+        "first_failing_assertion": "tests/broadside-fire.test.mjs:468"
+      }
+    },
+    {
+      "id": "U017",
+      "baseline_index": 16,
+      "group": "G5",
+      "file": "tests/broadside-fire.test.mjs",
+      "test": "capital cadence restores the legacy world rate without changing fighter timing",
+      "first_assertion": "tests/broadside-fire.test.mjs:972",
+      "first_message": "The input did not match the regular expression /cmp #CAPITAL_HULL_STATE_OPEN[\\s\\S]+lda world_scroll_rates,x[\\s\\S]+asl[\\s\\S]+lda hull_scroll_rates,x[\\s\\S]+cmp #HULL_SCROLL_RATE_DENOMINATOR[\\s\\S]+sbc #HULL_SCROLL_RATE_DENOMINATOR/. Input:",
+      "failing_helpers": [
+        "direct update_enemy loops / finite geometry resolver / captureTimeline"
+      ],
+      "required_artifact": "compiled level pages, C policy, NMOS frame counter and Director state",
+      "outcome": "cleared/replaced",
+      "after": null
+    },
+    {
+      "id": "U018",
+      "baseline_index": 17,
+      "group": "G5",
+      "file": "tests/broadside-fire.test.mjs",
+      "test": "assembled 16-bit hull visibility maps states 0-5 and rejects terminal COMPLETE/OPEN",
+      "first_assertion": "tests/broadside-fire.test.mjs:2002",
+      "first_message": "capital state 5 collision sector row",
+      "failing_helpers": [
+        "direct update_enemy loops / finite geometry resolver / captureTimeline"
+      ],
+      "required_artifact": "compiled level pages, C policy, NMOS frame counter and Director state",
+      "outcome": "cleared/replaced",
+      "after": null
+    },
+    {
+      "id": "U019",
+      "baseline_index": 18,
+      "group": "G1",
+      "file": "tests/capital-hull-extension.test.mjs",
+      "test": "the final ATR publishes the exact seeded hull layout bytes",
+      "first_assertion": "tests/capital-hull-extension.test.mjs:147",
+      "first_message": "atr/allied layout bytes differ from the source generator",
+      "failing_helpers": [
+        "assert.equal/deepEqual over linked artifacts and source inventories"
+      ],
+      "required_artifact": "normal build manifest, linked maps/binaries, compiler source",
+      "outcome": "cleared/replaced",
+      "after": null
+    },
+    {
+      "id": "U020",
+      "baseline_index": 19,
+      "group": "G2",
+      "file": "tests/capital-hulls.test.mjs",
+      "test": "assembled gameplay display list and DLI switch a dedicated ANTIC 2 HUD",
+      "first_assertion": "tests/capital-hulls.test.mjs:238",
+      "first_message": "CH_HUD_HULL_FULL must use its shape-distinct dedicated HUD glyph",
+      "failing_helpers": [
+        "HUD snapshots / boss fixture / independent raster oracle"
+      ],
+      "required_artifact": "normal ATR, HUD charset/source, NMOS boss fixture",
+      "outcome": "cleared/replaced",
+      "after": null
+    },
+    {
+      "id": "U021",
+      "baseline_index": 20,
+      "group": "G2",
+      "file": "tests/capital-hulls.test.mjs",
+      "test": "assembled ANTIC 2 HUD keeps independent live score, life, and hull fields",
+      "first_assertion": "tests/capital-hulls.test.mjs:281",
+      "first_message": "score digit at screen offset 6 must remain live",
+      "failing_helpers": [
+        "HUD snapshots / boss fixture / independent raster oracle"
+      ],
+      "required_artifact": "normal ATR, HUD charset/source, NMOS boss fixture",
+      "outcome": "cleared/replaced",
+      "after": null
+    },
+    {
+      "id": "U022",
+      "baseline_index": 21,
+      "group": "G1",
+      "file": "tests/cold-pickup-record-fit.test.mjs",
+      "test": "fit preserves the reviewed staging and placement gates",
+      "first_assertion": "tests/cold-pickup-record-fit.test.mjs:121",
+      "first_message": "Expected values to be strictly equal:",
+      "failing_helpers": [
+        "assert.equal/deepEqual over linked artifacts and source inventories"
+      ],
+      "required_artifact": "normal build manifest, linked maps/binaries, compiler source",
+      "outcome": "cleared/replaced",
+      "after": null
+    },
+    {
+      "id": "U023",
+      "baseline_index": 22,
+      "group": "G5",
+      "file": "tests/encounter-director.test.mjs",
+      "test": "debris admission follows the sector mask and the capital traversal exception",
+      "first_assertion": "tests/encounter-director.test.mjs:498",
+      "first_message": "the same debris request must be admitted once the capital traversal is active",
+      "failing_helpers": [
+        "direct update_enemy loops / finite geometry resolver / captureTimeline"
+      ],
+      "required_artifact": "compiled level pages, C policy, NMOS frame counter and Director state",
+      "outcome": "cleared/replaced",
+      "after": null
+    },
+    {
+      "id": "U024",
+      "baseline_index": 23,
+      "group": "G1",
+      "file": "tests/encounter-director.test.mjs",
+      "test": "scheduler ownership remains single-source and lifecycle-owned",
+      "first_assertion": "tests/encounter-director.test.mjs:575",
+      "first_message": "integration_update_enemy",
+      "failing_helpers": [
+        "assert.equal/deepEqual over linked artifacts and source inventories"
+      ],
+      "required_artifact": "normal build manifest, linked maps/binaries, compiler source",
+      "outcome": "cleared/replaced",
+      "after": null
+    },
+    {
+      "id": "U025",
+      "baseline_index": 24,
+      "group": "G5",
+      "file": "tests/encounter-director.test.mjs",
+      "test": "two PMG Raiders keep separate HP, score once, and preserve the surviving machine",
+      "first_assertion": "tests/encounter-director.test.mjs:676",
+      "first_message": "both Raiders must enter naturally at their old formation anchors",
+      "failing_helpers": [
+        "direct update_enemy loops / finite geometry resolver / captureTimeline"
+      ],
+      "required_artifact": "compiled level pages, C policy, NMOS frame counter and Director state",
+      "outcome": "cleared/replaced",
+      "after": null
+    },
+    {
+      "id": "U026",
+      "baseline_index": 25,
+      "group": "G5",
+      "file": "tests/encounter-director.test.mjs",
+      "test": "the shared burst alternates two real Raider origins and skips a destroyed owner",
+      "first_assertion": "tests/encounter-director.test.mjs:750",
+      "first_message": "Expected values to be strictly deep-equal:",
+      "failing_helpers": [
+        "direct update_enemy loops / finite geometry resolver / captureTimeline"
+      ],
+      "required_artifact": "compiled level pages, C policy, NMOS frame counter and Director state",
+      "outcome": "cleared/replaced",
+      "after": null
+    },
+    {
+      "id": "U027",
+      "baseline_index": 26,
+      "group": "G5",
+      "file": "tests/encounter-director.test.mjs",
+      "test": "the hazard mask is the sector's own, while the capital gate stays local",
+      "first_assertion": "tests/encounter-director.test.mjs:43",
+      "first_message": "Error: L2 islands: capital hazards.debris must be zero",
+      "failing_helpers": [
+        "fail",
+        "compileIslandExtension",
+        "compileLevel",
+        "pokeLevel"
+      ],
+      "required_artifact": "compiled level pages, C policy, NMOS frame counter and Director state",
+      "outcome": "cleared/replaced",
+      "after": null
+    },
+    {
+      "id": "U028",
+      "baseline_index": 27,
+      "group": "G5",
+      "file": "tests/encounter-director.test.mjs",
+      "test": "natural Level 1 reaches a visible two-sided BROADSIDE without state injection",
+      "first_assertion": "tests/encounter-director.test.mjs:1005",
+      "first_message": "difficulty 0 capital must be due on level 1's authored row",
+      "failing_helpers": [
+        "direct update_enemy loops / finite geometry resolver / captureTimeline"
+      ],
+      "required_artifact": "compiled level pages, C policy, NMOS frame counter and Director state",
+      "outcome": "retired with replacement coverage",
+      "after": null
+    },
+    {
+      "id": "U029",
+      "baseline_index": 28,
+      "group": "G5",
+      "file": "tests/enemy-combat.test.mjs",
+      "test": "release Interceptor enters progressively and naturally reaches burst allocation",
+      "first_assertion": "tests/enemy-combat.test.mjs:318",
+      "first_message": "The input did not match the regular expression /void enemy_c_spawn_raiders[\\s\\S]+ENEMY_HP_0 = HEAVY_FIELD\\(ENEMY_ARCHETYPE_FIELD_HIT_POINTS\\)[\\s\\S]+ENEMY_LIVE_COUNT = RAIDER_SLOT_COUNT/. Input:",
+      "failing_helpers": [
+        "direct update_enemy loops / finite geometry resolver / captureTimeline"
+      ],
+      "required_artifact": "compiled level pages, C policy, NMOS frame counter and Director state",
+      "outcome": "cleared/replaced",
+      "after": null
+    },
+    {
+      "id": "U030",
+      "baseline_index": 29,
+      "group": "G5",
+      "file": "tests/entity-effects.test.mjs",
+      "test": "capital debris uses existing 3/4/5 pressure ceilings on EASY, MEDIUM and HARD",
+      "first_assertion": "tests/entity-effects.test.mjs:781",
+      "first_message": "difficulty 0 did not admit one debris beside capital pressure",
+      "failing_helpers": [
+        "direct update_enemy loops / finite geometry resolver / captureTimeline"
+      ],
+      "required_artifact": "compiled level pages, C policy, NMOS frame counter and Director state",
+      "outcome": "cleared/replaced",
+      "after": null
+    },
+    {
+      "id": "U031",
+      "baseline_index": 30,
+      "group": "G1",
+      "file": "tests/flagship-sector.test.mjs",
+      "test": "assembled sector dictionaries, sequences, and overlays match the source asset",
+      "first_assertion": "tests/flagship-sector.test.mjs:199",
+      "first_message": "Expected values to be strictly deep-equal:",
+      "failing_helpers": [
+        "assert.equal/deepEqual over linked artifacts and source inventories"
+      ],
+      "required_artifact": "normal build manifest, linked maps/binaries, compiler source",
+      "outcome": "cleared/replaced",
+      "after": null
+    },
+    {
+      "id": "U032",
+      "baseline_index": 31,
+      "group": "G1",
+      "file": "tests/formats.test.mjs",
+      "test": "ATR uses standard single-density geometry",
+      "first_assertion": "tests/formats.test.mjs:35",
+      "first_message": "Expected values to be strictly equal:",
+      "failing_helpers": [
+        "assert.equal/deepEqual over linked artifacts and source inventories"
+      ],
+      "required_artifact": "normal build manifest, linked maps/binaries, compiler source",
+      "outcome": "cleared/replaced",
+      "after": null
+    },
+    {
+      "id": "U033",
+      "baseline_index": 32,
+      "group": "G1",
+      "file": "tests/formats.test.mjs",
+      "test": "resident compaction proof survives and Spread Shot leaves at least 64 source-owned bytes",
+      "first_assertion": "tests/formats.test.mjs:112",
+      "first_message": "Expected values to be strictly equal:",
+      "failing_helpers": [
+        "assert.equal/deepEqual over linked artifacts and source inventories"
+      ],
+      "required_artifact": "normal build manifest, linked maps/binaries, compiler source",
+      "outcome": "cleared/replaced",
+      "after": null
+    },
+    {
+      "id": "U034",
+      "baseline_index": 33,
+      "group": "G1",
+      "file": "tests/formats.test.mjs",
+      "test": "the code window is declared, guarded and addressable by the build",
+      "first_assertion": "tests/formats.test.mjs:184",
+      "first_message": "Expected values to be strictly equal:",
+      "failing_helpers": [
+        "assert.equal/deepEqual over linked artifacts and source inventories"
+      ],
+      "required_artifact": "normal build manifest, linked maps/binaries, compiler source",
+      "outcome": "cleared/replaced",
+      "after": null
+    },
+    {
+      "id": "U035",
+      "baseline_index": 34,
+      "group": "G1",
+      "file": "tests/frontend.test.mjs",
+      "test": "menu PlayerFighter is charset-only, frontend PMG stays disabled, and gameplay setup is restored",
+      "first_assertion": "tests/frontend.test.mjs:559",
+      "first_message": "The input did not match the regular expression /sta GRACTL[\\s\\S]+jsr clear_pmg_graphics_latches[\\s\\S]+jsr select_frontend_display/. Input:",
+      "failing_helpers": [
+        "assert.equal/deepEqual over linked artifacts and source inventories"
+      ],
+      "required_artifact": "normal build manifest, linked maps/binaries, compiler source",
+      "outcome": "cleared/replaced",
+      "after": null
+    },
+    {
+      "id": "U036",
+      "baseline_index": 35,
+      "group": "G1",
+      "file": "tests/frontend.test.mjs",
+      "test": "frontend entry clears stale player and missile graphics latches before DMA resumes",
+      "first_assertion": "tests/frontend.test.mjs:593",
+      "first_message": "main frontend entry must clear PMG graphics latches while display DMA is blanked",
+      "failing_helpers": [
+        "assert.equal/deepEqual over linked artifacts and source inventories"
+      ],
+      "required_artifact": "normal build manifest, linked maps/binaries, compiler source",
+      "outcome": "cleared/replaced",
+      "after": null
+    },
+    {
+      "id": "U037",
+      "baseline_index": 36,
+      "group": "G1",
+      "file": "tests/game-over.test.mjs",
+      "test": "GAME OVER leaves the gameplay loop before control, combat, spawn, and scoring",
+      "first_assertion": "tests/game-over.test.mjs:152",
+      "first_message": "The input did not match the regular expression /lda #\\$00[\\s\\S]+sta DMACTL[\\s\\S]+sta GRACTL[\\s\\S]+jsr clear_pmg_graphics_latches[\\s\\S]+sta frontend_input_armed/. Input:",
+      "failing_helpers": [
+        "assert.equal/deepEqual over linked artifacts and source inventories"
+      ],
+      "required_artifact": "normal build manifest, linked maps/binaries, compiler source",
+      "outcome": "cleared/replaced",
+      "after": null
+    },
+    {
+      "id": "U038",
+      "baseline_index": 37,
+      "group": "G1",
+      "file": "tests/gameplay-music-placement.test.mjs",
+      "test": "STARFIELD is smaller than before the move, and the room is still reserved",
+      "first_assertion": "tests/gameplay-music-placement.test.mjs:147",
+      "first_message": "only owner decision A' may grow STARFIELD",
+      "failing_helpers": [
+        "assert.equal/deepEqual over linked artifacts and source inventories"
+      ],
+      "required_artifact": "normal build manifest, linked maps/binaries, compiler source",
+      "outcome": "cleared/replaced",
+      "after": null
+    },
+    {
+      "id": "U039",
+      "baseline_index": 38,
+      "group": "G7",
+      "file": "tests/gameplay-music-placement.test.mjs",
+      "test": "the ATR START GAME read grows by the planned five plus three plus five sectors and no more",
+      "first_assertion": "tests/gameplay-music-placement.test.mjs:174",
+      "first_message": "Expected values to be strictly equal:",
+      "failing_helpers": [
+        "runtime evidence binding / artifact SHA comparison / native clause observers"
+      ],
+      "required_artifact": "matching Atari800 source, current ATR, complete canonical trace, menu/boot captures, boss curve and release media",
+      "outcome": "remaining",
+      "after": {
+        "file": "tests/gameplay-music-placement.test.mjs",
+        "declared_at": "tests/gameplay-music-placement.test.mjs:165",
+        "test": "the ATR START GAME read grows by the planned five plus three plus five sectors and no more",
+        "message": "Expected values to be strictly equal:",
+        "first_failing_assertion": "tests/gameplay-music-placement.test.mjs:184"
+      }
+    },
+    {
+      "id": "U040",
+      "baseline_index": 39,
+      "group": "G5",
+      "file": "tests/gameplay-speed-tuning.test.mjs",
+      "test": "capital traversal restores the pre-tuning rate while fighter rates stay exact",
+      "first_assertion": "tests/gameplay-speed-tuning.test.mjs:96",
+      "first_message": "The input did not match the regular expression /cmp #CAPITAL_HULL_STATE_OPEN[\\s\\S]+lda world_scroll_rates,x[\\s\\S]+asl[\\s\\S]+lda hull_scroll_rates,x/. Input:",
+      "failing_helpers": [
+        "direct update_enemy loops / finite geometry resolver / captureTimeline"
+      ],
+      "required_artifact": "compiled level pages, C policy, NMOS frame counter and Director state",
+      "outcome": "cleared/replaced",
+      "after": null
+    },
+    {
+      "id": "U041",
+      "baseline_index": 40,
+      "group": "G1",
+      "file": "tests/gfx-pins.test.mjs",
+      "test": "the art outside the boss band: build/capital-hulls.inc is the pinned bytes",
+      "first_assertion": "tests/gfx-pins.test.mjs:73",
+      "first_message": "build/capital-hulls.inc changed: re-pin only with the owner decision that changes this art (docs/diagnostics/gfx-regression-2026-10-16.md)",
+      "failing_helpers": [
+        "assert.equal/deepEqual over linked artifacts and source inventories"
+      ],
+      "required_artifact": "normal build manifest, linked maps/binaries, compiler source",
+      "outcome": "cleared/replaced",
+      "after": null
+    },
+    {
+      "id": "U042",
+      "baseline_index": 41,
+      "group": "G1",
+      "file": "tests/gfx-pins.test.mjs",
+      "test": "the art outside the boss band: build/entity-effects.inc is the pinned bytes",
+      "first_assertion": "tests/gfx-pins.test.mjs:73",
+      "first_message": "build/entity-effects.inc changed: re-pin only with the owner decision that changes this art (docs/diagnostics/gfx-regression-2026-10-16.md)",
+      "failing_helpers": [
+        "assert.equal/deepEqual over linked artifacts and source inventories"
+      ],
+      "required_artifact": "normal build manifest, linked maps/binaries, compiler source",
+      "outcome": "cleared/replaced",
+      "after": null
+    },
+    {
+      "id": "U043",
+      "baseline_index": 42,
+      "group": "G6",
+      "file": "tests/gfx-pins.test.mjs",
+      "test": "the boss link's colour, charset and DLI-vector stores: only the pinned routines",
+      "first_assertion": "tests/gfx-pins.test.mjs:162",
+      "first_message": "a new colour, charset or DLI-vector store in the boss link: show it stays in the band, then re-pin",
+      "failing_helpers": [
+        "boss_completion / deathFixture / source writer inventory"
+      ],
+      "required_artifact": "boss overlay/death runs, DLI source and checked death fixtures",
+      "outcome": "cleared/replaced",
+      "after": null
+    },
+    {
+      "id": "U044",
+      "baseline_index": 43,
+      "group": "G7",
+      "file": "tests/github-showcase.test.mjs",
+      "test": "showcase manifest binds every image to the current packed release",
+      "first_assertion": "tests/github-showcase.test.mjs:37",
+      "first_message": "Expected values to be strictly equal:",
+      "failing_helpers": [
+        "runtime evidence binding / artifact SHA comparison / native clause observers"
+      ],
+      "required_artifact": "matching Atari800 source, current ATR, complete canonical trace, menu/boot captures, boss curve and release media",
+      "outcome": "remaining",
+      "after": {
+        "file": "tests/github-showcase.test.mjs",
+        "declared_at": "tests/github-showcase.test.mjs:34",
+        "test": "showcase manifest binds every image to the current packed release",
+        "message": "Expected values to be strictly equal:",
+        "first_failing_assertion": "tests/github-showcase.test.mjs:37"
+      }
+    },
+    {
+      "id": "U045",
+      "baseline_index": 44,
+      "group": "G7",
+      "file": "tests/github-showcase.test.mjs",
+      "test": "showcase and asset sheets regenerate without ignored capture files",
+      "first_assertion": "tests/github-showcase.test.mjs:76",
+      "first_message": "Error: Runtime wall trace does not match the current release ATR",
+      "failing_helpers": [
+        "invariant",
+        "generateShowcase"
+      ],
+      "required_artifact": "matching Atari800 source, current ATR, complete canonical trace, menu/boot captures, boss curve and release media",
+      "outcome": "remaining",
+      "after": {
+        "file": "tests/github-showcase.test.mjs",
+        "declared_at": "tests/github-showcase.test.mjs:74",
+        "test": "showcase and asset sheets regenerate without ignored capture files",
+        "message": "Error: Runtime wall trace does not match the current release ATR",
+        "first_failing_assertion": "tests/github-showcase.test.mjs:76"
+      }
+    },
+    {
+      "id": "U046",
+      "baseline_index": 45,
+      "group": "G7",
+      "file": "tests/github-showcase.test.mjs",
+      "test": "gameplay GIF is bound to the current ATR and stays within budget",
+      "first_assertion": "tests/github-showcase.test.mjs:194",
+      "first_message": "the GIF predates the current ATR; rerun npm run showcase:gif",
+      "failing_helpers": [
+        "runtime evidence binding / artifact SHA comparison / native clause observers"
+      ],
+      "required_artifact": "matching Atari800 source, current ATR, complete canonical trace, menu/boot captures, boss curve and release media",
+      "outcome": "remaining",
+      "after": {
+        "file": "tests/github-showcase.test.mjs",
+        "declared_at": "tests/github-showcase.test.mjs:189",
+        "test": "gameplay GIF is bound to the current ATR and stays within budget",
+        "message": "the GIF predates the current ATR; rerun npm run showcase:gif",
+        "first_failing_assertion": "tests/github-showcase.test.mjs:194"
+      }
+    },
+    {
+      "id": "U047",
+      "baseline_index": 46,
+      "group": "G2",
+      "file": "tests/hud-audit.test.mjs",
+      "test": "boss entry: every HUD cell as it was before the WARNING screen (booster: rapid)",
+      "first_assertion": "tests/hud-audit.test.mjs:76",
+      "first_message": "Expected values to be strictly deep-equal:",
+      "failing_helpers": [
+        "HUD snapshots / boss fixture / independent raster oracle"
+      ],
+      "required_artifact": "normal ATR, HUD charset/source, NMOS boss fixture",
+      "outcome": "cleared/replaced",
+      "after": null
+    },
+    {
+      "id": "U048",
+      "baseline_index": 47,
+      "group": "G2",
+      "file": "tests/hud-audit.test.mjs",
+      "test": "boss entry: every HUD cell as it was before the WARNING screen (booster: spread)",
+      "first_assertion": "tests/hud-audit.test.mjs:76",
+      "first_message": "Expected values to be strictly deep-equal:",
+      "failing_helpers": [
+        "HUD snapshots / boss fixture / independent raster oracle"
+      ],
+      "required_artifact": "normal ATR, HUD charset/source, NMOS boss fixture",
+      "outcome": "cleared/replaced",
+      "after": null
+    },
+    {
+      "id": "U049",
+      "baseline_index": 48,
+      "group": "G2",
+      "file": "tests/hud-audit.test.mjs",
+      "test": "boss entry: every HUD cell as it was before the WARNING screen (booster: shield)",
+      "first_assertion": "tests/hud-audit.test.mjs:76",
+      "first_message": "Expected values to be strictly deep-equal:",
+      "failing_helpers": [
+        "HUD snapshots / boss fixture / independent raster oracle"
+      ],
+      "required_artifact": "normal ATR, HUD charset/source, NMOS boss fixture",
+      "outcome": "cleared/replaced",
+      "after": null
+    },
+    {
+      "id": "U050",
+      "baseline_index": 49,
+      "group": "G2",
+      "file": "tests/hud-audit.test.mjs",
+      "test": "boss entry: every HUD cell as it was before the WARNING screen (booster: none)",
+      "first_assertion": "tests/hud-audit.test.mjs:76",
+      "first_message": "Expected values to be strictly deep-equal:",
+      "failing_helpers": [
+        "HUD snapshots / boss fixture / independent raster oracle"
+      ],
+      "required_artifact": "normal ATR, HUD charset/source, NMOS boss fixture",
+      "outcome": "cleared/replaced",
+      "after": null
+    },
+    {
+      "id": "U051",
+      "baseline_index": 50,
+      "group": "G2",
+      "file": "tests/hud-audit.test.mjs",
+      "test": "the gameplay start after the summary (START GAME): the HUD drawn whole from the state, the booster idle",
+      "first_assertion": "tests/hud-audit.test.mjs:128",
+      "first_message": "the score cells show 00000",
+      "failing_helpers": [
+        "HUD snapshots / boss fixture / independent raster oracle"
+      ],
+      "required_artifact": "normal ATR, HUD charset/source, NMOS boss fixture",
+      "outcome": "cleared/replaced",
+      "after": null
+    },
+    {
+      "id": "U052",
+      "baseline_index": 51,
+      "group": "G2",
+      "file": "tests/hud-bottom.test.mjs",
+      "test": "§BL 3: a lance ready keeps the four cells full - through the charge, a miss and the torpedo's flight - and a kill empties them",
+      "first_assertion": "tests/hud-bottom.test.mjs:147",
+      "first_message": "the torpedo fired",
+      "failing_helpers": [
+        "HUD snapshots / boss fixture / independent raster oracle"
+      ],
+      "required_artifact": "normal ATR, HUD charset/source, NMOS boss fixture",
+      "outcome": "cleared/replaced",
+      "after": null
+    },
+    {
+      "id": "U053",
+      "baseline_index": 52,
+      "group": "G2",
+      "file": "tests/hud-status.test.mjs",
+      "test": "HUD template keeps full LIFE/HULL labels and four fixed hull plates",
+      "first_assertion": "tests/hud-status.test.mjs:50",
+      "first_message": "The input did not match the regular expression /hud_ascii:\\s*\\.byte \"SCORE 00000  LIFE 3 HULL \"/. Input:",
+      "failing_helpers": [
+        "HUD snapshots / boss fixture / independent raster oracle"
+      ],
+      "required_artifact": "normal ATR, HUD charset/source, NMOS boss fixture",
+      "outcome": "cleared/replaced",
+      "after": null
+    },
+    {
+      "id": "U054",
+      "baseline_index": 53,
+      "group": "G5",
+      "file": "tests/hull-length.test.mjs",
+      "test": "T7: a short hull is right-aligned - it ends on row 479, where the prow always ended",
+      "first_assertion": "tests/hull-length.test.mjs:97",
+      "first_message": "aft, combat, forward, prow in absolute modules; engines start at 16",
+      "failing_helpers": [
+        "direct update_enemy loops / finite geometry resolver / captureTimeline"
+      ],
+      "required_artifact": "compiled level pages, C policy, NMOS frame counter and Director state",
+      "outcome": "cleared/replaced",
+      "after": null
+    },
+    {
+      "id": "U055",
+      "baseline_index": 54,
+      "group": "G5",
+      "file": "tests/hull-length.test.mjs",
+      "test": "T7: the phase machine reads the page - a 352-row hull enters DRAIN at row 488",
+      "first_assertion": "tests/hull-length.test.mjs:138",
+      "first_message": "level 2, row 160",
+      "failing_helpers": [
+        "direct update_enemy loops / finite geometry resolver / captureTimeline"
+      ],
+      "required_artifact": "compiled level pages, C policy, NMOS frame counter and Director state",
+      "outcome": "cleared/replaced",
+      "after": null
+    },
+    {
+      "id": "U056",
+      "baseline_index": 55,
+      "group": "G5",
+      "file": "tests/hull-length.test.mjs",
+      "test": "T7: the resolvers read the page's sequences at $AC08/$AC44",
+      "first_assertion": "tests/hull-length.test.mjs:164",
+      "first_message": "Expected values to be strictly equal:",
+      "failing_helpers": [
+        "direct update_enemy loops / finite geometry resolver / captureTimeline"
+      ],
+      "required_artifact": "compiled level pages, C policy, NMOS frame counter and Director state",
+      "outcome": "cleared/replaced",
+      "after": null
+    },
+    {
+      "id": "U057",
+      "baseline_index": 56,
+      "group": "G5",
+      "file": "tests/hull-length.test.mjs",
+      "test": "T7: capital entry starts level 2's row clock at row 128, level 1's at row 0",
+      "first_assertion": "tests/hull-length.test.mjs:175",
+      "first_message": "level 1: the capital is admitted on its authored row",
+      "failing_helpers": [
+        "direct update_enemy loops / finite geometry resolver / captureTimeline"
+      ],
+      "required_artifact": "compiled level pages, C policy, NMOS frame counter and Director state",
+      "outcome": "cleared/replaced",
+      "after": null
+    },
+    {
+      "id": "U058",
+      "baseline_index": 57,
+      "group": "G1",
+      "file": "tests/hybrid-c-arena.test.mjs",
+      "test": "HYBRID_C_ARENA is one contiguous 832-B arena at $7BD0-$7F0F",
+      "first_assertion": "tests/hybrid-c-arena.test.mjs:75",
+      "first_message": "Expected values to be strictly deep-equal:",
+      "failing_helpers": [
+        "assert.equal/deepEqual over linked artifacts and source inventories"
+      ],
+      "required_artifact": "normal build manifest, linked maps/binaries, compiler source",
+      "outcome": "cleared/replaced",
+      "after": null
+    },
+    {
+      "id": "U059",
+      "baseline_index": 58,
+      "group": "G1",
+      "file": "tests/hybrid-c-arena.test.mjs",
+      "test": "the arena lands directly as its own DFMC record and is the only owner of its range",
+      "first_assertion": "tests/hybrid-c-arena.test.mjs:149",
+      "first_message": "Expected values to be strictly deep-equal:",
+      "failing_helpers": [
+        "assert.equal/deepEqual over linked artifacts and source inventories"
+      ],
+      "required_artifact": "normal build manifest, linked maps/binaries, compiler source",
+      "outcome": "cleared/replaced",
+      "after": null
+    },
+    {
+      "id": "U060",
+      "baseline_index": 59,
+      "group": "G1",
+      "file": "tests/hybrid-lifecycle.test.mjs",
+      "test": "C EnemyArchetype is a compact exact Raider record in legal extension placement",
+      "first_assertion": "tests/hybrid-lifecycle.test.mjs:137",
+      "first_message": "Expected values to be strictly deep-equal:",
+      "failing_helpers": [
+        "assert.equal/deepEqual over linked artifacts and source inventories"
+      ],
+      "required_artifact": "normal build manifest, linked maps/binaries, compiler source",
+      "outcome": "cleared/replaced",
+      "after": null
+    },
+    {
+      "id": "U061",
+      "baseline_index": 60,
+      "group": "G5",
+      "file": "tests/hybrid-lifecycle.test.mjs",
+      "test": "C maps the existing capital corridor phases and complete lifecycle exactly",
+      "first_assertion": "tests/hybrid-lifecycle.test.mjs:174",
+      "first_message": "phase $20",
+      "failing_helpers": [
+        "direct update_enemy loops / finite geometry resolver / captureTimeline"
+      ],
+      "required_artifact": "compiled level pages, C policy, NMOS frame counter and Director state",
+      "outcome": "cleared/replaced",
+      "after": null
+    },
+    {
+      "id": "U062",
+      "baseline_index": 61,
+      "group": "G1",
+      "file": "tests/hybrid-lifecycle.test.mjs",
+      "test": "ownership is singular and generated C requires neither software stack nor runtime helpers",
+      "first_assertion": "tests/hybrid-lifecycle.test.mjs:315",
+      "first_message": "Expected values to be strictly deep-equal:",
+      "failing_helpers": [
+        "assert.equal/deepEqual over linked artifacts and source inventories"
+      ],
+      "required_artifact": "normal build manifest, linked maps/binaries, compiler source",
+      "outcome": "cleared/replaced",
+      "after": null
+    },
+    {
+      "id": "U063",
+      "baseline_index": 62,
+      "group": "G5",
+      "file": "tests/interceptor-armour.test.mjs",
+      "test": "H3 from data: the record's hit points, no armour bit in any wave of any level",
+      "first_assertion": "tests/interceptor-armour.test.mjs:228",
+      "first_message": "no armour field in the level format",
+      "failing_helpers": [
+        "direct update_enemy loops / finite geometry resolver / captureTimeline"
+      ],
+      "required_artifact": "compiled level pages, C policy, NMOS frame counter and Director state",
+      "outcome": "retired with replacement coverage",
+      "after": null
+    },
+    {
+      "id": "U064",
+      "baseline_index": 63,
+      "group": "G5",
+      "file": "tests/island-edge-contact.test.mjs",
+      "test": "exact contact leaves both unfired side lanes clear at every row and phase",
+      "first_assertion": "tests/island-edge-contact.test.mjs:17",
+      "first_message": "passage 480/0/688/0/92/4",
+      "failing_helpers": [
+        "passage"
+      ],
+      "required_artifact": "compiled level pages, C policy, NMOS frame counter and Director state",
+      "outcome": "retired with replacement coverage",
+      "after": null
+    },
+    {
+      "id": "U065",
+      "baseline_index": 64,
+      "group": "G1",
+      "file": "tests/lance.test.mjs",
+      "test": "M6 (decision BD 6): the build fails when the window's record grows into the lance's RAM",
+      "first_assertion": "tests/lance.test.mjs:218",
+      "first_message": "Expected values to be strictly equal:",
+      "failing_helpers": [
+        "assert.equal/deepEqual over linked artifacts and source inventories"
+      ],
+      "required_artifact": "normal build manifest, linked maps/binaries, compiler source",
+      "outcome": "cleared/replaced",
+      "after": null
+    },
+    {
+      "id": "U066",
+      "baseline_index": 65,
+      "group": "G1",
+      "file": "tests/level-buffer-16.test.mjs",
+      "test": "Q-1: HYBRID_C_WINDOW is $AE00-$BBFF, 3,584 B, and still stops at the reader BSS",
+      "first_assertion": "tests/level-buffer-16.test.mjs:77",
+      "first_message": "the Light C, the cold Director half, step 5, the boss entry, sector flow, the escort clock",
+      "failing_helpers": [
+        "assert.equal/deepEqual over linked artifacts and source inventories"
+      ],
+      "required_artifact": "normal build manifest, linked maps/binaries, compiler source",
+      "outcome": "cleared/replaced",
+      "after": null
+    },
+    {
+      "id": "U067",
+      "baseline_index": 66,
+      "group": "G1",
+      "file": "tests/level-buffer-16.test.mjs",
+      "test": "Q-1: the window record lands at $AE00 and costs no extra transport",
+      "first_assertion": "tests/level-buffer-16.test.mjs:140",
+      "first_message": "the window record carries steps 2-5, the boss entry, sector flow and the escort clock",
+      "failing_helpers": [
+        "assert.equal/deepEqual over linked artifacts and source inventories"
+      ],
+      "required_artifact": "normal build manifest, linked maps/binaries, compiler source",
+      "outcome": "cleared/replaced",
+      "after": null
+    },
+    {
+      "id": "U068",
+      "baseline_index": 67,
+      "group": "G1",
+      "file": "tests/level-buffer-16.test.mjs",
+      "test": "Q-1: level 1 still loads the same image the same way",
+      "first_assertion": "tests/level-buffer-16.test.mjs:173",
+      "first_message": "Expected values to be strictly deep-equal:",
+      "failing_helpers": [
+        "assert.equal/deepEqual over linked artifacts and source inventories"
+      ],
+      "required_artifact": "normal build manifest, linked maps/binaries, compiler source",
+      "outcome": "cleared/replaced",
+      "after": null
+    },
+    {
+      "id": "U069",
+      "baseline_index": 68,
+      "group": "G1",
+      "file": "tests/level-hull-block.test.mjs",
+      "test": "the ATR reads thirteen sectors at START GAME, and the reader still fits",
+      "first_assertion": "tests/level-hull-block.test.mjs:273",
+      "first_message": "Expected values to be strictly equal:",
+      "failing_helpers": [
+        "assert.equal/deepEqual over linked artifacts and source inventories"
+      ],
+      "required_artifact": "normal build manifest, linked maps/binaries, compiler source",
+      "outcome": "cleared/replaced",
+      "after": null
+    },
+    {
+      "id": "U070",
+      "baseline_index": 69,
+      "group": "G5",
+      "file": "tests/level-one-equivalence.test.mjs",
+      "test": "T4: the capital admits no later than the authored row, and early only once sector 0 is spent",
+      "first_assertion": "tests/level-one-equivalence.test.mjs:67",
+      "first_message": "the capital admits on row 273, after the authored maximum 272",
+      "failing_helpers": [
+        "direct update_enemy loops / finite geometry resolver / captureTimeline"
+      ],
+      "required_artifact": "compiled level pages, C policy, NMOS frame counter and Director state",
+      "outcome": "cleared/replaced",
+      "after": null
+    },
+    {
+      "id": "U071",
+      "baseline_index": 70,
+      "group": "G5",
+      "file": "tests/level-one-equivalence.test.mjs",
+      "test": "owner decision 8 / W1: re-authoring the waves left the capital where it was; W1 moved the level's end",
+      "first_assertion": "tests/level-one-equivalence.test.mjs:235",
+      "first_message": "Expected values to be strictly equal:",
+      "failing_helpers": [
+        "direct update_enemy loops / finite geometry resolver / captureTimeline"
+      ],
+      "required_artifact": "compiled level pages, C policy, NMOS frame counter and Director state",
+      "outcome": "cleared/replaced",
+      "after": null
+    },
+    {
+      "id": "U072",
+      "baseline_index": 71,
+      "group": "G5",
+      "file": "tests/level-one-waves.test.mjs",
+      "test": "sector flow: with no kills the swarm's three waves arm and drain, (a) opens within its ceiling, (b)'s Raiders arrive",
+      "first_assertion": "tests/level-one-waves.test.mjs:223",
+      "first_message": "difficulty 0: (b)'s Raiders never arrived with no kills",
+      "failing_helpers": [
+        "direct update_enemy loops / finite geometry resolver / captureTimeline"
+      ],
+      "required_artifact": "compiled level pages, C policy, NMOS frame counter and Director state",
+      "outcome": "remaining",
+      "after": {
+        "file": "tests/level-one-waves.test.mjs",
+        "declared_at": "tests/level-one-waves.test.mjs:200",
+        "test": "sector flow: with no kills the swarm's three waves arm and drain, (a) opens within its ceiling, (b)'s Raiders arrive",
+        "message": "difficulty 0: (b)'s Raiders never arrived with no kills",
+        "first_failing_assertion": "tests/level-one-waves.test.mjs:223"
+      }
+    },
+    {
+      "id": "U073",
+      "baseline_index": 72,
+      "group": "G1",
+      "file": "tests/level-payload.test.mjs",
+      "test": "T13: only the Director's sector entry writes the star operand",
+      "first_assertion": "tests/level-payload.test.mjs:417",
+      "first_message": "declared once, called once - from enter_sector",
+      "failing_helpers": [
+        "assert.equal/deepEqual over linked artifacts and source inventories"
+      ],
+      "required_artifact": "normal build manifest, linked maps/binaries, compiler source",
+      "outcome": "cleared/replaced",
+      "after": null
+    },
+    {
+      "id": "U074",
+      "baseline_index": 73,
+      "group": "G1",
+      "file": "tests/level-summary-build.test.mjs",
+      "test": "the overlay directory has eleven entries; the summary code is entry 8 at $0500",
+      "first_assertion": "tests/level-summary-build.test.mjs:55",
+      "first_message": "Expected values to be strictly equal:",
+      "failing_helpers": [
+        "assert.equal/deepEqual over linked artifacts and source inventories"
+      ],
+      "required_artifact": "normal build manifest, linked maps/binaries, compiler source",
+      "outcome": "cleared/replaced",
+      "after": null
+    },
+    {
+      "id": "U075",
+      "baseline_index": 74,
+      "group": "G1",
+      "file": "tests/level-summary-build.test.mjs",
+      "test": "disk runs never overlap: levels, the capital restore, M5b's reservation, the summary",
+      "first_assertion": "tests/level-summary-build.test.mjs:261",
+      "first_message": "seven sectors since M6 stage 1b's gauges (five at §BH, four at §BG)",
+      "failing_helpers": [
+        "assert.equal/deepEqual over linked artifacts and source inventories"
+      ],
+      "required_artifact": "normal build manifest, linked maps/binaries, compiler source",
+      "outcome": "cleared/replaced",
+      "after": null
+    },
+    {
+      "id": "U076",
+      "baseline_index": 75,
+      "group": "G1",
+      "file": "tests/level-summary-build.test.mjs",
+      "test": "ENGAGING ENEMY SECTOR is one record in the reader, reused by the module; no AI line in either",
+      "first_assertion": "tests/level-summary-build.test.mjs:453",
+      "first_message": "the window moved",
+      "failing_helpers": [
+        "assert.equal/deepEqual over linked artifacts and source inventories"
+      ],
+      "required_artifact": "normal build manifest, linked maps/binaries, compiler source",
+      "outcome": "cleared/replaced",
+      "after": null
+    },
+    {
+      "id": "U077",
+      "baseline_index": 76,
+      "group": "G3",
+      "file": "tests/level-summary.test.mjs",
+      "test": "the summary stays up at least 3 s and FIRE continues only after the level has arrived (Q15)",
+      "first_assertion": "tests/level-summary.test.mjs:766",
+      "first_message": "the level was not the last read",
+      "failing_helpers": [
+        "installRuntimeSegments/loadCheckedL2, Drive, runBossEntry, boss_shots_late"
+      ],
+      "required_artifact": "ATR, sector-reader, L2/content overlays, POKEY/VCOUNT Drive fixture",
+      "outcome": "cleared/replaced",
+      "after": null
+    },
+    {
+      "id": "U078",
+      "baseline_index": 77,
+      "group": "G3",
+      "file": "tests/level-summary.test.mjs",
+      "test": "the art and the restore precede the level, the level is read tail first, the record last of the reads",
+      "first_assertion": "tests/level-summary.test.mjs:787",
+      "first_message": "Expected values to be strictly deep-equal:",
+      "failing_helpers": [
+        "installRuntimeSegments/loadCheckedL2, Drive, runBossEntry, boss_shots_late"
+      ],
+      "required_artifact": "ATR, sector-reader, L2/content overlays, POKEY/VCOUNT Drive fixture",
+      "outcome": "cleared/replaced",
+      "after": null
+    },
+    {
+      "id": "U079",
+      "baseline_index": 78,
+      "group": "G3",
+      "file": "tests/level-summary.test.mjs",
+      "test": "the second START GAME of a session reads no code and no level",
+      "first_assertion": "tests/level-summary.test.mjs:800",
+      "first_message": "the summary code and the resident level must not be read again",
+      "failing_helpers": [
+        "installRuntimeSegments/loadCheckedL2, Drive, runBossEntry, boss_shots_late"
+      ],
+      "required_artifact": "ATR, sector-reader, L2/content overlays, POKEY/VCOUNT Drive fixture",
+      "outcome": "cleared/replaced",
+      "after": null
+    },
+    {
+      "id": "U080",
+      "baseline_index": 79,
+      "group": "G3",
+      "file": "tests/level-summary.test.mjs",
+      "test": "AUD-02: a changed byte in the level image is refused before its music player runs (owner Q3)",
+      "first_assertion": "tests/level-summary.test.mjs:1260",
+      "first_message": "the damaged level image was accepted",
+      "failing_helpers": [
+        "installRuntimeSegments/loadCheckedL2, Drive, runBossEntry, boss_shots_late"
+      ],
+      "required_artifact": "ATR, sector-reader, L2/content overlays, POKEY/VCOUNT Drive fixture",
+      "outcome": "cleared/replaced",
+      "after": null
+    },
+    {
+      "id": "U081",
+      "baseline_index": 80,
+      "group": "G1",
+      "file": "tests/light-interceptor.test.mjs",
+      "test": "placement contract: legal composite and packed size, state inside its reserved windows, no C stack",
+      "first_assertion": "tests/light-interceptor.test.mjs:532",
+      "first_message": "Expected values to be strictly equal:",
+      "failing_helpers": [
+        "assert.equal/deepEqual over linked artifacts and source inventories"
+      ],
+      "required_artifact": "normal build manifest, linked maps/binaries, compiler source",
+      "outcome": "cleared/replaced",
+      "after": null
+    },
+    {
+      "id": "U082",
+      "baseline_index": 81,
+      "group": "G1",
+      "file": "tests/light-wingman.test.mjs",
+      "test": "Light kernel placement is legal, resident and inside every reviewed gate",
+      "first_assertion": "tests/light-wingman.test.mjs:241",
+      "first_message": "ENTITY_CODE staging margin tracks the Light art tables",
+      "failing_helpers": [
+        "assert.equal/deepEqual over linked artifacts and source inventories"
+      ],
+      "required_artifact": "normal build manifest, linked maps/binaries, compiler source",
+      "outcome": "cleared/replaced",
+      "after": null
+    },
+    {
+      "id": "U083",
+      "baseline_index": 82,
+      "group": "G5",
+      "file": "tests/master-pal-clock.test.mjs",
+      "test": "starfield observes but never owns world and hull accumulator clocks",
+      "first_assertion": "tests/master-pal-clock.test.mjs:118",
+      "first_message": "The input did not match the regular expression /cmp #CAPITAL_HULL_STATE_OPEN[\\s\\S]+lda world_scroll_rates,x[\\s\\S]+asl[\\s\\S]+lda hull_scroll_rates,x/. Input:",
+      "failing_helpers": [
+        "direct update_enemy loops / finite geometry resolver / captureTimeline"
+      ],
+      "required_artifact": "compiled level pages, C policy, NMOS frame counter and Director state",
+      "outcome": "cleared/replaced",
+      "after": null
+    },
+    {
+      "id": "U084",
+      "baseline_index": 83,
+      "group": "G7",
+      "file": "tests/menu-raster.test.mjs",
+      "test": "native menu raster is exact for the ATR and four cold RAM fills",
+      "first_assertion": "tests/menu-raster.test.mjs:41",
+      "first_message": "atr-00 evidence must describe the current artifact",
+      "failing_helpers": [
+        "runtime evidence binding / artifact SHA comparison / native clause observers"
+      ],
+      "required_artifact": "matching Atari800 source, current ATR, complete canonical trace, menu/boot captures, boss curve and release media",
+      "outcome": "remaining",
+      "after": {
+        "file": "tests/menu-raster.test.mjs",
+        "declared_at": "tests/menu-raster.test.mjs:24",
+        "test": "native menu raster is exact for the ATR and four cold RAM fills",
+        "message": "atr-00 evidence must describe the current artifact",
+        "first_failing_assertion": "tests/menu-raster.test.mjs:41"
+      }
+    },
+    {
+      "id": "U085",
+      "baseline_index": 84,
+      "group": "G5",
+      "file": "tests/offscreen-spawn.test.mjs",
+      "test": "Heavy entry reaches the old per-slot anchors before unchanged crossing motion",
+      "first_assertion": "tests/offscreen-spawn.test.mjs:167",
+      "first_message": "Expected values to be strictly deep-equal:",
+      "failing_helpers": [
+        "direct update_enemy loops / finite geometry resolver / captureTimeline"
+      ],
+      "required_artifact": "compiled level pages, C policy, NMOS frame counter and Director state",
+      "outcome": "cleared/replaced",
+      "after": null
+    },
+    {
+      "id": "U086",
+      "baseline_index": 85,
+      "group": "G1",
+      "file": "tests/overlay-slot.test.mjs",
+      "test": "nothing outside the capital group names a label inside slot A",
+      "first_assertion": "tests/overlay-slot.test.mjs:138",
+      "first_message": "code outside the capital group reaches into slot A without the vector table",
+      "failing_helpers": [
+        "assert.equal/deepEqual over linked artifacts and source inventories"
+      ],
+      "required_artifact": "normal build manifest, linked maps/binaries, compiler source",
+      "outcome": "cleared/replaced",
+      "after": null
+    },
+    {
+      "id": "U087",
+      "baseline_index": 86,
+      "group": "G1",
+      "file": "tests/overlay-slot.test.mjs",
+      "test": "the capital restore run on the disk is the resident image of slot A",
+      "first_assertion": "tests/overlay-slot.test.mjs:164",
+      "first_message": "Expected values to be strictly equal:",
+      "failing_helpers": [
+        "assert.equal/deepEqual over linked artifacts and source inventories"
+      ],
+      "required_artifact": "normal build manifest, linked maps/binaries, compiler source",
+      "outcome": "cleared/replaced",
+      "after": null
+    },
+    {
+      "id": "U088",
+      "baseline_index": 87,
+      "group": "G7",
+      "file": "tests/package-release.test.mjs",
+      "test": "M5-05: the release zip carries LICENSE, LICENSE-ASSETS and THIRD_PARTY_NOTICES.md",
+      "first_assertion": "tests/package-release.test.mjs:44",
+      "first_message": "Error: Runtime wall trace binding mismatch for void-strike-65-boot.bin",
+      "failing_helpers": [
+        "validateRuntimeEvidenceBinding",
+        "resolveRuntimeEvidence",
+        "build"
+      ],
+      "required_artifact": "matching Atari800 source, current ATR, complete canonical trace, menu/boot captures, boss curve and release media",
+      "outcome": "remaining",
+      "after": {
+        "file": "tests/package-release.test.mjs",
+        "declared_at": "tests/package-release.test.mjs:38",
+        "test": "M5-05: the release zip carries LICENSE, LICENSE-ASSETS and THIRD_PARTY_NOTICES.md",
+        "message": "Error: Runtime wall trace binding mismatch for void-strike-65-boot.bin",
+        "first_failing_assertion": "tests/package-release.test.mjs:44"
+      }
+    },
+    {
+      "id": "U089",
+      "baseline_index": 88,
+      "group": "G5",
+      "file": "tests/pickup-boost-colour.test.mjs",
+      "test": "COLPM3 follows the sector state, once per frame, off the latch that exists",
+      "first_assertion": "tests/pickup-boost-colour.test.mjs:126",
+      "first_message": "an OPEN frame gives COLPM3 to the capsule",
+      "failing_helpers": [
+        "direct update_enemy loops / finite geometry resolver / captureTimeline"
+      ],
+      "required_artifact": "compiled level pages, C policy, NMOS frame counter and Director state",
+      "outcome": "cleared/replaced",
+      "after": null
+    },
+    {
+      "id": "U090",
+      "baseline_index": 89,
+      "group": "G5",
+      "file": "tests/player-fire-audio.test.mjs",
+      "test": "master PAL gate makes transition-only fire/audio catch-up obsolete",
+      "first_assertion": "tests/player-fire-audio.test.mjs:59",
+      "first_message": "The input did not match the regular expression /lda FIGHTER_PROJECTILE_PUBLICATION_FRAME\\s+beq @fighter_window[\\s\\S]+jsr erase_dynamic_near_star_overlays\\s+jsr publish_dynamic_near_star_phase\\s+jmp fighter_projectile_publication_capital_render\\s+@fighter_window:\\s+lda #PICKUP_BOOST_COLOUR\\s+sta COLPM3\\s+ldx #\\$77\\s+jsr wait_frame_at_line\\s+fighter_projectile_publication_begin/. Input:",
+      "failing_helpers": [
+        "direct update_enemy loops / finite geometry resolver / captureTimeline"
+      ],
+      "required_artifact": "compiled level pages, C policy, NMOS frame counter and Director state",
+      "outcome": "cleared/replaced",
+      "after": null
+    },
+    {
+      "id": "U091",
+      "baseline_index": 90,
+      "group": "G8",
+      "file": "tests/preview.test.mjs",
+      "test": "preview consumes the canonical charset, screen, PMG, and palette source",
+      "first_assertion": "tests/preview.test.mjs:164",
+      "first_message": "the gameplay preview must change when player_shape changes",
+      "failing_helpers": [
+        "createGameplayPreview / overlayCanonicalPmg / drawPlayer"
+      ],
+      "required_artifact": "Node PNG preview and source constants",
+      "outcome": "remaining",
+      "after": {
+        "file": "tests/preview.test.mjs",
+        "declared_at": "tests/preview.test.mjs:121",
+        "test": "preview consumes the canonical charset, screen, PMG, and palette source",
+        "message": "the gameplay preview must change when player_shape changes",
+        "first_failing_assertion": "tests/preview.test.mjs:164"
+      }
+    },
+    {
+      "id": "U092",
+      "baseline_index": 91,
+      "group": "G4",
+      "file": "tests/preview.test.mjs",
+      "test": "Rapid Fire owner preview executes the packed ATR pickup lifecycle",
+      "first_assertion": "tests/preview.test.mjs:335",
+      "first_message": "Error: Rapid burst requires collected runtime state (state=0, pickup=0, pickupY=104, playerY=102)",
+      "failing_helpers": [
+        "runBurst",
+        "executeWeaponPickupTrace",
+        "createWeaponPickupRapidFirePreview"
+      ],
+      "required_artifact": "ATR, generated ABI/roster, NMOS runtime",
+      "outcome": "cleared/replaced",
+      "after": null
+    },
+    {
+      "id": "U093",
+      "baseline_index": 92,
+      "group": "G4",
+      "file": "tests/preview.test.mjs",
+      "test": "Spread Shot owner preview is deterministic executed ATR gameplay",
+      "first_assertion": "tests/preview.test.mjs:423",
+      "first_message": "Expected values to be strictly deep-equal:",
+      "failing_helpers": [
+        "initialiseRuntime / executeWeaponPickupTrace / runBurst"
+      ],
+      "required_artifact": "ATR, generated ABI/roster, NMOS runtime",
+      "outcome": "cleared/replaced",
+      "after": null
+    },
+    {
+      "id": "U094",
+      "baseline_index": 93,
+      "group": "G9",
+      "file": "tests/runtime-timing.test.mjs",
+      "test": "measured DMA-on fields come only from an artifact-matched Atari800 trace",
+      "first_assertion": "tests/runtime-timing.test.mjs:67",
+      "first_message": "runtime wall trace is missing",
+      "failing_helpers": [
+        "runtime evidence metadata / currentMeasurement assertions"
+      ],
+      "required_artifact": "normal manifest and historical report; no new native measurement needed",
+      "outcome": "cleared/replaced",
+      "after": null
+    },
+    {
+      "id": "U095",
+      "baseline_index": 94,
+      "group": "G9",
+      "file": "tests/runtime-wall-trace.test.mjs",
+      "test": "wall trace is artifact-bound and adds no guest timing work",
+      "first_assertion": "tests/runtime-wall-trace.test.mjs:75",
+      "first_message": "Expected values to be strictly deep-equal:",
+      "failing_helpers": [
+        "runtime evidence metadata / currentMeasurement assertions"
+      ],
+      "required_artifact": "normal manifest and historical report; no new native measurement needed",
+      "outcome": "cleared/replaced",
+      "after": null
+    },
+    {
+      "id": "U096",
+      "baseline_index": 95,
+      "group": "G9",
+      "file": "tests/runtime-wall-trace.test.mjs",
+      "test": "Spread Shot passes PAL wall budget with a legal capsule and projectile-heavy frame",
+      "first_assertion": "tests/runtime-wall-trace.test.mjs:668",
+      "first_message": "Expected values to be strictly deep-equal:",
+      "failing_helpers": [
+        "runtime evidence metadata / currentMeasurement assertions"
+      ],
+      "required_artifact": "normal manifest and historical report; no new native measurement needed",
+      "outcome": "cleared/replaced",
+      "after": null
+    },
+    {
+      "id": "U097",
+      "baseline_index": 96,
+      "group": "G9",
+      "file": "tests/runtime-wall-trace.test.mjs",
+      "test": "debris visual polish preserves foundation history and passes its +256 PAL gate",
+      "first_assertion": "tests/runtime-wall-trace.test.mjs:843",
+      "first_message": "Expected values to be strictly equal:",
+      "failing_helpers": [
+        "runtime evidence metadata / currentMeasurement assertions"
+      ],
+      "required_artifact": "normal manifest and historical report; no new native measurement needed",
+      "outcome": "cleared/replaced",
+      "after": null
+    },
+    {
+      "id": "U098",
+      "baseline_index": 97,
+      "group": "G9",
+      "file": "tests/runtime-wall-trace.test.mjs",
+      "test": "explosion colour flash passes its +64 PAL gate with exact GTIA traces",
+      "first_assertion": "tests/runtime-wall-trace.test.mjs:895",
+      "first_message": "Expected values to be strictly deep-equal:",
+      "failing_helpers": [
+        "runtime evidence metadata / currentMeasurement assertions"
+      ],
+      "required_artifact": "normal manifest and historical report; no new native measurement needed",
+      "outcome": "cleared/replaced",
+      "after": null
+    },
+    {
+      "id": "U099",
+      "baseline_index": 98,
+      "group": "G9",
+      "file": "tests/runtime-wall-trace.test.mjs",
+      "test": "destructible debris passes PAL, inactive-path and linked-code budgets",
+      "first_assertion": "tests/runtime-wall-trace.test.mjs:938",
+      "first_message": "Expected values to be strictly deep-equal:",
+      "failing_helpers": [
+        "runtime evidence metadata / currentMeasurement assertions"
+      ],
+      "required_artifact": "normal manifest and historical report; no new native measurement needed",
+      "outcome": "cleared/replaced",
+      "after": null
+    },
+    {
+      "id": "U100",
+      "baseline_index": 99,
+      "group": "G9",
+      "file": "tests/runtime-wall-trace.test.mjs",
+      "test": "enemy breakup passes the hard PAL gate and draws no character effect",
+      "first_assertion": "tests/runtime-wall-trace.test.mjs:1009",
+      "first_message": "Expected values to be strictly deep-equal:",
+      "failing_helpers": [
+        "runtime evidence metadata / currentMeasurement assertions"
+      ],
+      "required_artifact": "normal manifest and historical report; no new native measurement needed",
+      "outcome": "cleared/replaced",
+      "after": null
+    },
+    {
+      "id": "U101",
+      "baseline_index": 100,
+      "group": "G5",
+      "file": "tests/sector-flow.test.mjs",
+      "test": "C1: no hold before a capital - its entry waits for the drain itself",
+      "first_assertion": "tests/sector-flow.test.mjs:59",
+      "first_message": "Error: L2 islands: capital hazards.debris must be zero",
+      "failing_helpers": [
+        "fail",
+        "compileIslandExtension",
+        "compileLevel",
+        "level"
+      ],
+      "required_artifact": "compiled level pages, C policy, NMOS frame counter and Director state",
+      "outcome": "cleared/replaced",
+      "after": null
+    },
+    {
+      "id": "U102",
+      "baseline_index": 101,
+      "group": "G7",
+      "file": "tests/sio-patch-policy.test.mjs",
+      "test": "the committed evidence: real-SIO boot smoke with stage 2 clean, pinned patch-on replays and menu raster",
+      "first_assertion": "tests/sio-patch-policy.test.mjs:98",
+      "first_message": "atr-a5 stage-2 SIOV reads",
+      "failing_helpers": [
+        "runtime evidence binding / artifact SHA comparison / native clause observers"
+      ],
+      "required_artifact": "matching Atari800 source, current ATR, complete canonical trace, menu/boot captures, boss curve and release media",
+      "outcome": "remaining",
+      "after": {
+        "file": "tests/sio-patch-policy.test.mjs",
+        "declared_at": "tests/sio-patch-policy.test.mjs:79",
+        "test": "the committed evidence: real-SIO boot smoke with stage 2 clean, pinned patch-on replays and menu raster",
+        "message": "atr-a5 stage-2 SIOV reads",
+        "first_failing_assertion": "tests/sio-patch-policy.test.mjs:98"
+      }
+    },
+    {
+      "id": "U103",
+      "baseline_index": 102,
+      "group": "G2",
+      "file": "tests/slot-f.test.mjs",
+      "test": "Q9: the HUD draws codes 0-63 only, so the block in codes 64-127 is never shown",
+      "first_assertion": "tests/slot-f.test.mjs:88",
+      "first_message": "only 18 codes seen",
+      "failing_helpers": [
+        "HUD snapshots / boss fixture / independent raster oracle"
+      ],
+      "required_artifact": "normal ATR, HUD charset/source, NMOS boss fixture",
+      "outcome": "cleared/replaced",
+      "after": null
+    },
+    {
+      "id": "U104",
+      "baseline_index": 103,
+      "group": "G1",
+      "file": "tests/slot-f.test.mjs",
+      "test": "Q9: each region's block is its fourth run - on the disk at 696 + 4 x region, folded into the head's check",
+      "first_assertion": "tests/slot-f.test.mjs:109",
+      "first_message": "region 1's head sum does not cover its block",
+      "failing_helpers": [
+        "assert.equal/deepEqual over linked artifacts and source inventories"
+      ],
+      "required_artifact": "normal build manifest, linked maps/binaries, compiler source",
+      "outcome": "cleared/replaced",
+      "after": null
+    },
+    {
+      "id": "U105",
+      "baseline_index": 104,
+      "group": "G2",
+      "file": "tests/torpedo.test.mjs",
+      "test": "§BL 5 (§BH): a miss - no target under the ship - the torpedo flies to the band's foot at the ship's column; the lance kept, the reticle back",
+      "first_assertion": "tests/torpedo.test.mjs:77",
+      "first_message": "the torpedo fired",
+      "failing_helpers": [
+        "fire"
+      ],
+      "required_artifact": "normal ATR, HUD charset/source, NMOS boss fixture",
+      "outcome": "cleared/replaced",
+      "after": null
+    },
+    {
+      "id": "U106",
+      "baseline_index": 105,
+      "group": "G4",
+      "file": "tests/weapon-pickup-rapid-fire.test.mjs",
+      "test": "the release ATR executes 0→1→2→pending only for consumed PlayerFighter kills",
+      "first_assertion": "tests/weapon-pickup-rapid-fire.test.mjs:181",
+      "first_message": "Error: Rapid burst requires collected runtime state (state=0, pickup=0, pickupY=104, playerY=102)",
+      "failing_helpers": [
+        "runBurst",
+        "executeWeaponPickupTrace"
+      ],
+      "required_artifact": "ATR, generated ABI/roster, NMOS runtime",
+      "outcome": "cleared/replaced",
+      "after": null
+    },
+    {
+      "id": "U107",
+      "baseline_index": 106,
+      "group": "G4",
+      "file": "tests/weapon-pickup-rapid-fire.test.mjs",
+      "test": "pickup pending remains hidden and non-colliding for thirty full frames",
+      "first_assertion": "tests/weapon-pickup-rapid-fire.test.mjs:208",
+      "first_message": "Error: Rapid burst requires collected runtime state (state=0, pickup=0, pickupY=104, playerY=102)",
+      "failing_helpers": [
+        "runBurst",
+        "executeWeaponPickupTrace"
+      ],
+      "required_artifact": "ATR, generated ABI/roster, NMOS runtime",
+      "outcome": "cleared/replaced",
+      "after": null
+    },
+    {
+      "id": "U108",
+      "baseline_index": 107,
+      "group": "G4",
+      "file": "tests/weapon-pickup-rapid-fire.test.mjs",
+      "test": "active capsule is one logical PMG object, writes no character cell and cannot be shot",
+      "first_assertion": "tests/weapon-pickup-rapid-fire.test.mjs:271",
+      "first_message": "Error: Rapid burst requires collected runtime state (state=0, pickup=0, pickupY=104, playerY=102)",
+      "failing_helpers": [
+        "runBurst",
+        "executeWeaponPickupTrace"
+      ],
+      "required_artifact": "ATR, generated ABI/roster, NMOS runtime",
+      "outcome": "cleared/replaced",
+      "after": null
+    },
+    {
+      "id": "U109",
+      "baseline_index": 108,
+      "group": "G4",
+      "file": "tests/weapon-pickup-rapid-fire.test.mjs",
+      "test": "pickup movement resolves half world speed into smooth scanline phases",
+      "first_assertion": "tests/weapon-pickup-rapid-fire.test.mjs:310",
+      "first_message": "Error: Rapid burst requires collected runtime state (state=0, pickup=0, pickupY=104, playerY=102)",
+      "failing_helpers": [
+        "runBurst",
+        "executeWeaponPickupTrace"
+      ],
+      "required_artifact": "ATR, generated ABI/roster, NMOS runtime",
+      "outcome": "cleared/replaced",
+      "after": null
+    },
+    {
+      "id": "U110",
+      "baseline_index": 109,
+      "group": "G4",
+      "file": "tests/weapon-pickup-rapid-fire.test.mjs",
+      "test": "debris and the reserved pickup coexist without allocator overwrite for every A2 head",
+      "first_assertion": "tests/weapon-pickup-rapid-fire.test.mjs:323",
+      "first_message": "Error: Rapid burst requires collected runtime state (state=0, pickup=0, pickupY=104, playerY=102)",
+      "failing_helpers": [
+        "runBurst",
+        "executeWeaponPickupTrace"
+      ],
+      "required_artifact": "ATR, generated ABI/roster, NMOS runtime",
+      "outcome": "cleared/replaced",
+      "after": null
+    },
+    {
+      "id": "U111",
+      "baseline_index": 110,
+      "group": "G4",
+      "file": "tests/weapon-pickup-rapid-fire.test.mjs",
+      "test": "pickup collection is single-shot and changes neither score, HULL nor LIFE",
+      "first_assertion": "tests/weapon-pickup-rapid-fire.test.mjs:439",
+      "first_message": "Error: Rapid burst requires collected runtime state (state=0, pickup=0, pickupY=104, playerY=102)",
+      "failing_helpers": [
+        "runBurst",
+        "executeWeaponPickupTrace"
+      ],
+      "required_artifact": "ATR, generated ABI/roster, NMOS runtime",
+      "outcome": "cleared/replaced",
+      "after": null
+    },
+    {
+      "id": "U112",
+      "baseline_index": 111,
+      "group": "G2",
+      "file": "tests/weapon-pickup-rapid-fire.test.mjs",
+      "test": "weapon boosters use four proportional ANTIC 2 segments with a timer-derived warning blink",
+      "first_assertion": "tests/weapon-pickup-rapid-fire.test.mjs:458",
+      "first_message": "Expected values to be strictly deep-equal:",
+      "failing_helpers": [
+        "HUD snapshots / boss fixture / independent raster oracle"
+      ],
+      "required_artifact": "normal ATR, HUD charset/source, NMOS boss fixture",
+      "outcome": "cleared/replaced",
+      "after": null
+    },
+    {
+      "id": "U113",
+      "baseline_index": 112,
+      "group": "G2",
+      "file": "tests/weapon-pickup-rapid-fire.test.mjs",
+      "test": "HULL plates and the ten-cell BOOST field remain distinct at native screen codes",
+      "first_assertion": "tests/weapon-pickup-rapid-fire.test.mjs:501",
+      "first_message": "Expected values to be strictly deep-equal:",
+      "failing_helpers": [
+        "HUD snapshots / boss fixture / independent raster oracle"
+      ],
+      "required_artifact": "normal ATR, HUD charset/source, NMOS boss fixture",
+      "outcome": "cleared/replaced",
+      "after": null
+    },
+    {
+      "id": "U114",
+      "baseline_index": 113,
+      "group": "G4",
+      "file": "tests/weapon-pickup-rapid-fire.test.mjs",
+      "test": "Rapid Fire lasts 500 active frames and keeps its accepted accelerated burst",
+      "first_assertion": "tests/weapon-pickup-rapid-fire.test.mjs:546",
+      "first_message": "Error: Rapid burst requires collected runtime state (state=0, pickup=0, pickupY=104, playerY=102)",
+      "failing_helpers": [
+        "runBurst",
+        "executeWeaponPickupTrace"
+      ],
+      "required_artifact": "ATR, generated ABI/roster, NMOS runtime",
+      "outcome": "cleared/replaced",
+      "after": null
+    },
+    {
+      "id": "U115",
+      "baseline_index": 114,
+      "group": "G4",
+      "file": "tests/weapon-pickup-rapid-fire.test.mjs",
+      "test": "release trace CSV exposes the authoritative counter, state, timing and score",
+      "first_assertion": "tests/weapon-pickup-rapid-fire.test.mjs:761",
+      "first_message": "Error: Rapid burst requires collected runtime state (state=0, pickup=0, pickupY=104, playerY=102)",
+      "failing_helpers": [
+        "runBurst",
+        "executeWeaponPickupTrace"
+      ],
+      "required_artifact": "ATR, generated ABI/roster, NMOS runtime",
+      "outcome": "cleared/replaced",
+      "after": null
+    },
+    {
+      "id": "U116",
+      "baseline_index": 115,
+      "group": "G4",
+      "file": "tests/weapon-pickup-shield.test.mjs",
+      "test": "pickup rotation is exactly Rapid Spread Shield Rapid without RNG",
+      "first_assertion": "tests/weapon-pickup-shield.test.mjs:63",
+      "first_message": "Expected values to be strictly deep-equal:",
+      "failing_helpers": [
+        "initialiseRuntime / executeWeaponPickupTrace / runBurst"
+      ],
+      "required_artifact": "ATR, generated ABI/roster, NMOS runtime",
+      "outcome": "cleared/replaced",
+      "after": null
+    },
+    {
+      "id": "U117",
+      "baseline_index": 116,
+      "group": "G2",
+      "file": "tests/weapon-pickup-shield.test.mjs",
+      "test": "Shield HUD uses exact 188 126 63 thresholds and a continuous distinct glyph",
+      "first_assertion": "tests/weapon-pickup-shield.test.mjs:167",
+      "first_message": "Expected values to be strictly deep-equal:",
+      "failing_helpers": [
+        "HUD snapshots / boss fixture / independent raster oracle"
+      ],
+      "required_artifact": "normal ATR, HUD charset/source, NMOS boss fixture",
+      "outcome": "cleared/replaced",
+      "after": null
+    },
+    {
+      "id": "U118",
+      "baseline_index": 117,
+      "group": "G4",
+      "file": "tests/weapon-pickup-spread-shot.test.mjs",
+      "test": "the release ATR executes the deterministic Rapid Spread Shield drop cycle",
+      "first_assertion": "tests/weapon-pickup-spread-shot.test.mjs:96",
+      "first_message": "Expected values to be strictly deep-equal:",
+      "failing_helpers": [
+        "initialiseRuntime / executeWeaponPickupTrace / runBurst"
+      ],
+      "required_artifact": "ATR, generated ABI/roster, NMOS runtime",
+      "outcome": "cleared/replaced",
+      "after": null
+    },
+    {
+      "id": "U119",
+      "baseline_index": 118,
+      "group": "G4",
+      "file": "tests/weapon-pickup-spread-shot.test.mjs",
+      "test": "Spread collection lasts exactly 500 active PAL frames and pause freezes it",
+      "first_assertion": "tests/weapon-pickup-spread-shot.test.mjs:125",
+      "first_message": "Expected values to be strictly deep-equal:",
+      "failing_helpers": [
+        "initialiseRuntime / executeWeaponPickupTrace / runBurst"
+      ],
+      "required_artifact": "ATR, generated ABI/roster, NMOS runtime",
+      "outcome": "cleared/replaced",
+      "after": null
+    },
+    {
+      "id": "U120",
+      "baseline_index": 119,
+      "group": "G4",
+      "file": "tests/weapon-pickup-spread-shot.test.mjs",
+      "test": "all three projectiles leave the screen cleanly without HUD or charset corruption",
+      "first_assertion": "tests/weapon-pickup-spread-shot.test.mjs:287",
+      "first_message": "the volley is the full left/centre/right fan",
+      "failing_helpers": [
+        "initialiseRuntime / executeWeaponPickupTrace / runBurst"
+      ],
+      "required_artifact": "ATR, generated ABI/roster, NMOS runtime",
+      "outcome": "cleared/replaced",
+      "after": null
+    }
+  ],
+  "native": [
+    {
+      "session": "director-complete-0-natural-sweep-fire0",
+      "message": "director-complete-0-natural-sweep-fire0 reached the summary from a boss whose core never fell",
+      "class": "pre-existing-unclassified",
+      "measurement": "docs/diagnostics/capital-content-v2/merge-2026-10-28/verification-100db9a.json",
+      "note": "Same first assertion reproduced on 5053697 with identical boss-aim policy inputs. Recorded under owner decision 2026-10-28; no validator or replay change. Root classification remains unresolved.",
+      "id": "N01",
+      "group": "G7",
+      "subgroup": "boss completion observer",
+      "fix_class": "needs milestone release trace",
+      "after_status": "not rerun; still recorded, not cleared"
+    },
+    {
+      "session": "director-complete-1-natural-sweep-fire0",
+      "message": "director-complete-1-natural-sweep-fire0 reached the summary from a boss whose core never fell",
+      "class": "pre-existing-unclassified",
+      "measurement": "docs/diagnostics/capital-content-v2/merge-2026-10-28/verification-100db9a.json",
+      "note": "Same first assertion reproduced on 5053697 with identical boss-aim policy inputs. Recorded under owner decision 2026-10-28; no validator or replay change. Root classification remains unresolved.",
+      "id": "N02",
+      "group": "G7",
+      "subgroup": "boss completion observer",
+      "fix_class": "needs milestone release trace",
+      "after_status": "not rerun; still recorded, not cleared"
+    },
+    {
+      "session": "director-complete-2-natural-sweep-fire0",
+      "message": "director-complete-2-natural-sweep-fire0 reached the summary from a boss whose core never fell",
+      "class": "pre-existing-unclassified",
+      "measurement": "docs/diagnostics/capital-content-v2/merge-2026-10-28/verification-100db9a.json",
+      "note": "Same first assertion reproduced on 5053697 with identical boss-aim policy inputs. Recorded under owner decision 2026-10-28; no validator or replay change. Root classification remains unresolved.",
+      "id": "N03",
+      "group": "G7",
+      "subgroup": "boss completion observer",
+      "fix_class": "needs milestone release trace",
+      "after_status": "not rerun; still recorded, not cleared"
+    },
+    {
+      "session": "director-complete-2-write-protected",
+      "message": "director-complete-2-write-protected reached the summary from a boss whose core never fell",
+      "class": "pre-existing-unclassified",
+      "measurement": "docs/diagnostics/capital-content-v2/merge-2026-10-28/verification-100db9a.json",
+      "note": "Exact write-protected case also reproduces the same first assertion on 5053697. Recorded under owner decision 2026-10-28; validator and inputs unchanged.",
+      "id": "N04",
+      "group": "G7",
+      "subgroup": "boss completion observer",
+      "fix_class": "needs milestone release trace",
+      "after_status": "not rerun; still recorded, not cleared"
+    },
+    {
+      "session": "weapon-pickup-overlap-2-hunt-fire5",
+      "message": "weapon-pickup-overlap-2-hunt-fire5 final raster contains a cut capsule or stale post-collection footprint (COLPM3 $1c in x 56-72: 216, 216, 216, 216, 216, 216, 216, 216, 216, 188, 156, 132, 108, 84, 60, 28, 0, 0, 0, 0, 0, 0)",
+      "class": "pre-existing-unclassified",
+      "measurement": "docs/diagnostics/capital-content-v2/merge-2026-10-28/pickup-cef036b.json",
+      "note": "Owner decision 2026-10-29: same named replay on 5053697 fails with the exact same 22 raster counts. Recorded as pre-existing debt; no input, validator or production change. Root cause remains unclassified.",
+      "id": "N05",
+      "group": "G7",
+      "subgroup": "pickup observer",
+      "fix_class": "needs milestone release trace",
+      "after_status": "not rerun; still recorded, not cleared"
+    },
+    {
+      "session": "capital-contact-allied-medium",
+      "message": "capital-contact-allied-medium did not capture 16 consecutive contact rasters",
+      "class": "pre-existing-unclassified",
+      "measurement": "docs/diagnostics/capital-content-v2/merge-2026-10-28/full-comparison-fde1748.json",
+      "assertion": "scripts/runtime-wall-trace.mjs:5882",
+      "note": "Owner full-comparison decision2026-10-29: identical assertion fails on5053697 with the common diagnostic harness. Aggregate/ contexts identify global checks without a replay id. Exact current message retained; no predicate or threshold change.",
+      "id": "N06",
+      "group": "G7",
+      "subgroup": "contact raster coverage",
+      "fix_class": "needs milestone release trace",
+      "after_status": "not rerun; still recorded, not cleared"
+    },
+    {
+      "session": "lower-playfield-laser-contact-atr-hard",
+      "message": "lower-playfield-laser-contact-atr-hard: band frames saw 0 to 2 row switches (one count a region)",
+      "class": "pre-existing-unclassified",
+      "measurement": "docs/diagnostics/capital-content-v2/merge-2026-10-28/full-comparison-fde1748.json",
+      "assertion": "scripts/runtime-wall-trace.mjs:2282",
+      "note": "Owner full-comparison decision2026-10-29: identical assertion fails on5053697 with the common diagnostic harness. Aggregate/ contexts identify global checks without a replay id. Exact current message retained; no predicate or threshold change.",
+      "id": "N07",
+      "group": "G7",
+      "subgroup": "contact raster coverage",
+      "fix_class": "needs milestone release trace",
+      "after_status": "not rerun; still recorded, not cleared"
+    },
+    {
+      "session": "lower-playfield-allied-contact-atr-hard",
+      "message": "lower-playfield-allied-contact-atr-hard did not enter the capital damage pipeline exactly once",
+      "class": "pre-existing-unclassified",
+      "measurement": "docs/diagnostics/capital-content-v2/merge-2026-10-28/full-comparison-fde1748.json",
+      "assertion": "scripts/runtime-wall-trace.mjs:5885",
+      "note": "Owner full-comparison decision2026-10-29: identical assertion fails on5053697 with the common diagnostic harness. Aggregate/ contexts identify global checks without a replay id. Exact current message retained; no predicate or threshold change.",
+      "id": "N08",
+      "group": "G7",
+      "subgroup": "contact raster coverage",
+      "fix_class": "needs milestone release trace",
+      "after_status": "not rerun; still recorded, not cleared"
+    },
+    {
+      "session": "weapon-pickup-sequence-2-hunt-fire3",
+      "message": "Expected one complete smooth final-raster capsule sequence in COLPM3 $1c at x 56-72, found 0/11 (largest silhouette 144 px)",
+      "class": "pre-existing-unclassified",
+      "measurement": "docs/diagnostics/capital-content-v2/merge-2026-10-28/full-comparison-fde1748.json",
+      "assertion": "scripts/runtime-wall-trace.mjs:7792",
+      "note": "Owner decision2026-10-29, checkpoint8763397: confirmed in the existing complete5053697 comparison output with the same predicate and exact values as current. Pre-existing release debt on main as well; strict release / release-evidence refresh required before v0.4.0, not a merge gate for increments1+0. No production or predicate change. Confirmation: docs/diagnostics/capital-content-v2/merge-2026-10-28/merge-ready-8763397.json",
+      "id": "N09",
+      "group": "G7",
+      "subgroup": "pickup observer",
+      "fix_class": "needs milestone release trace",
+      "after_status": "not rerun; still recorded, not cleared"
+    },
+    {
+      "session": "weapon-pickup-traversal-2-observe-fire8",
+      "message": "Native pickup did not remain one logical slot and one whole 16-row capsule",
+      "class": "pre-existing-unclassified",
+      "measurement": "docs/diagnostics/capital-content-v2/merge-2026-10-28/full-comparison-fde1748.json",
+      "assertion": "scripts/runtime-wall-trace.mjs:7858",
+      "note": "Owner full-comparison decision2026-10-29: identical assertion fails on5053697 with the common diagnostic harness. Aggregate/ contexts identify global checks without a replay id. Exact current message retained; no predicate or threshold change.",
+      "id": "N10",
+      "group": "G7",
+      "subgroup": "pickup observer",
+      "fix_class": "needs milestone release trace",
+      "after_status": "not rerun; still recorded, not cleared"
+    },
+    {
+      "session": "weapon-pickup-traversal-2-observe-fire8",
+      "message": "Native pickup slot was not released cleanly at the lower boundary",
+      "class": "pre-existing-unclassified",
+      "measurement": "docs/diagnostics/capital-content-v2/merge-2026-10-28/full-comparison-fde1748.json",
+      "assertion": "scripts/runtime-wall-trace.mjs:7874",
+      "note": "Owner full-comparison decision2026-10-29: identical assertion fails on5053697 with the common diagnostic harness. Aggregate/ contexts identify global checks without a replay id. Exact current message retained; no predicate or threshold change.",
+      "id": "N11",
+      "group": "G7",
+      "subgroup": "pickup observer",
+      "fix_class": "needs milestone release trace",
+      "after_status": "not rerun; still recorded, not cleared"
+    },
+    {
+      "session": "lower-playfield-atr-hard",
+      "message": "Lower-playfield replay is missing a selected native raster",
+      "class": "pre-existing-unclassified",
+      "measurement": "docs/diagnostics/capital-content-v2/merge-2026-10-28/full-comparison-fde1748.json",
+      "assertion": "scripts/runtime-wall-trace.mjs:7939",
+      "note": "Owner full-comparison decision2026-10-29: identical assertion fails on5053697 with the common diagnostic harness. Aggregate/ contexts identify global checks without a replay id. Exact current message retained; no predicate or threshold change.",
+      "id": "N12",
+      "group": "G7",
+      "subgroup": "contact raster coverage",
+      "fix_class": "needs milestone release trace",
+      "after_status": "not rerun; still recorded, not cleared"
+    },
+    {
+      "session": "aggregate/director-completion-evidence",
+      "message": "Director completion trace measured 15927 frames and 0/3 level-end summaries",
+      "class": "pre-existing-unclassified",
+      "measurement": "docs/diagnostics/capital-content-v2/merge-2026-10-28/full-comparison-fde1748.json",
+      "assertion": "scripts/runtime-wall-trace.mjs:8259",
+      "note": "Owner full-comparison decision2026-10-29: identical assertion fails on5053697 with the common diagnostic harness. Aggregate/ contexts identify global checks without a replay id. Exact current message retained; no predicate or threshold change.",
+      "id": "N13",
+      "group": "G7",
+      "subgroup": "boss completion observer",
+      "fix_class": "needs milestone release trace",
+      "after_status": "not rerun; still recorded, not cleared"
+    },
+    {
+      "session": "director-complete-0-natural-sweep-fire0",
+      "message": "director-complete-0-natural-sweep-fire0 did not execute LAST-SECTOR ROW CLOCK -> DRAINED BOSS ENTRY -> FIGHT -> CHAIN -> HOLD (entered 3532, entry 3613, engaged 3614, chain undefined, hold undefined, states 1)",
+      "class": "pre-existing-unclassified",
+      "measurement": "docs/diagnostics/capital-content-v2/merge-2026-10-28/full-comparison-fde1748.json",
+      "assertion": "scripts/runtime-wall-trace.mjs:8333",
+      "note": "Owner full-comparison decision2026-10-29: identical assertion fails on5053697 with the common diagnostic harness. Aggregate/ contexts identify global checks without a replay id. Exact current message retained; no predicate or threshold change.",
+      "id": "N14",
+      "group": "G7",
+      "subgroup": "boss completion observer",
+      "fix_class": "needs milestone release trace",
+      "after_status": "not rerun; still recorded, not cleared"
+    },
+    {
+      "session": "director-complete-1-natural-sweep-fire0",
+      "message": "director-complete-1-natural-sweep-fire0 did not execute LAST-SECTOR ROW CLOCK -> DRAINED BOSS ENTRY -> FIGHT -> CHAIN -> HOLD (entered 2913, entry 2981, engaged 2982, chain undefined, hold undefined, states 1)",
+      "class": "pre-existing-unclassified",
+      "measurement": "docs/diagnostics/capital-content-v2/merge-2026-10-28/full-comparison-fde1748.json",
+      "assertion": "scripts/runtime-wall-trace.mjs:8333",
+      "note": "Owner full-comparison decision2026-10-29: identical assertion fails on5053697 with the common diagnostic harness. Aggregate/ contexts identify global checks without a replay id. Exact current message retained; no predicate or threshold change.",
+      "id": "N15",
+      "group": "G7",
+      "subgroup": "boss completion observer",
+      "fix_class": "needs milestone release trace",
+      "after_status": "not rerun; still recorded, not cleared"
+    },
+    {
+      "session": "director-complete-2-natural-sweep-fire0",
+      "message": "director-complete-2-natural-sweep-fire0 did not execute LAST-SECTOR ROW CLOCK -> DRAINED BOSS ENTRY -> FIGHT -> CHAIN -> HOLD (entered 2747, entry 2776, engaged 2777, chain undefined, hold undefined, states 1)",
+      "class": "pre-existing-unclassified",
+      "measurement": "docs/diagnostics/capital-content-v2/merge-2026-10-28/full-comparison-fde1748.json",
+      "assertion": "scripts/runtime-wall-trace.mjs:8333",
+      "note": "Owner full-comparison decision2026-10-29: identical assertion fails on5053697 with the common diagnostic harness. Aggregate/ contexts identify global checks without a replay id. Exact current message retained; no predicate or threshold change.",
+      "id": "N16",
+      "group": "G7",
+      "subgroup": "boss completion observer",
+      "fix_class": "needs milestone release trace",
+      "after_status": "not rerun; still recorded, not cleared"
+    },
+    {
+      "session": "engine-atr-a5-0-immediate",
+      "message": "engine-atr-a5-0-immediate did not save all 150 consecutive Atari800 screenshots",
+      "class": "pre-existing-unclassified",
+      "measurement": "docs/diagnostics/capital-content-v2/merge-2026-10-28/full-comparison-fde1748.json",
+      "assertion": "scripts/runtime-wall-trace.mjs:8418",
+      "note": "Owner full-comparison decision2026-10-29: identical assertion fails on5053697 with the common diagnostic harness. Aggregate/ contexts identify global checks without a replay id. Exact current message retained; no predicate or threshold change.",
+      "id": "N17",
+      "group": "G7",
+      "subgroup": "capture coverage/restart",
+      "fix_class": "needs milestone release trace",
+      "after_status": "not rerun; still recorded, not cleared"
+    },
+    {
+      "session": "engine-atr-a5-0-delayed",
+      "message": "engine-atr-a5-0-delayed did not save all 150 consecutive Atari800 screenshots",
+      "class": "pre-existing-unclassified",
+      "measurement": "docs/diagnostics/capital-content-v2/merge-2026-10-28/full-comparison-fde1748.json",
+      "assertion": "scripts/runtime-wall-trace.mjs:8418",
+      "note": "Owner full-comparison decision2026-10-29: identical assertion fails on5053697 with the common diagnostic harness. Aggregate/ contexts identify global checks without a replay id. Exact current message retained; no predicate or threshold change.",
+      "id": "N18",
+      "group": "G7",
+      "subgroup": "capture coverage/restart",
+      "fix_class": "needs milestone release trace",
+      "after_status": "not rerun; still recorded, not cleared"
+    },
+    {
+      "session": "engine-atr-a5-1-immediate",
+      "message": "engine-atr-a5-1-immediate did not save all 150 consecutive Atari800 screenshots",
+      "class": "pre-existing-unclassified",
+      "measurement": "docs/diagnostics/capital-content-v2/merge-2026-10-28/full-comparison-fde1748.json",
+      "assertion": "scripts/runtime-wall-trace.mjs:8418",
+      "note": "Owner full-comparison decision2026-10-29: identical assertion fails on5053697 with the common diagnostic harness. Aggregate/ contexts identify global checks without a replay id. Exact current message retained; no predicate or threshold change.",
+      "id": "N19",
+      "group": "G7",
+      "subgroup": "capture coverage/restart",
+      "fix_class": "needs milestone release trace",
+      "after_status": "not rerun; still recorded, not cleared"
+    },
+    {
+      "session": "engine-atr-a5-1-delayed",
+      "message": "engine-atr-a5-1-delayed did not save all 150 consecutive Atari800 screenshots",
+      "class": "pre-existing-unclassified",
+      "measurement": "docs/diagnostics/capital-content-v2/merge-2026-10-28/full-comparison-fde1748.json",
+      "assertion": "scripts/runtime-wall-trace.mjs:8418",
+      "note": "Owner full-comparison decision2026-10-29: identical assertion fails on5053697 with the common diagnostic harness. Aggregate/ contexts identify global checks without a replay id. Exact current message retained; no predicate or threshold change.",
+      "id": "N20",
+      "group": "G7",
+      "subgroup": "capture coverage/restart",
+      "fix_class": "needs milestone release trace",
+      "after_status": "not rerun; still recorded, not cleared"
+    },
+    {
+      "session": "engine-atr-a5-2-immediate",
+      "message": "engine-atr-a5-2-immediate did not save all 150 consecutive Atari800 screenshots",
+      "class": "pre-existing-unclassified",
+      "measurement": "docs/diagnostics/capital-content-v2/merge-2026-10-28/full-comparison-fde1748.json",
+      "assertion": "scripts/runtime-wall-trace.mjs:8418",
+      "note": "Owner full-comparison decision2026-10-29: identical assertion fails on5053697 with the common diagnostic harness. Aggregate/ contexts identify global checks without a replay id. Exact current message retained; no predicate or threshold change.",
+      "id": "N21",
+      "group": "G7",
+      "subgroup": "capture coverage/restart",
+      "fix_class": "needs milestone release trace",
+      "after_status": "not rerun; still recorded, not cleared"
+    },
+    {
+      "session": "engine-atr-a5-2-delayed",
+      "message": "engine-atr-a5-2-delayed did not save all 150 consecutive Atari800 screenshots",
+      "class": "pre-existing-unclassified",
+      "measurement": "docs/diagnostics/capital-content-v2/merge-2026-10-28/full-comparison-fde1748.json",
+      "assertion": "scripts/runtime-wall-trace.mjs:8418",
+      "note": "Owner full-comparison decision2026-10-29: identical assertion fails on5053697 with the common diagnostic harness. Aggregate/ contexts identify global checks without a replay id. Exact current message retained; no predicate or threshold change.",
+      "id": "N22",
+      "group": "G7",
+      "subgroup": "capture coverage/restart",
+      "fix_class": "needs milestone release trace",
+      "after_status": "not rerun; still recorded, not cleared"
+    },
+    {
+      "session": "engine-atr-5a-0-immediate",
+      "message": "engine-atr-5a-0-immediate did not save all 150 consecutive Atari800 screenshots",
+      "class": "pre-existing-unclassified",
+      "measurement": "docs/diagnostics/capital-content-v2/merge-2026-10-28/full-comparison-fde1748.json",
+      "assertion": "scripts/runtime-wall-trace.mjs:8418",
+      "note": "Owner full-comparison decision2026-10-29: identical assertion fails on5053697 with the common diagnostic harness. Aggregate/ contexts identify global checks without a replay id. Exact current message retained; no predicate or threshold change.",
+      "id": "N23",
+      "group": "G7",
+      "subgroup": "capture coverage/restart",
+      "fix_class": "needs milestone release trace",
+      "after_status": "not rerun; still recorded, not cleared"
+    },
+    {
+      "session": "engine-atr-5a-0-delayed",
+      "message": "engine-atr-5a-0-delayed did not save all 150 consecutive Atari800 screenshots",
+      "class": "pre-existing-unclassified",
+      "measurement": "docs/diagnostics/capital-content-v2/merge-2026-10-28/full-comparison-fde1748.json",
+      "assertion": "scripts/runtime-wall-trace.mjs:8418",
+      "note": "Owner full-comparison decision2026-10-29: identical assertion fails on5053697 with the common diagnostic harness. Aggregate/ contexts identify global checks without a replay id. Exact current message retained; no predicate or threshold change.",
+      "id": "N24",
+      "group": "G7",
+      "subgroup": "capture coverage/restart",
+      "fix_class": "needs milestone release trace",
+      "after_status": "not rerun; still recorded, not cleared"
+    },
+    {
+      "session": "engine-atr-5a-1-immediate",
+      "message": "engine-atr-5a-1-immediate did not save all 150 consecutive Atari800 screenshots",
+      "class": "pre-existing-unclassified",
+      "measurement": "docs/diagnostics/capital-content-v2/merge-2026-10-28/full-comparison-fde1748.json",
+      "assertion": "scripts/runtime-wall-trace.mjs:8418",
+      "note": "Owner full-comparison decision2026-10-29: identical assertion fails on5053697 with the common diagnostic harness. Aggregate/ contexts identify global checks without a replay id. Exact current message retained; no predicate or threshold change.",
+      "id": "N25",
+      "group": "G7",
+      "subgroup": "capture coverage/restart",
+      "fix_class": "needs milestone release trace",
+      "after_status": "not rerun; still recorded, not cleared"
+    },
+    {
+      "session": "engine-atr-5a-1-delayed",
+      "message": "engine-atr-5a-1-delayed did not save all 150 consecutive Atari800 screenshots",
+      "class": "pre-existing-unclassified",
+      "measurement": "docs/diagnostics/capital-content-v2/merge-2026-10-28/full-comparison-fde1748.json",
+      "assertion": "scripts/runtime-wall-trace.mjs:8418",
+      "note": "Owner full-comparison decision2026-10-29: identical assertion fails on5053697 with the common diagnostic harness. Aggregate/ contexts identify global checks without a replay id. Exact current message retained; no predicate or threshold change.",
+      "id": "N26",
+      "group": "G7",
+      "subgroup": "capture coverage/restart",
+      "fix_class": "needs milestone release trace",
+      "after_status": "not rerun; still recorded, not cleared"
+    },
+    {
+      "session": "engine-atr-5a-2-immediate",
+      "message": "engine-atr-5a-2-immediate did not save all 150 consecutive Atari800 screenshots",
+      "class": "pre-existing-unclassified",
+      "measurement": "docs/diagnostics/capital-content-v2/merge-2026-10-28/full-comparison-fde1748.json",
+      "assertion": "scripts/runtime-wall-trace.mjs:8418",
+      "note": "Owner full-comparison decision2026-10-29: identical assertion fails on5053697 with the common diagnostic harness. Aggregate/ contexts identify global checks without a replay id. Exact current message retained; no predicate or threshold change.",
+      "id": "N27",
+      "group": "G7",
+      "subgroup": "capture coverage/restart",
+      "fix_class": "needs milestone release trace",
+      "after_status": "not rerun; still recorded, not cleared"
+    },
+    {
+      "session": "engine-atr-5a-2-delayed",
+      "message": "engine-atr-5a-2-delayed did not save all 150 consecutive Atari800 screenshots",
+      "class": "pre-existing-unclassified",
+      "measurement": "docs/diagnostics/capital-content-v2/merge-2026-10-28/full-comparison-fde1748.json",
+      "assertion": "scripts/runtime-wall-trace.mjs:8418",
+      "note": "Owner full-comparison decision2026-10-29: identical assertion fails on5053697 with the common diagnostic harness. Aggregate/ contexts identify global checks without a replay id. Exact current message retained; no predicate or threshold change.",
+      "id": "N28",
+      "group": "G7",
+      "subgroup": "capture coverage/restart",
+      "fix_class": "needs milestone release trace",
+      "after_status": "not rerun; still recorded, not cleared"
+    },
+    {
+      "session": "engine-restart-atr-a5",
+      "message": "engine-restart-atr-a5 did not reach a second game after GAME OVER",
+      "class": "pre-existing-unclassified",
+      "measurement": "docs/diagnostics/capital-content-v2/merge-2026-10-28/full-comparison-fde1748.json",
+      "assertion": "scripts/runtime-wall-trace.mjs:8488",
+      "note": "Owner full-comparison decision2026-10-29: identical assertion fails on5053697 with the common diagnostic harness. Aggregate/ contexts identify global checks without a replay id. Exact current message retained; no predicate or threshold change.",
+      "id": "N29",
+      "group": "G7",
+      "subgroup": "capture coverage/restart",
+      "fix_class": "needs milestone release trace",
+      "after_status": "not rerun; still recorded, not cleared"
+    },
+    {
+      "session": "engine-restart-atr-a5",
+      "message": "engine-restart-atr-a5 did not execute 150 frames of the restarted game",
+      "class": "pre-existing-unclassified",
+      "measurement": "docs/diagnostics/capital-content-v2/merge-2026-10-28/full-comparison-fde1748.json",
+      "assertion": "scripts/runtime-wall-trace.mjs:8490",
+      "note": "Owner full-comparison decision2026-10-29: identical assertion fails on5053697 with the common diagnostic harness. Aggregate/ contexts identify global checks without a replay id. Exact current message retained; no predicate or threshold change.",
+      "id": "N30",
+      "group": "G7",
+      "subgroup": "capture coverage/restart",
+      "fix_class": "needs milestone release trace",
+      "after_status": "not rerun; still recorded, not cleared"
+    },
+    {
+      "session": "aggregate/dli-order",
+      "message": "DLI phase/order violations observed: 92",
+      "class": "pre-existing-unclassified",
+      "measurement": "docs/diagnostics/capital-content-v2/merge-2026-10-28/full-comparison-fde1748.json",
+      "assertion": "scripts/runtime-wall-trace.mjs:8640",
+      "note": "Owner decision2026-10-29, checkpoint8763397: confirmed in the existing complete5053697 comparison output with the same predicate and exact values as current. Pre-existing release debt on main as well; strict release / release-evidence refresh required before v0.4.0, not a merge gate for increments1+0. No production or predicate change. Confirmation: docs/diagnostics/capital-content-v2/merge-2026-10-28/merge-ready-8763397.json",
+      "id": "N31",
+      "group": "G7",
+      "subgroup": "DLI observer",
+      "fix_class": "needs milestone release trace",
+      "after_status": "not rerun; still recorded, not cleared"
+    },
+    {
+      "session": "aggregate/booster-rotation",
+      "message": "Atari800 granted booster cycle was 3→3→4→5→3→4→4→5→3→4→3→4→3→4→3→4→0→5→3→4→3→4→5→0→3→4, expected a rotation of Rapid/Spread/Shield with no capsule repeating the previous one",
+      "class": "pre-existing-unclassified",
+      "measurement": "docs/diagnostics/capital-content-v2/merge-2026-10-28/full-comparison-fde1748.json",
+      "assertion": "scripts/runtime-wall-trace.mjs:8920",
+      "note": "Owner full-comparison decision2026-10-29: identical assertion fails on5053697 with the common diagnostic harness. Aggregate/ contexts identify global checks without a replay id. Exact current message retained; no predicate or threshold change.",
+      "id": "N32",
+      "group": "G7",
+      "subgroup": "pickup observer",
+      "fix_class": "needs milestone release trace",
+      "after_status": "not rerun; still recorded, not cleared"
+    }
+  ],
+  "bisects": [
+    {
+      "log": ".cache/test-debt-part2/bisect-capital.log",
+      "first_change": "db661b9ba3a14a21ff8d0d2c84a1253ff89c4401",
+      "method": "source first-assertion/contract predicate",
+      "ambiguous": false
+    },
+    {
+      "log": ".cache/test-debt-part2/bisect-cold.log",
+      "first_change": "0285cd5263811b9a1fca4a54774c70c1157225a7",
+      "method": "source first-assertion/contract predicate",
+      "ambiguous": false
+    },
+    {
+      "log": ".cache/test-debt-part2/bisect-collision-binary.log",
+      "first_change": "5bc8d510e1f9cc32a1bf3f8fdba9de42d41b301e",
+      "method": "build + NMOS runtime sample",
+      "ambiguous": false
+    },
+    {
+      "log": ".cache/test-debt-part2/bisect-death.log",
+      "first_change": "e97244c967ca688827f726b84d3b5ceb3f3e41e0",
+      "method": "source first-assertion/contract predicate",
+      "ambiguous": false
+    },
+    {
+      "log": ".cache/test-debt-part2/bisect-evidence.log",
+      "first_change": "12d35c19a1a220d5f9e7fe44babd03c26c32fb7d",
+      "method": "source first-assertion/contract predicate",
+      "ambiguous": false
+    },
+    {
+      "log": ".cache/test-debt-part2/bisect-fence.log",
+      "first_change": "a4e119776c8df94cf7ab03c131909c2bb2a5c37e",
+      "method": "source first-assertion/contract predicate",
+      "ambiguous": false
+    },
+    {
+      "log": ".cache/test-debt-part2/bisect-frontend.log",
+      "first_change": "c77ebba3938e92a75969104a0ea889d39bac8e06",
+      "method": "source first-assertion/contract predicate",
+      "ambiguous": false
+    },
+    {
+      "log": ".cache/test-debt-part2/bisect-heavy.log",
+      "first_change": "d7b764c39bd0c2aaf8bf390d382072410b0c3e35",
+      "method": "source first-assertion/contract predicate",
+      "ambiguous": false
+    },
+    {
+      "log": ".cache/test-debt-part2/bisect-hud.log",
+      "first_change": "b79f6676b2f8dbf1a6c0e2ec4194e8488dce9f16",
+      "method": "source first-assertion/contract predicate",
+      "ambiguous": false
+    },
+    {
+      "log": ".cache/test-debt-part2/bisect-layout.log",
+      "first_change": "0285cd5263811b9a1fca4a54774c70c1157225a7",
+      "method": "source first-assertion/contract predicate",
+      "ambiguous": false
+    },
+    {
+      "log": ".cache/test-debt-part2/bisect-life-binary.log",
+      "first_change": "b2261c907bcf4b1d88aa4f43cf3306819c597689",
+      "method": "build + NMOS runtime sample",
+      "ambiguous": false
+    },
+    {
+      "log": ".cache/test-debt-part2/bisect-life.log",
+      "first_change": "b2261c907bcf4b1d88aa4f43cf3306819c597689",
+      "method": "source first-assertion/contract predicate",
+      "ambiguous": false
+    },
+    {
+      "log": ".cache/test-debt-part2/bisect-lock.log",
+      "first_change": "d1659275555958d1d843f49a32fdc051de06cb78",
+      "method": "source first-assertion/contract predicate",
+      "ambiguous": false
+    },
+    {
+      "log": ".cache/test-debt-part2/bisect-preview.log",
+      "first_change": "effe71c0d1a3e5c2cf797130543c7135281279c6",
+      "method": "source first-assertion/contract predicate",
+      "ambiguous": false
+    },
+    {
+      "log": ".cache/test-debt-part2/bisect-scroll.log",
+      "first_change": "104a94d08eb833850edd16600367cc00e7d1f734",
+      "method": "source first-assertion/contract predicate",
+      "ambiguous": false
+    }
+  ],
+  "newFailures": []
+}

@@ -1,0 +1,207 @@
+[
+  {
+    "difficulty": 0,
+    "bStart": 3923,
+    "bEnd": 4423,
+    "bSpawns": [],
+    "precedingHeavy": [
+      {
+        "frame": 3093,
+        "row": 1237,
+        "archetypeOffset": 0,
+        "rosterShape": 0,
+        "archetype": "raider",
+        "movementId": 0,
+        "members": [
+          {
+            "state": 1,
+            "x": 88,
+            "y": 2,
+            "hp": 1
+          },
+          {
+            "state": 1,
+            "x": 152,
+            "y": 2,
+            "hp": 1
+          }
+        ]
+      },
+      {
+        "frame": 3810,
+        "row": 1524,
+        "archetypeOffset": 36,
+        "rosterShape": 2,
+        "archetype": "bomber",
+        "movementId": 3,
+        "members": [
+          {
+            "state": 1,
+            "x": 48,
+            "y": 0,
+            "hp": 4
+          },
+          {
+            "state": 1,
+            "x": 176,
+            "y": 0,
+            "hp": 4
+          }
+        ]
+      }
+    ],
+    "heavyFrames": [
+      167,
+      0,
+      0,
+      270,
+      511,
+      490
+    ]
+  },
+  {
+    "difficulty": 1,
+    "bStart": 3794,
+    "bEnd": 4238,
+    "bSpawns": [],
+    "precedingHeavy": [
+      {
+        "frame": 3035,
+        "row": 1263,
+        "archetypeOffset": 0,
+        "rosterShape": 0,
+        "archetype": "raider",
+        "movementId": 0,
+        "members": [
+          {
+            "state": 1,
+            "x": 88,
+            "y": 2,
+            "hp": 1
+          },
+          {
+            "state": 1,
+            "x": 152,
+            "y": 2,
+            "hp": 1
+          }
+        ]
+      },
+      {
+        "frame": 3740,
+        "row": 1581,
+        "archetypeOffset": 36,
+        "rosterShape": 2,
+        "archetype": "bomber",
+        "movementId": 3,
+        "members": [
+          {
+            "state": 1,
+            "x": 48,
+            "y": 0,
+            "hp": 4
+          },
+          {
+            "state": 1,
+            "x": 176,
+            "y": 0,
+            "hp": 4
+          }
+        ]
+      }
+    ],
+    "heavyFrames": [
+      160,
+      0,
+      0,
+      261,
+      461,
+      444,
+      133
+    ]
+  },
+  {
+    "difficulty": 2,
+    "bStart": 3714,
+    "bEnd": 4114,
+    "bSpawns": [
+      {
+        "frame": 3736,
+        "row": 1664,
+        "archetypeOffset": 0,
+        "rosterShape": 0,
+        "archetype": "raider",
+        "movementId": 0,
+        "members": [
+          {
+            "state": 1,
+            "x": 88,
+            "y": 2,
+            "hp": 1
+          },
+          {
+            "state": 1,
+            "x": 152,
+            "y": 2,
+            "hp": 1
+          }
+        ]
+      }
+    ],
+    "precedingHeavy": [
+      {
+        "frame": 358,
+        "row": 143,
+        "archetypeOffset": 36,
+        "rosterShape": 2,
+        "archetype": "bomber",
+        "movementId": 3,
+        "members": [
+          {
+            "state": 1,
+            "x": 48,
+            "y": 0,
+            "hp": 5
+          },
+          {
+            "state": 1,
+            "x": 176,
+            "y": 0,
+            "hp": 5
+          }
+        ]
+      },
+      {
+        "frame": 3043,
+        "row": 1317,
+        "archetypeOffset": 0,
+        "rosterShape": 0,
+        "archetype": "raider",
+        "movementId": 0,
+        "members": [
+          {
+            "state": 1,
+            "x": 88,
+            "y": 2,
+            "hp": 1
+          },
+          {
+            "state": 1,
+            "x": 152,
+            "y": 2,
+            "hp": 1
+          }
+        ]
+      }
+    ],
+    "heavyFrames": [
+      160,
+      0,
+      0,
+      223,
+      445,
+      378,
+      289
+    ]
+  }
+]

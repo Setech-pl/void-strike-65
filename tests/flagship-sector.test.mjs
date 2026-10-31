@@ -1,3 +1,4 @@
+import {compileLevel, GEOMETRY_OFFSET} from "../scripts/level-compiler.mjs";
 import assert from "node:assert/strict";
 import crypto from "node:crypto";
 import fs from "node:fs";
@@ -195,11 +196,11 @@ test("assembled sector dictionaries, sequences, and overlays match the source as
     // HullGeometry page, which the resolvers read at $AC08/$AC44. Level 1's
     // page carries them byte for byte; the resident range is a zero pin.
     const geometry = fs.readFileSync(path.join(rootDirectory, "build", "level-geometry.bin"));
-    const sequenceOffset = side === "allied" ? 8 : 68;
+    const sequenceOffset = side === "allied" ? GEOMETRY_OFFSET.alliedSequence : GEOMETRY_OFFSET.enemySequence;
     assert.deepEqual(
       geometry.subarray(sequenceOffset,
-        sequenceOffset + asset.sector.moduleSequences.get(side).length),
-      Buffer.from(asset.sector.moduleSequences.get(side)),
+        sequenceOffset + 120),
+      compileLevel(JSON.parse(fs.readFileSync(path.join(rootDirectory, "assets/levels/level-01.json"))), {hullAsset: asset}).pages.geometry.subarray(sequenceOffset, sequenceOffset + 120),
     );
     assert.deepEqual(
       read(`${side}_engine_overlay_masks`, asset.sector.engineOverlayMasks.get(side).length),

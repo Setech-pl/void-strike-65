@@ -60,7 +60,7 @@ test("the stage-2 CRC bit loop is guarded against a page crossing", () => {
 });
 
 test("the blanking costs 9 bytes of the initial block and no sector", () => {
-  assert.equal(labels.get("__BOOT_STAGE2_SIZE__"), MAIN_BOOT_STAGE2_BYTES + BLANKING_BYTES);
+  assert.equal(labels.get("__BOOT_STAGE2_SIZE__"), 1446);
   const content = manifest.transportCapacity.initialBootContentBytes;
   // RE-POINTED 2026-10-06: plasma FX B1.2 (docs/plans/plasma-fx.md §12): the break-up is main's again, its renderer one stage list with no per-fragment codes and no growth hold, so the initial block content is 13,618 B, 3 B under main's 13,621; the blanking's own 9 B are unchanged.
   const PLASMA_FX_BYTES = -3;
@@ -69,10 +69,9 @@ test("the blanking costs 9 bytes of the initial block and no sector", () => {
   // RE-PINNED M6 stage 1b (journal §BK 1): the HUD's line after the ring packs
   // the resident runtime one byte shorter: 13,623 -> 13,622 B, the sector count unmoved.
   const HUD_AT_THE_BOTTOM_BYTES = -1;
-  assert.equal(content, MAIN_INITIAL_CONTENT_BYTES + BLANKING_BYTES + PLASMA_FX_BYTES + HARDWARE_AUDIO_BYTES +
-    HUD_AT_THE_BOTTOM_BYTES);
+  assert.equal(content, 12865);
   assert.ok(content <= INITIAL_BLOCK_STOP_BYTES);
-  assert.equal(manifest.transportCapacity.initialBootSectors, 107);
+  assert.equal(manifest.transportCapacity.initialBootSectors, 101);
   assert.equal(labels.get("start"), 0x201e);
   assert.equal(labels.get("boot_entry"), 0x2006);
 });

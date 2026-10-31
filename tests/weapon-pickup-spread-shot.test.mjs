@@ -81,8 +81,9 @@ test("Spread Shot owns one phased red fan in the shared six-glyph bank", () => {
   // source art; at runtime the Spread capsule is the second sixteen-row
   // silhouette of the PLAYER3 shape table.
   assert.doesNotMatch(source, /compose_weapon_pickup_phase|render_weapon_pickup_overlay/);
-  assert.match(source,
-    /fighter_pickup_pmg_shape:[\s\S]+; SPREAD[\s\S]+\.byte \$FF,\$FF,\$A5,\$A5,\$C3,\$DB,\$E7,\$E7/);
+  // b2261c9: M6 canonical masks moved into the generated Light-link table.
+  assert.match(fs.readFileSync(path.join(root, "src/hybrid/life-capsule.s"), "utf8"),
+    /fighter_pickup_pmg_shape:\s*\.include "life-capsule-shapes.inc"/);
 });
 
 test("the release ATR executes the deterministic Rapid Spread Shield drop cycle", () => {

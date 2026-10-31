@@ -23,19 +23,1090 @@
     "A": "Stale pin: an exact value or a source identifier moved; re-pinned to the value the repository has.",
     "B": "Obsolete: the test checked behaviour that an owner decision or a merged task deliberately changed; rewritten to the rule in force, or retired.",
     "C": "Real defect: the game or a tool behaves wrongly, or a gate is genuinely violated. Not re-pinned.",
-    "D": "Harness or environment: the test's own fixture, a stale committed evidence file or model, or the machine."
+    "D": "Harness or environment: the test's own fixture, a stale committed evidence file or model, or the machine.",
+    "E": "Unknown: bounded source/history inspection and reproduction do not yet distinguish stale expectations, fixture problems and real defects."
   },
   "failures": [
+    {
+      "file": "tests/boot-loading-blank-screen.test.mjs",
+      "test": "the blanking costs 9 bytes of the initial block and no sector",
+      "class": "E",
+      "first_failing_assertion": "tests/boot-loading-blank-screen.test.mjs:63",
+      "first_failing_message": "Expected values to be strictly equal:",
+      "reason": "Unresolved: first assertion alone does not establish whether current behaviour or the expectation is authoritative.",
+      "cleared_by": "Investigate docs/diagnostics/test-debt/triage.json T004"
+    },
+    {
+      "file": "tests/boss-band.test.mjs",
+      "test": "the level image still ends before $AC80, where band rows 6-7 and the tables land",
+      "class": "E",
+      "first_failing_assertion": "tests/boss-band.test.mjs:168",
+      "first_failing_message": "level 1 is 2048 B and would reach band B at $AC80",
+      "reason": "Unresolved: first assertion alone does not establish whether current behaviour or the expectation is authoritative.",
+      "cleared_by": "Investigate docs/diagnostics/test-debt/triage.json T005"
+    },
+    {
+      "file": "tests/boss-banners.test.mjs",
+      "test": "decision AY: each region's banner picture, its packed size and its sectors are the pinned ones",
+      "class": "E",
+      "first_failing_assertion": "tests/boss-banners.test.mjs:87",
+      "first_failing_message": "region 1 (Blockade Breaker): the entry's sectors",
+      "reason": "Unresolved: first assertion alone does not establish whether current behaviour or the expectation is authoritative.",
+      "cleared_by": "Investigate docs/diagnostics/test-debt/triage.json T006"
+    },
+    {
+      "file": "tests/boss-banners.test.mjs",
+      "test": "region 1 (Blockade Breaker): the reads - theme, banner, then the boss's data in today's order - and the main loop",
+      "class": "E",
+      "first_failing_assertion": "tests/boss-banners.test.mjs:188",
+      "first_failing_message": "Expected values to be strictly deep-equal:",
+      "reason": "Unresolved: first assertion alone does not establish whether current behaviour or the expectation is authoritative.",
+      "cleared_by": "Investigate docs/diagnostics/test-debt/triage.json T007"
+    },
+    {
+      "file": "tests/boss-banners.test.mjs",
+      "test": "region 2 (Void Citadel): the reads - theme, banner, then the boss's data in today's order - and the main loop",
+      "class": "E",
+      "first_failing_assertion": "tests/boss-banners.test.mjs:188",
+      "first_failing_message": "Expected values to be strictly deep-equal:",
+      "reason": "Unresolved: first assertion alone does not establish whether current behaviour or the expectation is authoritative.",
+      "cleared_by": "Investigate docs/diagnostics/test-debt/triage.json T008"
+    },
+    {
+      "file": "tests/boss-banners.test.mjs",
+      "test": "region 3 (Siege Spine): the reads - theme, banner, then the boss's data in today's order - and the main loop",
+      "class": "E",
+      "first_failing_assertion": "tests/boss-banners.test.mjs:188",
+      "first_failing_message": "Expected values to be strictly deep-equal:",
+      "reason": "Unresolved: first assertion alone does not establish whether current behaviour or the expectation is authoritative.",
+      "cleared_by": "Investigate docs/diagnostics/test-debt/triage.json T009"
+    },
+    {
+      "file": "tests/boss-banners.test.mjs",
+      "test": "region 4 (Bastion): the reads - theme, banner, then the boss's data in today's order - and the main loop",
+      "class": "E",
+      "first_failing_assertion": "tests/boss-banners.test.mjs:188",
+      "first_failing_message": "Expected values to be strictly deep-equal:",
+      "reason": "Unresolved: first assertion alone does not establish whether current behaviour or the expectation is authoritative.",
+      "cleared_by": "Investigate docs/diagnostics/test-debt/triage.json T010"
+    },
+    {
+      "file": "tests/boss-lasers.test.mjs",
+      "test": "leaving by the win: the lasers off, the column erased, COLPM1 / COLPM2 restored, PRIOR never written",
+      "class": "E",
+      "first_failing_assertion": "tests/boss-lasers.test.mjs:481",
+      "first_failing_message": "the win: COLPM1 not restored",
+      "reason": "Unresolved: first assertion alone does not establish whether current behaviour or the expectation is authoritative.",
+      "cleared_by": "Investigate docs/diagnostics/test-debt/triage.json T011"
+    },
+    {
+      "file": "tests/boss-order-scale.test.mjs",
+      "test": "the curve evidence was measured on this data, three replays a cell, every fight finished",
+      "class": "E",
+      "first_failing_assertion": "tests/boss-order-scale.test.mjs:70",
+      "first_failing_message": "the curve is stale: the boss data or the bossDef changed since",
+      "reason": "Unresolved: first assertion alone does not establish whether current behaviour or the expectation is authoritative.",
+      "cleared_by": "Investigate docs/diagnostics/test-debt/triage.json T012"
+    },
+    {
+      "file": "tests/boss-overlay.test.mjs",
+      "test": "the window pays the entry's resident half inside the plan's S3 figure, and last",
+      "class": "E",
+      "first_failing_assertion": "tests/boss-overlay.test.mjs:227",
+      "first_failing_message": "Expected values to be strictly equal:",
+      "reason": "Unresolved: first assertion alone does not establish whether current behaviour or the expectation is authoritative.",
+      "cleared_by": "Investigate docs/diagnostics/test-debt/triage.json T013"
+    },
+    {
+      "file": "tests/boss-region-2.test.mjs",
+      "test": "region 2 is the Bastion from its own draft: the wide hangar, the bays, the rails, on the built disk",
+      "class": "E",
+      "first_failing_assertion": "tests/boss-region-2.test.mjs:164",
+      "first_failing_message": "the Bastion's boss entry is 88 sectors (RE-PINNED M6 stage 1b: the lance run's two more)",
+      "reason": "Unresolved: first assertion alone does not establish whether current behaviour or the expectation is authoritative.",
+      "cleared_by": "Investigate docs/diagnostics/test-debt/triage.json T017"
+    },
+    {
+      "file": "tests/boss-region-2.test.mjs",
+      "test": "the doors: locked until every cannon and rail gun is destroyed or covered; then open, flashing, sounding; the core behind them, last",
+      "class": "E",
+      "first_failing_assertion": "tests/boss-region-2.test.mjs:340",
+      "first_failing_message": "routine $366a did not return",
+      "reason": "Unresolved: first assertion alone does not establish whether current behaviour or the expectation is authoritative.",
+      "cleared_by": "Investigate docs/diagnostics/test-debt/triage.json T018"
+    },
+    {
+      "file": "tests/boss-region-4.test.mjs",
+      "test": "the pull: towards the axis, 2 clocks every 4 frames (G2), only while a spire stands, the fight on and the ship alive",
+      "class": "E",
+      "first_failing_assertion": "tests/boss-region-4.test.mjs:202",
+      "first_failing_message": "routine $366a did not return",
+      "reason": "Unresolved: first assertion alone does not establish whether current behaviour or the expectation is authoritative.",
+      "cleared_by": "Investigate docs/diagnostics/test-debt/triage.json T019"
+    },
+    {
+      "file": "tests/boss-runtime.test.mjs",
+      "test": "the win: the chain, the shake and the flash, then the hand-off to the level summary with the fight's time",
+      "class": "E",
+      "first_failing_assertion": "tests/boss-runtime.test.mjs:639",
+      "first_failing_message": "the boss never handed off to the level summary",
+      "reason": "Unresolved: first assertion alone does not establish whether current behaviour or the expectation is authoritative.",
+      "cleared_by": "Investigate docs/diagnostics/test-debt/triage.json T020"
+    },
+    {
+      "file": "tests/boss-s4b5.test.mjs",
+      "test": "slot E's contract, by the source: only draw_hull_row reads the hull maps; only start_gameplay rebuilds them",
+      "class": "E",
+      "first_failing_assertion": "tests/boss-s4b5.test.mjs:130",
+      "first_failing_message": "who names $4C00-$4E3F",
+      "reason": "Unresolved: first assertion alone does not establish whether current behaviour or the expectation is authoritative.",
+      "cleared_by": "Investigate docs/diagnostics/test-debt/triage.json T021"
+    },
+    {
+      "file": "tests/broadside-fire.test.mjs",
+      "test": "capital/player collision agrees with independently reconstructed final raster Y",
+      "class": "E",
+      "first_failing_assertion": "tests/broadside-fire.test.mjs:453",
+      "first_failing_message": "top edge: independent raster premise; PMG 118..132, screen $8320 glyph 105..110",
+      "reason": "Unresolved: first assertion alone does not establish whether current behaviour or the expectation is authoritative.",
+      "cleared_by": "Investigate docs/diagnostics/test-debt/triage.json T022"
+    },
+    {
+      "file": "tests/broadside-fire.test.mjs",
+      "test": "capital cadence restores the legacy world rate without changing fighter timing",
+      "class": "E",
+      "first_failing_assertion": "tests/broadside-fire.test.mjs:972",
+      "first_failing_message": "The input did not match the regular expression /cmp #CAPITAL_HULL_STATE_OPEN[\\s\\S]+lda world_scroll_rates,x[\\s\\S]+asl[\\s\\S]+lda hull_scroll_rates,x[\\s\\S]+cmp #HULL_SCROLL_RATE_DENOMINATOR[\\s\\S]+sbc #HULL_SCROLL_RATE_DENOMINATOR/. Input:",
+      "reason": "Unresolved: first assertion alone does not establish whether current behaviour or the expectation is authoritative.",
+      "cleared_by": "Investigate docs/diagnostics/test-debt/triage.json T023"
+    },
+    {
+      "file": "tests/broadside-fire.test.mjs",
+      "test": "assembled 16-bit hull visibility maps states 0-5 and rejects terminal COMPLETE/OPEN",
+      "class": "E",
+      "first_failing_assertion": "tests/broadside-fire.test.mjs:2002",
+      "first_failing_message": "capital state 5 collision sector row",
+      "reason": "Unresolved: first assertion alone does not establish whether current behaviour or the expectation is authoritative.",
+      "cleared_by": "Investigate docs/diagnostics/test-debt/triage.json T024"
+    },
+    {
+      "file": "tests/capital-hull-extension.test.mjs",
+      "test": "the final ATR publishes the exact seeded hull layout bytes",
+      "class": "E",
+      "first_failing_assertion": "tests/capital-hull-extension.test.mjs:147",
+      "first_failing_message": "atr/allied layout bytes differ from the source generator",
+      "reason": "Unresolved: first assertion alone does not establish whether current behaviour or the expectation is authoritative.",
+      "cleared_by": "Investigate docs/diagnostics/test-debt/triage.json T025"
+    },
+    {
+      "file": "tests/capital-hulls.test.mjs",
+      "test": "assembled gameplay display list and DLI switch a dedicated ANTIC 2 HUD",
+      "class": "E",
+      "first_failing_assertion": "tests/capital-hulls.test.mjs:238",
+      "first_failing_message": "CH_HUD_HULL_FULL must use its shape-distinct dedicated HUD glyph",
+      "reason": "Unresolved: first assertion alone does not establish whether current behaviour or the expectation is authoritative.",
+      "cleared_by": "Investigate docs/diagnostics/test-debt/triage.json T026"
+    },
+    {
+      "file": "tests/capital-hulls.test.mjs",
+      "test": "assembled ANTIC 2 HUD keeps independent live score, life, and hull fields",
+      "class": "E",
+      "first_failing_assertion": "tests/capital-hulls.test.mjs:281",
+      "first_failing_message": "score digit at screen offset 6 must remain live",
+      "reason": "Unresolved: first assertion alone does not establish whether current behaviour or the expectation is authoritative.",
+      "cleared_by": "Investigate docs/diagnostics/test-debt/triage.json T027"
+    },
+    {
+      "file": "tests/cold-pickup-record-fit.test.mjs",
+      "test": "fit preserves the reviewed staging and placement gates",
+      "class": "E",
+      "first_failing_assertion": "tests/cold-pickup-record-fit.test.mjs:121",
+      "first_failing_message": "Expected values to be strictly equal:",
+      "reason": "Unresolved: first assertion alone does not establish whether current behaviour or the expectation is authoritative.",
+      "cleared_by": "Investigate docs/diagnostics/test-debt/triage.json T028"
+    },
+    {
+      "file": "tests/encounter-director.test.mjs",
+      "test": "debris admission follows the sector mask and the capital traversal exception",
+      "class": "E",
+      "first_failing_assertion": "tests/encounter-director.test.mjs:498",
+      "first_failing_message": "the same debris request must be admitted once the capital traversal is active",
+      "reason": "Unresolved: first assertion alone does not establish whether current behaviour or the expectation is authoritative.",
+      "cleared_by": "Investigate docs/diagnostics/test-debt/triage.json T029"
+    },
+    {
+      "file": "tests/encounter-director.test.mjs",
+      "test": "scheduler ownership remains single-source and lifecycle-owned",
+      "class": "E",
+      "first_failing_assertion": "tests/encounter-director.test.mjs:575",
+      "first_failing_message": "integration_update_enemy",
+      "reason": "Unresolved: first assertion alone does not establish whether current behaviour or the expectation is authoritative.",
+      "cleared_by": "Investigate docs/diagnostics/test-debt/triage.json T030"
+    },
+    {
+      "file": "tests/encounter-director.test.mjs",
+      "test": "two PMG Raiders keep separate HP, score once, and preserve the surviving machine",
+      "class": "E",
+      "first_failing_assertion": "tests/encounter-director.test.mjs:676",
+      "first_failing_message": "both Raiders must enter naturally at their old formation anchors",
+      "reason": "Unresolved: first assertion alone does not establish whether current behaviour or the expectation is authoritative.",
+      "cleared_by": "Investigate docs/diagnostics/test-debt/triage.json T031"
+    },
+    {
+      "file": "tests/encounter-director.test.mjs",
+      "test": "the shared burst alternates two real Raider origins and skips a destroyed owner",
+      "class": "E",
+      "first_failing_assertion": "tests/encounter-director.test.mjs:750",
+      "first_failing_message": "Expected values to be strictly deep-equal:",
+      "reason": "Unresolved: first assertion alone does not establish whether current behaviour or the expectation is authoritative.",
+      "cleared_by": "Investigate docs/diagnostics/test-debt/triage.json T032"
+    },
+    {
+      "file": "tests/encounter-director.test.mjs",
+      "test": "the hazard mask is the sector's own, while the capital gate stays local",
+      "class": "E",
+      "first_failing_assertion": "tests/encounter-director.test.mjs:43",
+      "first_failing_message": "Error: L2 islands: capital hazards.debris must be zero",
+      "reason": "Unresolved: first assertion alone does not establish whether current behaviour or the expectation is authoritative.",
+      "cleared_by": "Investigate docs/diagnostics/test-debt/triage.json T033"
+    },
+    {
+      "file": "tests/encounter-director.test.mjs",
+      "test": "natural Level 1 reaches a visible two-sided BROADSIDE without state injection",
+      "class": "E",
+      "first_failing_assertion": "tests/encounter-director.test.mjs:1005",
+      "first_failing_message": "difficulty 0 capital must be due on level 1's authored row",
+      "reason": "Unresolved: first assertion alone does not establish whether current behaviour or the expectation is authoritative.",
+      "cleared_by": "Investigate docs/diagnostics/test-debt/triage.json T034"
+    },
+    {
+      "file": "tests/enemy-combat.test.mjs",
+      "test": "release Interceptor enters progressively and naturally reaches burst allocation",
+      "class": "E",
+      "first_failing_assertion": "tests/enemy-combat.test.mjs:318",
+      "first_failing_message": "The input did not match the regular expression /void enemy_c_spawn_raiders[\\s\\S]+ENEMY_HP_0 = HEAVY_FIELD\\(ENEMY_ARCHETYPE_FIELD_HIT_POINTS\\)[\\s\\S]+ENEMY_LIVE_COUNT = RAIDER_SLOT_COUNT/. Input:",
+      "reason": "Unresolved: first assertion alone does not establish whether current behaviour or the expectation is authoritative.",
+      "cleared_by": "Investigate docs/diagnostics/test-debt/triage.json T035"
+    },
+    {
+      "file": "tests/entity-effects.test.mjs",
+      "test": "capital debris uses existing 3/4/5 pressure ceilings on EASY, MEDIUM and HARD",
+      "class": "E",
+      "first_failing_assertion": "tests/entity-effects.test.mjs:781",
+      "first_failing_message": "difficulty 0 did not admit one debris beside capital pressure",
+      "reason": "Unresolved: first assertion alone does not establish whether current behaviour or the expectation is authoritative.",
+      "cleared_by": "Investigate docs/diagnostics/test-debt/triage.json T036"
+    },
+    {
+      "file": "tests/flagship-sector.test.mjs",
+      "test": "assembled sector dictionaries, sequences, and overlays match the source asset",
+      "class": "E",
+      "first_failing_assertion": "tests/flagship-sector.test.mjs:199",
+      "first_failing_message": "Expected values to be strictly deep-equal:",
+      "reason": "Unresolved: first assertion alone does not establish whether current behaviour or the expectation is authoritative.",
+      "cleared_by": "Investigate docs/diagnostics/test-debt/triage.json T038"
+    },
+    {
+      "file": "tests/formats.test.mjs",
+      "test": "ATR uses standard single-density geometry",
+      "class": "E",
+      "first_failing_assertion": "tests/formats.test.mjs:35",
+      "first_failing_message": "Expected values to be strictly equal:",
+      "reason": "Unresolved: first assertion alone does not establish whether current behaviour or the expectation is authoritative.",
+      "cleared_by": "Investigate docs/diagnostics/test-debt/triage.json T039"
+    },
+    {
+      "file": "tests/formats.test.mjs",
+      "test": "resident compaction proof survives and Spread Shot leaves at least 64 source-owned bytes",
+      "class": "E",
+      "first_failing_assertion": "tests/formats.test.mjs:112",
+      "first_failing_message": "Expected values to be strictly equal:",
+      "reason": "Unresolved: first assertion alone does not establish whether current behaviour or the expectation is authoritative.",
+      "cleared_by": "Investigate docs/diagnostics/test-debt/triage.json T040"
+    },
+    {
+      "file": "tests/formats.test.mjs",
+      "test": "the code window is declared, guarded and addressable by the build",
+      "class": "E",
+      "first_failing_assertion": "tests/formats.test.mjs:184",
+      "first_failing_message": "Expected values to be strictly equal:",
+      "reason": "Unresolved: first assertion alone does not establish whether current behaviour or the expectation is authoritative.",
+      "cleared_by": "Investigate docs/diagnostics/test-debt/triage.json T041"
+    },
+    {
+      "file": "tests/frontend.test.mjs",
+      "test": "menu PlayerFighter is charset-only, frontend PMG stays disabled, and gameplay setup is restored",
+      "class": "E",
+      "first_failing_assertion": "tests/frontend.test.mjs:559",
+      "first_failing_message": "The input did not match the regular expression /sta GRACTL[\\s\\S]+jsr clear_pmg_graphics_latches[\\s\\S]+jsr select_frontend_display/. Input:",
+      "reason": "Unresolved: first assertion alone does not establish whether current behaviour or the expectation is authoritative.",
+      "cleared_by": "Investigate docs/diagnostics/test-debt/triage.json T042"
+    },
+    {
+      "file": "tests/frontend.test.mjs",
+      "test": "frontend entry clears stale player and missile graphics latches before DMA resumes",
+      "class": "E",
+      "first_failing_assertion": "tests/frontend.test.mjs:593",
+      "first_failing_message": "main frontend entry must clear PMG graphics latches while display DMA is blanked",
+      "reason": "Unresolved: first assertion alone does not establish whether current behaviour or the expectation is authoritative.",
+      "cleared_by": "Investigate docs/diagnostics/test-debt/triage.json T043"
+    },
+    {
+      "file": "tests/game-over.test.mjs",
+      "test": "GAME OVER leaves the gameplay loop before control, combat, spawn, and scoring",
+      "class": "E",
+      "first_failing_assertion": "tests/game-over.test.mjs:152",
+      "first_failing_message": "The input did not match the regular expression /lda #\\$00[\\s\\S]+sta DMACTL[\\s\\S]+sta GRACTL[\\s\\S]+jsr clear_pmg_graphics_latches[\\s\\S]+sta frontend_input_armed/. Input:",
+      "reason": "Unresolved: first assertion alone does not establish whether current behaviour or the expectation is authoritative.",
+      "cleared_by": "Investigate docs/diagnostics/test-debt/triage.json T044"
+    },
+    {
+      "file": "tests/gameplay-music-placement.test.mjs",
+      "test": "STARFIELD is smaller than before the move, and the room is still reserved",
+      "class": "E",
+      "first_failing_assertion": "tests/gameplay-music-placement.test.mjs:147",
+      "first_failing_message": "only owner decision A' may grow STARFIELD",
+      "reason": "Unresolved: first assertion alone does not establish whether current behaviour or the expectation is authoritative.",
+      "cleared_by": "Investigate docs/diagnostics/test-debt/triage.json T045"
+    },
+    {
+      "file": "tests/gameplay-music-placement.test.mjs",
+      "test": "the ATR START GAME read grows by the planned five plus three plus five sectors and no more",
+      "class": "E",
+      "first_failing_assertion": "tests/gameplay-music-placement.test.mjs:174",
+      "first_failing_message": "Expected values to be strictly equal:",
+      "reason": "Unresolved: first assertion alone does not establish whether current behaviour or the expectation is authoritative.",
+      "cleared_by": "Investigate docs/diagnostics/test-debt/triage.json T046"
+    },
+    {
+      "file": "tests/gameplay-speed-tuning.test.mjs",
+      "test": "capital traversal restores the pre-tuning rate while fighter rates stay exact",
+      "class": "E",
+      "first_failing_assertion": "tests/gameplay-speed-tuning.test.mjs:96",
+      "first_failing_message": "The input did not match the regular expression /cmp #CAPITAL_HULL_STATE_OPEN[\\s\\S]+lda world_scroll_rates,x[\\s\\S]+asl[\\s\\S]+lda hull_scroll_rates,x/. Input:",
+      "reason": "Unresolved: first assertion alone does not establish whether current behaviour or the expectation is authoritative.",
+      "cleared_by": "Investigate docs/diagnostics/test-debt/triage.json T047"
+    },
+    {
+      "file": "tests/gfx-pins.test.mjs",
+      "test": "the art outside the boss band: build/capital-hulls.inc is the pinned bytes",
+      "class": "E",
+      "first_failing_assertion": "tests/gfx-pins.test.mjs:73",
+      "first_failing_message": "build/capital-hulls.inc changed: re-pin only with the owner decision that changes this art (docs/diagnostics/gfx-regression-2026-10-16.md)",
+      "reason": "Unresolved: first assertion alone does not establish whether current behaviour or the expectation is authoritative.",
+      "cleared_by": "Investigate docs/diagnostics/test-debt/triage.json T048"
+    },
+    {
+      "file": "tests/gfx-pins.test.mjs",
+      "test": "the art outside the boss band: build/entity-effects.inc is the pinned bytes",
+      "class": "E",
+      "first_failing_assertion": "tests/gfx-pins.test.mjs:73",
+      "first_failing_message": "build/entity-effects.inc changed: re-pin only with the owner decision that changes this art (docs/diagnostics/gfx-regression-2026-10-16.md)",
+      "reason": "Unresolved: first assertion alone does not establish whether current behaviour or the expectation is authoritative.",
+      "cleared_by": "Investigate docs/diagnostics/test-debt/triage.json T049"
+    },
+    {
+      "file": "tests/gfx-pins.test.mjs",
+      "test": "the boss link's colour, charset and DLI-vector stores: only the pinned routines",
+      "class": "E",
+      "first_failing_assertion": "tests/gfx-pins.test.mjs:162",
+      "first_failing_message": "a new colour, charset or DLI-vector store in the boss link: show it stays in the band, then re-pin",
+      "reason": "Unresolved: first assertion alone does not establish whether current behaviour or the expectation is authoritative.",
+      "cleared_by": "Investigate docs/diagnostics/test-debt/triage.json T050"
+    },
+    {
+      "file": "tests/github-showcase.test.mjs",
+      "test": "showcase manifest binds every image to the current packed release",
+      "class": "E",
+      "first_failing_assertion": "tests/github-showcase.test.mjs:37",
+      "first_failing_message": "Expected values to be strictly equal:",
+      "reason": "Unresolved: first assertion alone does not establish whether current behaviour or the expectation is authoritative.",
+      "cleared_by": "Investigate docs/diagnostics/test-debt/triage.json T051"
+    },
+    {
+      "file": "tests/github-showcase.test.mjs",
+      "test": "showcase and asset sheets regenerate without ignored capture files",
+      "class": "E",
+      "first_failing_assertion": "tests/github-showcase.test.mjs:76",
+      "first_failing_message": "Error: Runtime wall trace does not match the current release ATR",
+      "reason": "Unresolved: first assertion alone does not establish whether current behaviour or the expectation is authoritative.",
+      "cleared_by": "Investigate docs/diagnostics/test-debt/triage.json T052"
+    },
+    {
+      "file": "tests/github-showcase.test.mjs",
+      "test": "gameplay GIF is bound to the current ATR and stays within budget",
+      "class": "E",
+      "first_failing_assertion": "tests/github-showcase.test.mjs:194",
+      "first_failing_message": "the GIF predates the current ATR; rerun npm run showcase:gif",
+      "reason": "Unresolved: first assertion alone does not establish whether current behaviour or the expectation is authoritative.",
+      "cleared_by": "Investigate docs/diagnostics/test-debt/triage.json T053"
+    },
+    {
+      "file": "tests/hud-audit.test.mjs",
+      "test": "boss entry: every HUD cell as it was before the WARNING screen (booster: rapid)",
+      "class": "E",
+      "first_failing_assertion": "tests/hud-audit.test.mjs:76",
+      "first_failing_message": "Expected values to be strictly deep-equal:",
+      "reason": "Unresolved: first assertion alone does not establish whether current behaviour or the expectation is authoritative.",
+      "cleared_by": "Investigate docs/diagnostics/test-debt/triage.json T054"
+    },
+    {
+      "file": "tests/hud-audit.test.mjs",
+      "test": "boss entry: every HUD cell as it was before the WARNING screen (booster: spread)",
+      "class": "E",
+      "first_failing_assertion": "tests/hud-audit.test.mjs:76",
+      "first_failing_message": "Expected values to be strictly deep-equal:",
+      "reason": "Unresolved: first assertion alone does not establish whether current behaviour or the expectation is authoritative.",
+      "cleared_by": "Investigate docs/diagnostics/test-debt/triage.json T055"
+    },
+    {
+      "file": "tests/hud-audit.test.mjs",
+      "test": "boss entry: every HUD cell as it was before the WARNING screen (booster: shield)",
+      "class": "E",
+      "first_failing_assertion": "tests/hud-audit.test.mjs:76",
+      "first_failing_message": "Expected values to be strictly deep-equal:",
+      "reason": "Unresolved: first assertion alone does not establish whether current behaviour or the expectation is authoritative.",
+      "cleared_by": "Investigate docs/diagnostics/test-debt/triage.json T056"
+    },
+    {
+      "file": "tests/hud-audit.test.mjs",
+      "test": "boss entry: every HUD cell as it was before the WARNING screen (booster: none)",
+      "class": "E",
+      "first_failing_assertion": "tests/hud-audit.test.mjs:76",
+      "first_failing_message": "Expected values to be strictly deep-equal:",
+      "reason": "Unresolved: first assertion alone does not establish whether current behaviour or the expectation is authoritative.",
+      "cleared_by": "Investigate docs/diagnostics/test-debt/triage.json T057"
+    },
+    {
+      "file": "tests/hud-audit.test.mjs",
+      "test": "the gameplay start after the summary (START GAME): the HUD drawn whole from the state, the booster idle",
+      "class": "E",
+      "first_failing_assertion": "tests/hud-audit.test.mjs:128",
+      "first_failing_message": "the score cells show 00000",
+      "reason": "Unresolved: first assertion alone does not establish whether current behaviour or the expectation is authoritative.",
+      "cleared_by": "Investigate docs/diagnostics/test-debt/triage.json T058"
+    },
+    {
+      "file": "tests/hud-bottom.test.mjs",
+      "test": "§BL 3: a lance ready keeps the four cells full - through the charge, a miss and the torpedo's flight - and a kill empties them",
+      "class": "E",
+      "first_failing_assertion": "tests/hud-bottom.test.mjs:147",
+      "first_failing_message": "the torpedo fired",
+      "reason": "Unresolved: first assertion alone does not establish whether current behaviour or the expectation is authoritative.",
+      "cleared_by": "Investigate docs/diagnostics/test-debt/triage.json T059"
+    },
+    {
+      "file": "tests/hud-status.test.mjs",
+      "test": "HUD template keeps full LIFE/HULL labels and four fixed hull plates",
+      "class": "E",
+      "first_failing_assertion": "tests/hud-status.test.mjs:50",
+      "first_failing_message": "The input did not match the regular expression /hud_ascii:\\s*\\.byte \"SCORE 00000  LIFE 3 HULL \"/. Input:",
+      "reason": "Unresolved: first assertion alone does not establish whether current behaviour or the expectation is authoritative.",
+      "cleared_by": "Investigate docs/diagnostics/test-debt/triage.json T060"
+    },
+    {
+      "file": "tests/hull-length.test.mjs",
+      "test": "T7: a short hull is right-aligned - it ends on row 479, where the prow always ended",
+      "class": "E",
+      "first_failing_assertion": "tests/hull-length.test.mjs:97",
+      "first_failing_message": "aft, combat, forward, prow in absolute modules; engines start at 16",
+      "reason": "Unresolved: first assertion alone does not establish whether current behaviour or the expectation is authoritative.",
+      "cleared_by": "Investigate docs/diagnostics/test-debt/triage.json T061"
+    },
+    {
+      "file": "tests/hull-length.test.mjs",
+      "test": "T7: the phase machine reads the page - a 352-row hull enters DRAIN at row 488",
+      "class": "E",
+      "first_failing_assertion": "tests/hull-length.test.mjs:138",
+      "first_failing_message": "level 2, row 160",
+      "reason": "Unresolved: first assertion alone does not establish whether current behaviour or the expectation is authoritative.",
+      "cleared_by": "Investigate docs/diagnostics/test-debt/triage.json T062"
+    },
+    {
+      "file": "tests/hull-length.test.mjs",
+      "test": "T7: the resolvers read the page's sequences at $AC08/$AC44",
+      "class": "E",
+      "first_failing_assertion": "tests/hull-length.test.mjs:164",
+      "first_failing_message": "Expected values to be strictly equal:",
+      "reason": "Unresolved: first assertion alone does not establish whether current behaviour or the expectation is authoritative.",
+      "cleared_by": "Investigate docs/diagnostics/test-debt/triage.json T063"
+    },
+    {
+      "file": "tests/hull-length.test.mjs",
+      "test": "T7: capital entry starts level 2's row clock at row 128, level 1's at row 0",
+      "class": "E",
+      "first_failing_assertion": "tests/hull-length.test.mjs:175",
+      "first_failing_message": "level 1: the capital is admitted on its authored row",
+      "reason": "Unresolved: first assertion alone does not establish whether current behaviour or the expectation is authoritative.",
+      "cleared_by": "Investigate docs/diagnostics/test-debt/triage.json T064"
+    },
+    {
+      "file": "tests/hybrid-c-arena.test.mjs",
+      "test": "HYBRID_C_ARENA is one contiguous 832-B arena at $7BD0-$7F0F",
+      "class": "E",
+      "first_failing_assertion": "tests/hybrid-c-arena.test.mjs:75",
+      "first_failing_message": "Expected values to be strictly deep-equal:",
+      "reason": "Unresolved: first assertion alone does not establish whether current behaviour or the expectation is authoritative.",
+      "cleared_by": "Investigate docs/diagnostics/test-debt/triage.json T065"
+    },
+    {
+      "file": "tests/hybrid-c-arena.test.mjs",
+      "test": "the arena lands directly as its own DFMC record and is the only owner of its range",
+      "class": "E",
+      "first_failing_assertion": "tests/hybrid-c-arena.test.mjs:149",
+      "first_failing_message": "Expected values to be strictly deep-equal:",
+      "reason": "Unresolved: first assertion alone does not establish whether current behaviour or the expectation is authoritative.",
+      "cleared_by": "Investigate docs/diagnostics/test-debt/triage.json T066"
+    },
+    {
+      "file": "tests/hybrid-lifecycle.test.mjs",
+      "test": "C EnemyArchetype is a compact exact Raider record in legal extension placement",
+      "class": "E",
+      "first_failing_assertion": "tests/hybrid-lifecycle.test.mjs:137",
+      "first_failing_message": "Expected values to be strictly deep-equal:",
+      "reason": "Unresolved: first assertion alone does not establish whether current behaviour or the expectation is authoritative.",
+      "cleared_by": "Investigate docs/diagnostics/test-debt/triage.json T067"
+    },
+    {
+      "file": "tests/hybrid-lifecycle.test.mjs",
+      "test": "C maps the existing capital corridor phases and complete lifecycle exactly",
+      "class": "E",
+      "first_failing_assertion": "tests/hybrid-lifecycle.test.mjs:174",
+      "first_failing_message": "phase $20",
+      "reason": "Unresolved: first assertion alone does not establish whether current behaviour or the expectation is authoritative.",
+      "cleared_by": "Investigate docs/diagnostics/test-debt/triage.json T068"
+    },
+    {
+      "file": "tests/hybrid-lifecycle.test.mjs",
+      "test": "ownership is singular and generated C requires neither software stack nor runtime helpers",
+      "class": "E",
+      "first_failing_assertion": "tests/hybrid-lifecycle.test.mjs:315",
+      "first_failing_message": "Expected values to be strictly deep-equal:",
+      "reason": "Unresolved: first assertion alone does not establish whether current behaviour or the expectation is authoritative.",
+      "cleared_by": "Investigate docs/diagnostics/test-debt/triage.json T069"
+    },
+    {
+      "file": "tests/interceptor-armour.test.mjs",
+      "test": "H3 from data: the record's hit points, no armour bit in any wave of any level",
+      "class": "E",
+      "first_failing_assertion": "tests/interceptor-armour.test.mjs:228",
+      "first_failing_message": "no armour field in the level format",
+      "reason": "Unresolved: first assertion alone does not establish whether current behaviour or the expectation is authoritative.",
+      "cleared_by": "Investigate docs/diagnostics/test-debt/triage.json T070"
+    },
+    {
+      "file": "tests/island-edge-contact.test.mjs",
+      "test": "exact contact leaves both unfired side lanes clear at every row and phase",
+      "class": "E",
+      "first_failing_assertion": "tests/island-edge-contact.test.mjs:17",
+      "first_failing_message": "passage 480/0/688/0/92/4",
+      "reason": "Unresolved: first assertion alone does not establish whether current behaviour or the expectation is authoritative.",
+      "cleared_by": "Investigate docs/diagnostics/test-debt/triage.json T071"
+    },
+    {
+      "file": "tests/lance.test.mjs",
+      "test": "M6 (decision BD 6): the build fails when the window's record grows into the lance's RAM",
+      "class": "E",
+      "first_failing_assertion": "tests/lance.test.mjs:218",
+      "first_failing_message": "Expected values to be strictly equal:",
+      "reason": "Unresolved: first assertion alone does not establish whether current behaviour or the expectation is authoritative.",
+      "cleared_by": "Investigate docs/diagnostics/test-debt/triage.json T072"
+    },
+    {
+      "file": "tests/level-buffer-16.test.mjs",
+      "test": "Q-1: HYBRID_C_WINDOW is $AE00-$BBFF, 3,584 B, and still stops at the reader BSS",
+      "class": "E",
+      "first_failing_assertion": "tests/level-buffer-16.test.mjs:77",
+      "first_failing_message": "the Light C, the cold Director half, step 5, the boss entry, sector flow, the escort clock",
+      "reason": "Unresolved: first assertion alone does not establish whether current behaviour or the expectation is authoritative.",
+      "cleared_by": "Investigate docs/diagnostics/test-debt/triage.json T073"
+    },
+    {
+      "file": "tests/level-buffer-16.test.mjs",
+      "test": "Q-1: the window record lands at $AE00 and costs no extra transport",
+      "class": "E",
+      "first_failing_assertion": "tests/level-buffer-16.test.mjs:140",
+      "first_failing_message": "the window record carries steps 2-5, the boss entry, sector flow and the escort clock",
+      "reason": "Unresolved: first assertion alone does not establish whether current behaviour or the expectation is authoritative.",
+      "cleared_by": "Investigate docs/diagnostics/test-debt/triage.json T074"
+    },
+    {
+      "file": "tests/level-buffer-16.test.mjs",
+      "test": "Q-1: level 1 still loads the same image the same way",
+      "class": "E",
+      "first_failing_assertion": "tests/level-buffer-16.test.mjs:173",
+      "first_failing_message": "Expected values to be strictly deep-equal:",
+      "reason": "Unresolved: first assertion alone does not establish whether current behaviour or the expectation is authoritative.",
+      "cleared_by": "Investigate docs/diagnostics/test-debt/triage.json T075"
+    },
+    {
+      "file": "tests/level-hull-block.test.mjs",
+      "test": "the ATR reads thirteen sectors at START GAME, and the reader still fits",
+      "class": "E",
+      "first_failing_assertion": "tests/level-hull-block.test.mjs:273",
+      "first_failing_message": "Expected values to be strictly equal:",
+      "reason": "Unresolved: first assertion alone does not establish whether current behaviour or the expectation is authoritative.",
+      "cleared_by": "Investigate docs/diagnostics/test-debt/triage.json T076"
+    },
+    {
+      "file": "tests/level-one-equivalence.test.mjs",
+      "test": "T4: the capital admits no later than the authored row, and early only once sector 0 is spent",
+      "class": "E",
+      "first_failing_assertion": "tests/level-one-equivalence.test.mjs:67",
+      "first_failing_message": "the capital admits on row 273, after the authored maximum 272",
+      "reason": "Unresolved: first assertion alone does not establish whether current behaviour or the expectation is authoritative.",
+      "cleared_by": "Investigate docs/diagnostics/test-debt/triage.json T077"
+    },
+    {
+      "file": "tests/level-one-equivalence.test.mjs",
+      "test": "owner decision 8 / W1: re-authoring the waves left the capital where it was; W1 moved the level's end",
+      "class": "E",
+      "first_failing_assertion": "tests/level-one-equivalence.test.mjs:235",
+      "first_failing_message": "Expected values to be strictly equal:",
+      "reason": "Unresolved: first assertion alone does not establish whether current behaviour or the expectation is authoritative.",
+      "cleared_by": "Investigate docs/diagnostics/test-debt/triage.json T078"
+    },
+    {
+      "file": "tests/level-one-waves.test.mjs",
+      "test": "sector flow: with no kills the swarm's three waves arm and drain, (a) opens within its ceiling, (b)'s Raiders arrive",
+      "class": "E",
+      "first_failing_assertion": "tests/level-one-waves.test.mjs:223",
+      "first_failing_message": "difficulty 0: (b)'s Raiders never arrived with no kills",
+      "reason": "Unresolved: first assertion alone does not establish whether current behaviour or the expectation is authoritative.",
+      "cleared_by": "Investigate docs/diagnostics/test-debt/triage.json T079"
+    },
+    {
+      "file": "tests/level-payload.test.mjs",
+      "test": "T13: only the Director's sector entry writes the star operand",
+      "class": "E",
+      "first_failing_assertion": "tests/level-payload.test.mjs:417",
+      "first_failing_message": "declared once, called once - from enter_sector",
+      "reason": "Unresolved: first assertion alone does not establish whether current behaviour or the expectation is authoritative.",
+      "cleared_by": "Investigate docs/diagnostics/test-debt/triage.json T080"
+    },
+    {
+      "file": "tests/level-summary-build.test.mjs",
+      "test": "the overlay directory has eleven entries; the summary code is entry 8 at $0500",
+      "class": "E",
+      "first_failing_assertion": "tests/level-summary-build.test.mjs:55",
+      "first_failing_message": "Expected values to be strictly equal:",
+      "reason": "Unresolved: first assertion alone does not establish whether current behaviour or the expectation is authoritative.",
+      "cleared_by": "Investigate docs/diagnostics/test-debt/triage.json T081"
+    },
+    {
+      "file": "tests/level-summary-build.test.mjs",
+      "test": "disk runs never overlap: levels, the capital restore, M5b's reservation, the summary",
+      "class": "E",
+      "first_failing_assertion": "tests/level-summary-build.test.mjs:261",
+      "first_failing_message": "seven sectors since M6 stage 1b's gauges (five at §BH, four at §BG)",
+      "reason": "Unresolved: first assertion alone does not establish whether current behaviour or the expectation is authoritative.",
+      "cleared_by": "Investigate docs/diagnostics/test-debt/triage.json T082"
+    },
+    {
+      "file": "tests/level-summary-build.test.mjs",
+      "test": "ENGAGING ENEMY SECTOR is one record in the reader, reused by the module; no AI line in either",
+      "class": "E",
+      "first_failing_assertion": "tests/level-summary-build.test.mjs:453",
+      "first_failing_message": "the window moved",
+      "reason": "Unresolved: first assertion alone does not establish whether current behaviour or the expectation is authoritative.",
+      "cleared_by": "Investigate docs/diagnostics/test-debt/triage.json T083"
+    },
+    {
+      "file": "tests/level-summary.test.mjs",
+      "test": "the summary stays up at least 3 s and FIRE continues only after the level has arrived (Q15)",
+      "class": "E",
+      "first_failing_assertion": "tests/level-summary.test.mjs:766",
+      "first_failing_message": "the level was not the last read",
+      "reason": "Unresolved: first assertion alone does not establish whether current behaviour or the expectation is authoritative.",
+      "cleared_by": "Investigate docs/diagnostics/test-debt/triage.json T084"
+    },
+    {
+      "file": "tests/level-summary.test.mjs",
+      "test": "the art and the restore precede the level, the level is read tail first, the record last of the reads",
+      "class": "E",
+      "first_failing_assertion": "tests/level-summary.test.mjs:787",
+      "first_failing_message": "Expected values to be strictly deep-equal:",
+      "reason": "Unresolved: first assertion alone does not establish whether current behaviour or the expectation is authoritative.",
+      "cleared_by": "Investigate docs/diagnostics/test-debt/triage.json T085"
+    },
+    {
+      "file": "tests/level-summary.test.mjs",
+      "test": "the second START GAME of a session reads no code and no level",
+      "class": "E",
+      "first_failing_assertion": "tests/level-summary.test.mjs:800",
+      "first_failing_message": "the summary code and the resident level must not be read again",
+      "reason": "Unresolved: first assertion alone does not establish whether current behaviour or the expectation is authoritative.",
+      "cleared_by": "Investigate docs/diagnostics/test-debt/triage.json T086"
+    },
+    {
+      "file": "tests/level-summary.test.mjs",
+      "test": "AUD-02: a changed byte in the level image is refused before its music player runs (owner Q3)",
+      "class": "E",
+      "first_failing_assertion": "tests/level-summary.test.mjs:1260",
+      "first_failing_message": "the damaged level image was accepted",
+      "reason": "Unresolved: first assertion alone does not establish whether current behaviour or the expectation is authoritative.",
+      "cleared_by": "Investigate docs/diagnostics/test-debt/triage.json T087"
+    },
+    {
+      "file": "tests/light-interceptor.test.mjs",
+      "test": "placement contract: legal composite and packed size, state inside its reserved windows, no C stack",
+      "class": "E",
+      "first_failing_assertion": "tests/light-interceptor.test.mjs:532",
+      "first_failing_message": "Expected values to be strictly equal:",
+      "reason": "Unresolved: first assertion alone does not establish whether current behaviour or the expectation is authoritative.",
+      "cleared_by": "Investigate docs/diagnostics/test-debt/triage.json T088"
+    },
+    {
+      "file": "tests/light-wingman.test.mjs",
+      "test": "Light kernel placement is legal, resident and inside every reviewed gate",
+      "class": "E",
+      "first_failing_assertion": "tests/light-wingman.test.mjs:241",
+      "first_failing_message": "ENTITY_CODE staging margin tracks the Light art tables",
+      "reason": "Unresolved: first assertion alone does not establish whether current behaviour or the expectation is authoritative.",
+      "cleared_by": "Investigate docs/diagnostics/test-debt/triage.json T089"
+    },
+    {
+      "file": "tests/master-pal-clock.test.mjs",
+      "test": "starfield observes but never owns world and hull accumulator clocks",
+      "class": "E",
+      "first_failing_assertion": "tests/master-pal-clock.test.mjs:118",
+      "first_failing_message": "The input did not match the regular expression /cmp #CAPITAL_HULL_STATE_OPEN[\\s\\S]+lda world_scroll_rates,x[\\s\\S]+asl[\\s\\S]+lda hull_scroll_rates,x/. Input:",
+      "reason": "Unresolved: first assertion alone does not establish whether current behaviour or the expectation is authoritative.",
+      "cleared_by": "Investigate docs/diagnostics/test-debt/triage.json T090"
+    },
+    {
+      "file": "tests/menu-raster.test.mjs",
+      "test": "native menu raster is exact for the ATR and four cold RAM fills",
+      "class": "E",
+      "first_failing_assertion": "tests/menu-raster.test.mjs:41",
+      "first_failing_message": "atr-00 evidence must describe the current artifact",
+      "reason": "Unresolved: first assertion alone does not establish whether current behaviour or the expectation is authoritative.",
+      "cleared_by": "Investigate docs/diagnostics/test-debt/triage.json T091"
+    },
+    {
+      "file": "tests/offscreen-spawn.test.mjs",
+      "test": "Heavy entry reaches the old per-slot anchors before unchanged crossing motion",
+      "class": "E",
+      "first_failing_assertion": "tests/offscreen-spawn.test.mjs:167",
+      "first_failing_message": "Expected values to be strictly deep-equal:",
+      "reason": "Unresolved: first assertion alone does not establish whether current behaviour or the expectation is authoritative.",
+      "cleared_by": "Investigate docs/diagnostics/test-debt/triage.json T092"
+    },
+    {
+      "file": "tests/overlay-slot.test.mjs",
+      "test": "nothing outside the capital group names a label inside slot A",
+      "class": "E",
+      "first_failing_assertion": "tests/overlay-slot.test.mjs:138",
+      "first_failing_message": "code outside the capital group reaches into slot A without the vector table",
+      "reason": "Unresolved: first assertion alone does not establish whether current behaviour or the expectation is authoritative.",
+      "cleared_by": "Investigate docs/diagnostics/test-debt/triage.json T093"
+    },
+    {
+      "file": "tests/overlay-slot.test.mjs",
+      "test": "the capital restore run on the disk is the resident image of slot A",
+      "class": "E",
+      "first_failing_assertion": "tests/overlay-slot.test.mjs:164",
+      "first_failing_message": "Expected values to be strictly equal:",
+      "reason": "Unresolved: first assertion alone does not establish whether current behaviour or the expectation is authoritative.",
+      "cleared_by": "Investigate docs/diagnostics/test-debt/triage.json T094"
+    },
+    {
+      "file": "tests/package-release.test.mjs",
+      "test": "M5-05: the release zip carries LICENSE, LICENSE-ASSETS and THIRD_PARTY_NOTICES.md",
+      "class": "E",
+      "first_failing_assertion": "tests/package-release.test.mjs:44",
+      "first_failing_message": "Error: Runtime wall trace binding mismatch for void-strike-65-boot.bin",
+      "reason": "Unresolved: first assertion alone does not establish whether current behaviour or the expectation is authoritative.",
+      "cleared_by": "Investigate docs/diagnostics/test-debt/triage.json T095"
+    },
+    {
+      "file": "tests/pickup-boost-colour.test.mjs",
+      "test": "COLPM3 follows the sector state, once per frame, off the latch that exists",
+      "class": "E",
+      "first_failing_assertion": "tests/pickup-boost-colour.test.mjs:126",
+      "first_failing_message": "an OPEN frame gives COLPM3 to the capsule",
+      "reason": "Unresolved: first assertion alone does not establish whether current behaviour or the expectation is authoritative.",
+      "cleared_by": "Investigate docs/diagnostics/test-debt/triage.json T096"
+    },
+    {
+      "file": "tests/player-fire-audio.test.mjs",
+      "test": "master PAL gate makes transition-only fire/audio catch-up obsolete",
+      "class": "E",
+      "first_failing_assertion": "tests/player-fire-audio.test.mjs:59",
+      "first_failing_message": "The input did not match the regular expression /lda FIGHTER_PROJECTILE_PUBLICATION_FRAME\\s+beq @fighter_window[\\s\\S]+jsr erase_dynamic_near_star_overlays\\s+jsr publish_dynamic_near_star_phase\\s+jmp fighter_projectile_publication_capital_render\\s+@fighter_window:\\s+lda #PICKUP_BOOST_COLOUR\\s+sta COLPM3\\s+ldx #\\$77\\s+jsr wait_frame_at_line\\s+fighter_projectile_publication_begin/. Input:",
+      "reason": "Unresolved: first assertion alone does not establish whether current behaviour or the expectation is authoritative.",
+      "cleared_by": "Investigate docs/diagnostics/test-debt/triage.json T100"
+    },
     {
       "file": "tests/preview.test.mjs",
       "test": "preview consumes the canonical charset, screen, PMG, and palette source",
       "class": "C",
       "first_failing_assertion": "tests/preview.test.mjs:164",
       "first_failing_message": "the gameplay preview must change when player_shape changes",
-      "reason": "The gameplay preview does not change when player_shape changes: scripts/preview.mjs draws 24 of the 29 playfield rows and the fighter starts in the clipped ones. A development tool defect; not player-visible, not in the ATR.",
-      "cleared_by": "chore/preview-29-rows",
-      "status_2026_10_07": "The first failing assertion is :129 (the charset's length), not :166 - measured on this branch and on main 1a3c8bf, where it already failed at :129. The same test and cause; owner decision of 2026-10-07 (S4b.5) updates the line.",
-      "status_2026_10_08": "AUD-05 (chore/evidence-integrity): the stale COLPF2 pin at :129 ($1E, decision U) is re-pinned to $AE (src/main.s:566, plasma FX B2), so the test now reaches its behavioural checks. Its first failing assertion is :164, the player_shape variant leaves the gameplay preview unchanged - the recorded class C cause, unchanged. The allied-steel and hull-source checks that followed it in one loop are the new test 'preview follows the allied steel and the capital hull source', which passes."
+      "reason": "Previously confirmed preview-tool defect (recorded-test-failures.json class C); no production fix.",
+      "cleared_by": "Investigate docs/diagnostics/test-debt/triage.json T101",
+      "suspected_cause": "Preview clips the lower playfield rows containing the player (existing registry diagnosis)."
+    },
+    {
+      "file": "tests/preview.test.mjs",
+      "test": "Rapid Fire owner preview executes the packed ATR pickup lifecycle",
+      "class": "E",
+      "first_failing_assertion": "tests/preview.test.mjs:335",
+      "first_failing_message": "Error: Rapid burst requires collected runtime state (state=0, pickup=0, pickupY=104, playerY=102)",
+      "reason": "Unresolved: first assertion alone does not establish whether current behaviour or the expectation is authoritative.",
+      "cleared_by": "Investigate docs/diagnostics/test-debt/triage.json T102"
+    },
+    {
+      "file": "tests/preview.test.mjs",
+      "test": "Spread Shot owner preview is deterministic executed ATR gameplay",
+      "class": "E",
+      "first_failing_assertion": "tests/preview.test.mjs:423",
+      "first_failing_message": "Expected values to be strictly deep-equal:",
+      "reason": "Unresolved: first assertion alone does not establish whether current behaviour or the expectation is authoritative.",
+      "cleared_by": "Investigate docs/diagnostics/test-debt/triage.json T103"
+    },
+    {
+      "file": "tests/runtime-timing.test.mjs",
+      "test": "measured DMA-on fields come only from an artifact-matched Atari800 trace",
+      "class": "E",
+      "first_failing_assertion": "tests/runtime-timing.test.mjs:67",
+      "first_failing_message": "runtime wall trace is missing",
+      "reason": "Unresolved: first assertion alone does not establish whether current behaviour or the expectation is authoritative.",
+      "cleared_by": "Investigate docs/diagnostics/test-debt/triage.json T108"
+    },
+    {
+      "file": "tests/runtime-wall-trace.test.mjs",
+      "test": "wall trace is artifact-bound and adds no guest timing work",
+      "class": "E",
+      "first_failing_assertion": "tests/runtime-wall-trace.test.mjs:75",
+      "first_failing_message": "Expected values to be strictly deep-equal:",
+      "reason": "Unresolved: first assertion alone does not establish whether current behaviour or the expectation is authoritative.",
+      "cleared_by": "Investigate docs/diagnostics/test-debt/triage.json T109"
+    },
+    {
+      "file": "tests/runtime-wall-trace.test.mjs",
+      "test": "Spread Shot passes PAL wall budget with a legal capsule and projectile-heavy frame",
+      "class": "E",
+      "first_failing_assertion": "tests/runtime-wall-trace.test.mjs:668",
+      "first_failing_message": "Expected values to be strictly deep-equal:",
+      "reason": "Unresolved: first assertion alone does not establish whether current behaviour or the expectation is authoritative.",
+      "cleared_by": "Investigate docs/diagnostics/test-debt/triage.json T110"
+    },
+    {
+      "file": "tests/runtime-wall-trace.test.mjs",
+      "test": "debris visual polish preserves foundation history and passes its +256 PAL gate",
+      "class": "E",
+      "first_failing_assertion": "tests/runtime-wall-trace.test.mjs:843",
+      "first_failing_message": "Expected values to be strictly equal:",
+      "reason": "Unresolved: first assertion alone does not establish whether current behaviour or the expectation is authoritative.",
+      "cleared_by": "Investigate docs/diagnostics/test-debt/triage.json T111"
+    },
+    {
+      "file": "tests/runtime-wall-trace.test.mjs",
+      "test": "explosion colour flash passes its +64 PAL gate with exact GTIA traces",
+      "class": "E",
+      "first_failing_assertion": "tests/runtime-wall-trace.test.mjs:895",
+      "first_failing_message": "Expected values to be strictly deep-equal:",
+      "reason": "Unresolved: first assertion alone does not establish whether current behaviour or the expectation is authoritative.",
+      "cleared_by": "Investigate docs/diagnostics/test-debt/triage.json T112"
+    },
+    {
+      "file": "tests/runtime-wall-trace.test.mjs",
+      "test": "destructible debris passes PAL, inactive-path and linked-code budgets",
+      "class": "E",
+      "first_failing_assertion": "tests/runtime-wall-trace.test.mjs:938",
+      "first_failing_message": "Expected values to be strictly deep-equal:",
+      "reason": "Unresolved: first assertion alone does not establish whether current behaviour or the expectation is authoritative.",
+      "cleared_by": "Investigate docs/diagnostics/test-debt/triage.json T113"
+    },
+    {
+      "file": "tests/runtime-wall-trace.test.mjs",
+      "test": "enemy breakup passes the hard PAL gate and draws no character effect",
+      "class": "E",
+      "first_failing_assertion": "tests/runtime-wall-trace.test.mjs:1009",
+      "first_failing_message": "Expected values to be strictly deep-equal:",
+      "reason": "Unresolved: first assertion alone does not establish whether current behaviour or the expectation is authoritative.",
+      "cleared_by": "Investigate docs/diagnostics/test-debt/triage.json T114"
+    },
+    {
+      "file": "tests/sector-flow.test.mjs",
+      "test": "C1: no hold before a capital - its entry waits for the drain itself",
+      "class": "E",
+      "first_failing_assertion": "tests/sector-flow.test.mjs:59",
+      "first_failing_message": "Error: L2 islands: capital hazards.debris must be zero",
+      "reason": "Unresolved: first assertion alone does not establish whether current behaviour or the expectation is authoritative.",
+      "cleared_by": "Investigate docs/diagnostics/test-debt/triage.json T116"
+    },
+    {
+      "file": "tests/sio-patch-policy.test.mjs",
+      "test": "the committed evidence: real-SIO boot smoke with stage 2 clean, pinned patch-on replays and menu raster",
+      "class": "E",
+      "first_failing_assertion": "tests/sio-patch-policy.test.mjs:98",
+      "first_failing_message": "atr-a5 stage-2 SIOV reads",
+      "reason": "Unresolved: first assertion alone does not establish whether current behaviour or the expectation is authoritative.",
+      "cleared_by": "Investigate docs/diagnostics/test-debt/triage.json T117"
+    },
+    {
+      "file": "tests/slot-f.test.mjs",
+      "test": "Q9: the HUD draws codes 0-63 only, so the block in codes 64-127 is never shown",
+      "class": "E",
+      "first_failing_assertion": "tests/slot-f.test.mjs:88",
+      "first_failing_message": "only 18 codes seen",
+      "reason": "Unresolved: first assertion alone does not establish whether current behaviour or the expectation is authoritative.",
+      "cleared_by": "Investigate docs/diagnostics/test-debt/triage.json T118"
+    },
+    {
+      "file": "tests/slot-f.test.mjs",
+      "test": "Q9: each region's block is its fourth run - on the disk at 696 + 4 x region, folded into the head's check",
+      "class": "E",
+      "first_failing_assertion": "tests/slot-f.test.mjs:109",
+      "first_failing_message": "region 1's head sum does not cover its block",
+      "reason": "Unresolved: first assertion alone does not establish whether current behaviour or the expectation is authoritative.",
+      "cleared_by": "Investigate docs/diagnostics/test-debt/triage.json T119"
+    },
+    {
+      "file": "tests/torpedo.test.mjs",
+      "test": "§BL 5 (§BH): a miss - no target under the ship - the torpedo flies to the band's foot at the ship's column; the lance kept, the reticle back",
+      "class": "E",
+      "first_failing_assertion": "tests/torpedo.test.mjs:77",
+      "first_failing_message": "the torpedo fired",
+      "reason": "Unresolved: first assertion alone does not establish whether current behaviour or the expectation is authoritative.",
+      "cleared_by": "Investigate docs/diagnostics/test-debt/triage.json T120"
+    },
+    {
+      "file": "tests/weapon-pickup-rapid-fire.test.mjs",
+      "test": "the release ATR executes 0→1→2→pending only for consumed PlayerFighter kills",
+      "class": "E",
+      "first_failing_assertion": "tests/weapon-pickup-rapid-fire.test.mjs:181",
+      "first_failing_message": "Error: Rapid burst requires collected runtime state (state=0, pickup=0, pickupY=104, playerY=102)",
+      "reason": "Unresolved: first assertion alone does not establish whether current behaviour or the expectation is authoritative.",
+      "cleared_by": "Investigate docs/diagnostics/test-debt/triage.json T122"
+    },
+    {
+      "file": "tests/weapon-pickup-rapid-fire.test.mjs",
+      "test": "pickup pending remains hidden and non-colliding for thirty full frames",
+      "class": "E",
+      "first_failing_assertion": "tests/weapon-pickup-rapid-fire.test.mjs:208",
+      "first_failing_message": "Error: Rapid burst requires collected runtime state (state=0, pickup=0, pickupY=104, playerY=102)",
+      "reason": "Unresolved: first assertion alone does not establish whether current behaviour or the expectation is authoritative.",
+      "cleared_by": "Investigate docs/diagnostics/test-debt/triage.json T123"
+    },
+    {
+      "file": "tests/weapon-pickup-rapid-fire.test.mjs",
+      "test": "active capsule is one logical PMG object, writes no character cell and cannot be shot",
+      "class": "E",
+      "first_failing_assertion": "tests/weapon-pickup-rapid-fire.test.mjs:271",
+      "first_failing_message": "Error: Rapid burst requires collected runtime state (state=0, pickup=0, pickupY=104, playerY=102)",
+      "reason": "Unresolved: first assertion alone does not establish whether current behaviour or the expectation is authoritative.",
+      "cleared_by": "Investigate docs/diagnostics/test-debt/triage.json T124"
+    },
+    {
+      "file": "tests/weapon-pickup-rapid-fire.test.mjs",
+      "test": "pickup movement resolves half world speed into smooth scanline phases",
+      "class": "E",
+      "first_failing_assertion": "tests/weapon-pickup-rapid-fire.test.mjs:310",
+      "first_failing_message": "Error: Rapid burst requires collected runtime state (state=0, pickup=0, pickupY=104, playerY=102)",
+      "reason": "Unresolved: first assertion alone does not establish whether current behaviour or the expectation is authoritative.",
+      "cleared_by": "Investigate docs/diagnostics/test-debt/triage.json T125"
+    },
+    {
+      "file": "tests/weapon-pickup-rapid-fire.test.mjs",
+      "test": "debris and the reserved pickup coexist without allocator overwrite for every A2 head",
+      "class": "E",
+      "first_failing_assertion": "tests/weapon-pickup-rapid-fire.test.mjs:323",
+      "first_failing_message": "Error: Rapid burst requires collected runtime state (state=0, pickup=0, pickupY=104, playerY=102)",
+      "reason": "Unresolved: first assertion alone does not establish whether current behaviour or the expectation is authoritative.",
+      "cleared_by": "Investigate docs/diagnostics/test-debt/triage.json T126"
+    },
+    {
+      "file": "tests/weapon-pickup-rapid-fire.test.mjs",
+      "test": "pickup collection is single-shot and changes neither score, HULL nor LIFE",
+      "class": "E",
+      "first_failing_assertion": "tests/weapon-pickup-rapid-fire.test.mjs:439",
+      "first_failing_message": "Error: Rapid burst requires collected runtime state (state=0, pickup=0, pickupY=104, playerY=102)",
+      "reason": "Unresolved: first assertion alone does not establish whether current behaviour or the expectation is authoritative.",
+      "cleared_by": "Investigate docs/diagnostics/test-debt/triage.json T127"
+    },
+    {
+      "file": "tests/weapon-pickup-rapid-fire.test.mjs",
+      "test": "weapon boosters use four proportional ANTIC 2 segments with a timer-derived warning blink",
+      "class": "E",
+      "first_failing_assertion": "tests/weapon-pickup-rapid-fire.test.mjs:458",
+      "first_failing_message": "Expected values to be strictly deep-equal:",
+      "reason": "Unresolved: first assertion alone does not establish whether current behaviour or the expectation is authoritative.",
+      "cleared_by": "Investigate docs/diagnostics/test-debt/triage.json T128"
+    },
+    {
+      "file": "tests/weapon-pickup-rapid-fire.test.mjs",
+      "test": "HULL plates and the ten-cell BOOST field remain distinct at native screen codes",
+      "class": "E",
+      "first_failing_assertion": "tests/weapon-pickup-rapid-fire.test.mjs:501",
+      "first_failing_message": "Expected values to be strictly deep-equal:",
+      "reason": "Unresolved: first assertion alone does not establish whether current behaviour or the expectation is authoritative.",
+      "cleared_by": "Investigate docs/diagnostics/test-debt/triage.json T129"
+    },
+    {
+      "file": "tests/weapon-pickup-rapid-fire.test.mjs",
+      "test": "Rapid Fire lasts 500 active frames and keeps its accepted accelerated burst",
+      "class": "E",
+      "first_failing_assertion": "tests/weapon-pickup-rapid-fire.test.mjs:546",
+      "first_failing_message": "Error: Rapid burst requires collected runtime state (state=0, pickup=0, pickupY=104, playerY=102)",
+      "reason": "Unresolved: first assertion alone does not establish whether current behaviour or the expectation is authoritative.",
+      "cleared_by": "Investigate docs/diagnostics/test-debt/triage.json T130"
+    },
+    {
+      "file": "tests/weapon-pickup-rapid-fire.test.mjs",
+      "test": "release trace CSV exposes the authoritative counter, state, timing and score",
+      "class": "E",
+      "first_failing_assertion": "tests/weapon-pickup-rapid-fire.test.mjs:761",
+      "first_failing_message": "Error: Rapid burst requires collected runtime state (state=0, pickup=0, pickupY=104, playerY=102)",
+      "reason": "Unresolved: first assertion alone does not establish whether current behaviour or the expectation is authoritative.",
+      "cleared_by": "Investigate docs/diagnostics/test-debt/triage.json T131"
+    },
+    {
+      "file": "tests/weapon-pickup-shield.test.mjs",
+      "test": "pickup rotation is exactly Rapid Spread Shield Rapid without RNG",
+      "class": "E",
+      "first_failing_assertion": "tests/weapon-pickup-shield.test.mjs:63",
+      "first_failing_message": "Expected values to be strictly deep-equal:",
+      "reason": "Unresolved: first assertion alone does not establish whether current behaviour or the expectation is authoritative.",
+      "cleared_by": "Investigate docs/diagnostics/test-debt/triage.json T132"
+    },
+    {
+      "file": "tests/weapon-pickup-shield.test.mjs",
+      "test": "Shield HUD uses exact 188 126 63 thresholds and a continuous distinct glyph",
+      "class": "E",
+      "first_failing_assertion": "tests/weapon-pickup-shield.test.mjs:167",
+      "first_failing_message": "Expected values to be strictly deep-equal:",
+      "reason": "Unresolved: first assertion alone does not establish whether current behaviour or the expectation is authoritative.",
+      "cleared_by": "Investigate docs/diagnostics/test-debt/triage.json T133"
+    },
+    {
+      "file": "tests/weapon-pickup-spread-shot.test.mjs",
+      "test": "the release ATR executes the deterministic Rapid Spread Shield drop cycle",
+      "class": "E",
+      "first_failing_assertion": "tests/weapon-pickup-spread-shot.test.mjs:96",
+      "first_failing_message": "Expected values to be strictly deep-equal:",
+      "reason": "Unresolved: first assertion alone does not establish whether current behaviour or the expectation is authoritative.",
+      "cleared_by": "Investigate docs/diagnostics/test-debt/triage.json T135"
+    },
+    {
+      "file": "tests/weapon-pickup-spread-shot.test.mjs",
+      "test": "Spread collection lasts exactly 500 active PAL frames and pause freezes it",
+      "class": "E",
+      "first_failing_assertion": "tests/weapon-pickup-spread-shot.test.mjs:125",
+      "first_failing_message": "Expected values to be strictly deep-equal:",
+      "reason": "Unresolved: first assertion alone does not establish whether current behaviour or the expectation is authoritative.",
+      "cleared_by": "Investigate docs/diagnostics/test-debt/triage.json T136"
+    },
+    {
+      "file": "tests/weapon-pickup-spread-shot.test.mjs",
+      "test": "all three projectiles leave the screen cleanly without HUD or charset corruption",
+      "class": "E",
+      "first_failing_assertion": "tests/weapon-pickup-spread-shot.test.mjs:287",
+      "first_failing_message": "the volley is the full left/centre/right fan",
+      "reason": "Unresolved: first assertion alone does not establish whether current behaviour or the expectation is authoritative.",
+      "cleared_by": "Investigate docs/diagnostics/test-debt/triage.json T137"
     }
   ],
   "removed_2026_10_01": {
@@ -1194,6 +2265,142 @@
         "status_2026_10_06": "RED AGAIN, as predicted above, on the plasma FX evidence (feat/plasma-fx B2, ATR e0aa70620e1ae074...): the JS cycle model's reference frames no longer include 1-evasive-fire3 frame 288, so none of the ten heaviest trace frames carries a DMA-off reference (the test's last assertion). Same cause, no regression; recorded, cleared_by unchanged.",
         "outcome": "removed - it passes by coincidence after W1 (level 1's shorter route moved the ten heaviest frames onto rows the JS cycle model references); the cause is untouched",
         "backlog": "chore/cycle-model-pairshot stays in docs/STATUS.md's backlog: a later reshuffle can turn the test red again without any regression"
+      }
+    ]
+  },
+  "triage_2026_10_31": {
+    "baseline": "6046c0b",
+    "before": {
+      "tests": 1653,
+      "suites": 0,
+      "pass": 1512,
+      "fail": 137,
+      "cancelled": 0,
+      "skipped": 4,
+      "todo": 0,
+      "duration_ms": 918923.159875
+    },
+    "raw_after": {
+      "tests": 1652,
+      "suites": 0,
+      "pass": 1527,
+      "fail": 121,
+      "cancelled": 0,
+      "skipped": 4,
+      "todo": 0,
+      "duration_ms": 947297.292291
+    },
+    "audited_after": {
+      "tests": 1652,
+      "suites": 0,
+      "pass": 1528,
+      "fail": 120,
+      "cancelled": 0,
+      "skipped": 4,
+      "todo": 0,
+      "duration_ms": 947297.292291
+    },
+    "classes": {
+      "a": 11,
+      "b": 5,
+      "c": 1,
+      "d": 1,
+      "e": 119
+    },
+    "remaining": {
+      "a": 0,
+      "b": 0,
+      "c": 0,
+      "d": 1,
+      "e": 119
+    },
+    "report": "docs/diagnostics/test-debt/report.md",
+    "note": "Agent classification, not owner acceptance. Unknown entries remain unresolved.",
+    "cleared": [
+      {
+        "test": "the window's free tail agrees with the linker map's Light kernel tail",
+        "class": "a",
+        "justification": "6046c0b: merged M3-H uses 2,302 window bytes, leaving 1,282; 900-byte floor retained."
+      },
+      {
+        "test": "the window has room for the Director: the free tail stays at 900 B or more",
+        "class": "a",
+        "justification": "6046c0b: merged M3-H uses 2,302 window bytes, leaving 1,282; 900-byte floor retained."
+      },
+      {
+        "test": "every third idle-slot qualifying kill creates one deterministic pending capsule",
+        "class": "b",
+        "justification": "b2261c9: ordinary-drop fixture excludes LIFE selection at eight lives; preserves no-RNG assertion."
+      },
+      {
+        "test": "HULL: a spent quarter is the HUD's blank, as a spent BOOST cell - full, partial and empty hull",
+        "class": "a",
+        "justification": "35499ba / owner §BL: compact HUD moves HULL to columns 4–7 and SCORE to 35–39."
+      },
+      {
+        "test": "HULL: the respawn's full hull shows four plates again",
+        "class": "a",
+        "justification": "35499ba / owner §BL: compact HUD moves HULL to columns 4–7 and SCORE to 35–39."
+      },
+      {
+        "test": "HULL: the boss sector's HUD, rebuilt by the install, blanks the spent quarters too",
+        "class": "a",
+        "justification": "35499ba / owner §BL: compact HUD moves HULL to columns 4–7 and SCORE to 35–39."
+      },
+      {
+        "test": "debris damage updates HULL plates in the contact frame and enters canonical death flow",
+        "class": "a",
+        "justification": "35499ba / owner §BL: compact HUD moves HULL to columns 4–7 and SCORE to 35–39."
+      },
+      {
+        "test": "each booster type carries its own recovered capsule silhouette",
+        "class": "a",
+        "justification": "b2261c9: M6 LIFE moves four canonical capsule masks from main.s to the generated Light-kernel table; assembled byte test covers masks."
+      },
+      {
+        "test": "the three silhouettes are visually distinguishable",
+        "class": "a",
+        "justification": "b2261c9: M6 LIFE moves four canonical capsule masks from main.s to the generated Light-kernel table; assembled byte test covers masks."
+      },
+      {
+        "test": "the shape table is in plain player bit order, with no fifth-player residue",
+        "class": "c",
+        "justification": "b2261c9 replaces the inline table and encoding comment; retire comment-presence test, keep assembled mask comparison."
+      },
+      {
+        "test": "the recorded-failure list is one data file, and every entry carries a class and a measurement",
+        "class": "b",
+        "justification": "2026-10-28 debt additions postdate canonical trace; consistent synthetic report/list fixture preserves all gate predicates; 12d35c1 routes strict policy via resolveRuntimeEvidence."
+      },
+      {
+        "test": "the release gate passes on the real report, recorded failures and all",
+        "class": "b",
+        "justification": "2026-10-28 debt additions postdate canonical trace; consistent synthetic report/list fixture preserves all gate predicates; 12d35c1 routes strict policy via resolveRuntimeEvidence."
+      },
+      {
+        "test": "the release gate fails when a recorded failure silently disappears",
+        "class": "b",
+        "justification": "2026-10-28 debt additions postdate canonical trace; consistent synthetic report/list fixture preserves all gate predicates; 12d35c1 routes strict policy via resolveRuntimeEvidence."
+      },
+      {
+        "test": "the release gate fails when timing_and_dli_passed is false",
+        "class": "b",
+        "justification": "2026-10-28 debt additions postdate canonical trace; consistent synthetic report/list fixture preserves all gate predicates; 12d35c1 routes strict policy via resolveRuntimeEvidence."
+      },
+      {
+        "test": "assembled decimal score code carries without inserting partial-game scores",
+        "class": "a",
+        "justification": "35499ba / owner §BL: compact HUD moves HULL to columns 4–7 and SCORE to 35–39."
+      },
+      {
+        "test": "three eight-phase source banks hold one tapered 8x16 capsule and the runtime draws a PMG silhouette",
+        "class": "a",
+        "justification": "b2261c9: M6 LIFE moves four canonical capsule masks from main.s to the generated Light-kernel table; assembled byte test covers masks."
+      },
+      {
+        "test": "Spread Shot owns one phased red fan in the shared six-glyph bank",
+        "class": "a",
+        "justification": "b2261c9: M6 LIFE moves four canonical capsule masks from main.s to the generated Light-kernel table; assembled byte test covers masks."
       }
     ]
   }

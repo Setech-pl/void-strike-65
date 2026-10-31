@@ -1,6 +1,6 @@
 # VOID STRIKE 65 — CURRENT STATUS
 
-Last update: 2026-10-31 (M3-H session-finish smoke repair candidate)
+Last update: 2026-10-31 (test debt triage; gameplay baseline unchanged)
 
 What is true now. Rules: [reguly-projektu.txt](reguly-projektu.txt). Roadmap:
 [plan-realizacji.md](plan-realizacji.md). Source-of-truth order:
@@ -19,6 +19,10 @@ the values below.
 ---
 
 ## Checkpoint
+
+### Pre-v0.4.0 test debt triage — uncommitted infrastructure changes
+
+Main baseline 6046c0b. Full suite 1512 PASS/137 FAIL/4 SKIP before; raw after 1527/121/4. One generated-ABI fixture race repaired and full affected file rerun; audited 1528/120/4, A120/B0/C17 (line-only assertion shifts audited). 119 unit cases and all 32 native assertions remain unknown; the known preview-tool defect remains. No game source, CPU/RAM layout or canonical runtime evidence changed. Commits blocked by linked-worktree Git metadata permissions. [Per-test classification, audit and remaining work](diagnostics/test-debt/report.md). NEXT TASK: investigate remaining unknowns and refresh milestone release evidence; no release-readiness claim.
 
 ### M3-H session 2 — smoke repair OWNER-SMOKE CANDIDATE
 

@@ -16,8 +16,8 @@ Przeciwnicy dzielą się na dwie klasy:
 
 Poziom trudności wybierasz w menu: **ROOKIE**, **PILOT** albo **ACE**. Tam,
 gdzie liczba niżej ma trzy wartości, dotyczą one tych trzech poziomów w tej
-kolejności. Przeciwnik wytrzymuje tyle samo trafień na każdym poziomie
-trudności; trudność zmienia to, jak często strzela.
+kolejności. Przeciwnik zachowuje podaną wytrzymałość, chyba że opis odmiany
+podaje trzy wartości; trudność zmienia też to, jak często strzela.
 
 <img src="media/badges/wkrotce.svg" height="16" alt="WKRÓTCE"> oznacza to, co
 jest już zbudowane, ale nie weszło do v0.3.0. Przyjdzie razem z kampanią.
@@ -45,6 +45,14 @@ migasz po odrodzeniu.
 
 Podstawowy wrogi myśliwiec, latający parą.
 
+Na poziomie 2 pojawia się też opancerzona odmiana: szersze skrzydła osłonięte
+płytami, fioletowy kolor kadłuba, 2 /2 /3 trafienia do zniszczenia,
+zaplanowany postój strzelecki i unik w bok po trafieniu, które przeżyje.
+Szturmowe Raidery zachowują dawną sylwetkę i giną od jednego trafienia.
+Obie odmiany mają tę samą broń, punktację i sposób rysowania.
+Opancerzona odmiana traci widoczny fragment jednego skrzydła przy 2 i 1 HP; Raider zaczynający z
+2 HP po pierwszym przeżytym trafieniu od razu pokazuje ostatni wygląd uszkodzeń.
+
 - **Trafień do zniszczenia:** 1. **Punkty:** 10.
 - **Broń:** para ma wspólny rytm strzałów. Wystrzeliwuje pięć impulsów co 15
   klatek, potem robi przerwę 60 / 50 / 40 klatek (1,2 / 1,0 / 0,8 s). Strzał
@@ -70,8 +78,9 @@ Ciężki bombowiec o sylwetce katamaranu (dwa kadłuby, jeden mostek), więc nig
 nie wygląda jak duży Raider. Jest zielony, a tego koloru nie nosi nic innego w
 tej bitwie.
 
-- **Trafień do zniszczenia:** 4. Kadłub ciemnieje z każdym trafieniem, więc po
-  kolorze poznasz, ile mu zostało; błyska przy trafieniu, które przeżyje.
+- **Trafień do zniszczenia:** 4 / 4 / 5. Przy 2 HP zielony kadłub ciemnieje;
+  przy 1 HP staje się pomarańczowoczerwony. Błyska przy przeżytym trafieniu
+  i traci widoczny fragment jednego boku przy 2 i 1 HP.
 - **Punkty:** 50.
 - **Broń:** nalot. Bomber zatrzymuje się, jego kadłub rozjaśnia się na 20
   klatek, gdy celuje, a potem wystrzeliwuje dwa pociski co 8 klatek z tego
@@ -80,6 +89,9 @@ tej bitwie.
 - **Ruch:** każdy z pary przeczesuje własny pas, jeden po lewej, drugi po
   prawej. Zawraca na brzegu pasa albo po pół sekundy do sekundy i opada o
   jedną linię co drugą klatkę.
+- **Przed przelotem korytarzem:** przestaje strzelać i odlatuje w bok ku
+  bliższej krawędzi ekranu, średnio trzy piksele rastra na klatkę. Znika,
+  gdy cały opuści ekran. Podczas odlotu nadal możesz go uszkodzić lub zniszczyć.
 - **Zderzenie:** zabiera cały kadłub.
 - **Gdzie:** pierwszy sektor poziomu 1 (cztery pary) i jedna para po
   przelocie korytarzem.

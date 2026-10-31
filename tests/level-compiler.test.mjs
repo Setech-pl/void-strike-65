@@ -423,9 +423,9 @@ test("T2: build/level-1.bin is 16 sectors with the LevelDef and island pages whe
     // RE-POINTED M5b-S4b.1 (owner decision D3, 2026-10-06): bytes 8-16 are
     // the laser's warning (EASY 40, MEDIUM 32, HARD 25) and its 16-bit reload
     // (300, 225, 150 frames) per difficulty; the rest of boss_def is zero.
-    const outside = Buffer.concat([payload.subarray(16, 184), payload.subarray(211)]);
+    const outside = Buffer.concat([payload.subarray(16, 162), payload.subarray(179,184), payload.subarray(211)]);
     assert.equal(Buffer.compare(outside, Buffer.alloc(outside.length)), 0,
-      "one 16-B look, the grade block, the boss bonus, HP scale, laser damage, warning and reload and nothing else");
+      "Light look, 17-B Heavy look, grade, boss bonus/HP/laser data; other reserved bytes stay zero");
     assert.deepEqual([...payload.subarray(202, 205)], [40, 32, 25], "the laser's warning, EASY / MEDIUM / HARD");
     assert.deepEqual([...payload.subarray(205, 211)], [300 & 0xff, 225, 150, 300 >> 8, 0, 0], "the laser's reload, low then high");
     assert.deepEqual([...payload.subarray(199, 202)], [5, 10, 10], "the laser's damage, EASY / MEDIUM / HARD");
@@ -516,8 +516,11 @@ test("levels:check runs the validator alone and the build compiles the authored 
   // RE-POINTED S5-1 (plan s5-boss-regions §5): a --boss-region route compiles
   // level 1's authored file under its run's id (levelSourceIdForRun); every
   // other build compiles the run's own file, as before.
-  assert.match(buildSource, /compileLevelFile\(levelSourcePath\(levelSourceIdForRun\(run\.id\)\)/,
+  // Owner 2026-10-31: the Heavy shortcut applies its data-only override to
+  // this same authored source; ordinary builds compile the selected file.
+  assert.match(buildSource, /: levelSourcePath\(levelSourceIdForRun\(run\.id\)\)\);/,
     "the build must compile the authored JSON, not carry the bytes");
+  assert.match(buildSource, /: compileLevelFile\(file,\{hullAsset:capitalHullsAsset\}\)/);
   assert.match(buildSource, /const levelSourceIdForRun = \(id\) => \(bossRegionValue !== null \? 1 : id\);/);
 });
 

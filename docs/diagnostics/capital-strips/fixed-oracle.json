@@ -1,0 +1,9 @@
+{
+  "build": ".cache/capital-strips/fixed/build/level-2-s0",
+  "journal": ".cache/capital-strips/fixed-final-writes.csv",
+  "checkedCapitalFrames": 1864,
+  "badFrames": 0,
+  "firstWrongHull": null,
+  "firstBadRowPointer": null,
+  "copyPc": 22272
+}

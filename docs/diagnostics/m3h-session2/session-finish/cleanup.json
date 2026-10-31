@@ -1,0 +1,19 @@
+{
+  "before": {
+    "task": "158M\t.cache/m3h-session2-finish",
+    "worktreeCache": "161M\t.cache",
+    "disk": "Filesystem      Size    Used   Avail Capacity iused ifree %iused  Mounted on\n/dev/disk3s5   926Gi   524Gi   379Gi    59%    5.5M  4.0G    0%   /System/Volumes/Data"
+  },
+  "after": {
+    "task": "1.0M\t.cache/m3h-session2-finish",
+    "worktreeCache": "3.9M\t.cache",
+    "disk": "Filesystem      Size    Used   Avail Capacity iused ifree %iused  Mounted on\n/dev/disk3s5   926Gi   524Gi   379Gi    59%    5.5M  4.0G    0%   /System/Volumes/Data"
+  },
+  "preservedOriginalPlayATRs": 18,
+  "newPlayATRs": 3,
+  "newPlayBytes": 399408,
+  "playException": "Final owner-smoke delivery requested under build/play; old18 preserved byte-for-byte. No intermediate build remains.",
+  "processes": "Owned test/native processes exited; no persistent dev server started.",
+  "worktreeNodeModules": "retained",
+  "cacheEvidenceOnly": true
+}

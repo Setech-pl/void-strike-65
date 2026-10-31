@@ -1,3 +1,4 @@
+import {compileHeavyDamage,renderHeavyDamageInclude} from "./heavy-damage.mjs";
 import crypto from "node:crypto";
 import {islandRecipeBytes, ISLAND_RECORD_BYTES, ISLAND_DESCRIPTORS_OFFSET,
   ISLAND_SPANS_OFFSET, ISLAND_LOOKUP_OFFSET} from "./l2-islands.mjs";
@@ -38,6 +39,8 @@ import {
   HULL_STYLE_BLOCK_OFFSETS,
 } from "./capital-hulls.mjs";
 import {
+  compileLevel,
+  loadLevelSource,
   compileLevelFile,
   levelSourcePath,
   LEVEL_CORE_OFFSET,
@@ -61,6 +64,7 @@ import {
   renderLevelDefCHeader,
   CORE_DEBUG_START_SECTOR_OFFSET,
 } from "./level-compiler.mjs";
+import {heavySmokeLevelSource} from './heavy-smoke-level.mjs';
 import {
   compileEnemyRoster,
   loadEnemyRosterDefinition,
@@ -200,6 +204,7 @@ const twoPmgRaiderPrototype = process.argv.includes("--two-pmg-raiders");
 // frames to measure. It is not a shipping artifact.
 const forceLightPopulation = process.argv.includes("--force-light-population");
 const enemyReviewHarness = process.argv.includes("--enemy-review");
+const heavyDamageReview = process.argv.includes("--heavy-damage-review");
 const enemyCombatReviewHarness = process.argv.includes("--enemy-combat-review");
 const enemyPaletteArgument = process.argv.find((argument) => argument.startsWith("--enemy-palette="));
 const enemyPaletteSlug = enemyPaletteArgument?.slice("--enemy-palette=".length);
@@ -503,7 +508,7 @@ const variantDirectoryNameInner = (escortVariantId !== null
                   : null);
 const longCapital=process.argv.includes("--l2-long-capital");
 if(longCapital && (levelDebugId!==1 || levelDebugSector!==1 || bossRegionValue!==null)) throw new Error("--l2-long-capital requires --level=1:sector=1");
-const variantDirectoryName = longCapital?"l2-capital-960":variantDirectoryNameInner;
+const variantDirectoryName = heavyDamageReview?`heavy-damage-review${levelDebugSuffix}`:longCapital?"l2-capital-960":variantDirectoryNameInner;
 const buildDirectory = variantDirectoryName === null
   ? defaultBuildDirectory
   : path.join(defaultBuildDirectory, variantDirectoryName);
@@ -1416,7 +1421,7 @@ async function buildResidentModule({ sourcePath, configPath, stem, extraInputs =
 }
 
 async function buildHybridDirectorModule(fighterWeaponsInclude, levelDefInclude,
-  levelDefHeader, levelDebugStartSector, bossLayoutInclude) {
+  levelDefHeader, levelDebugStartSector, bossLayoutInclude, heavyDamageInclude) {
   const base = "/project/build/encounter-director";
   const cSource = fs.readFileSync(path.join(rootDirectory, "src", "c", "director.c"));
   const cHeader = fs.readFileSync(path.join(rootDirectory, "src", "c", "director.h"));
@@ -1427,7 +1432,8 @@ async function buildHybridDirectorModule(fighterWeaponsInclude, levelDefInclude,
   );
   const stdintHeader = fs.readFileSync(path.join(shareDir, "include", "stdint.h"));
   const longBranchMacros = fs.readFileSync(path.join(shareDir, "asminc", "longbranch.mac"));
-  const abiSource = fs.readFileSync(path.join(rootDirectory, "src", "hybrid", "c-asm-abi.s"));
+  const abiSource = Buffer.from(`HEAVY_DAMAGE_REVIEW = ${heavyDamageReview?1:0}
+` + fs.readFileSync(path.join(rootDirectory, "src", "hybrid", "c-asm-abi.s"),"utf8"));
   const config = fs.readFileSync(path.join(rootDirectory, "cfg", "encounter-director.cfg"));
   const lifeCompiled = await runWasmTool("cc65", {
     "/project/life-capsule.c": fs.readFileSync(path.join(rootDirectory, "src/c/life-capsule.c")),
@@ -1504,6 +1510,26 @@ async function buildHybridDirectorModule(fighterWeaponsInclude, levelDefInclude,
     const end=lifecycleText.indexOf(".endproc",start);
     lifecycleText=lifecycleText.slice(0,end)+(name==="sector_c_update_capital_phase" ? fs.readFileSync(path.join(rootDirectory,"src/hybrid/l2-lifetime.s"),"utf8")+"\n" : "")+`.res ${bytes}-(*-l2_pin_start), $00\n`+lifecycleText.slice(end);
   }
+  // H14 moves the masked death policy after hot window code, retaining the
+  // original 33-byte arena entry and every later address.
+  {
+    const start=lifecycleText.indexOf(".proc\t_enemy_c_heavy_breakup_claim:");
+    if(start<0)throw new Error("Heavy breakup fixed entry missing");
+    const end=lifecycleText.indexOf(".endproc",start);
+    const head=lifecycleText.indexOf("\n",start)+1;
+    lifecycleText=lifecycleText.slice(0,end)+".res 33-(*-heavy_claim_pin), $00\n"+lifecycleText.slice(end);
+    lifecycleText=lifecycleText.slice(0,head)+"heavy_claim_pin:\n"+lifecycleText.slice(head);
+  }
+  // Recovery A: retain the 105-byte damage entry and every following hot
+  // extension/ASM address when its nonlethal returns become resident tail calls.
+  {
+    const start=lifecycleText.indexOf(".proc\t_enemy_c_apply_pending_damage:");
+    if(start<0)throw new Error("Heavy damage fixed entry missing");
+    const end=lifecycleText.indexOf(".endproc",start);
+    const head=lifecycleText.indexOf("\n",start)+1;
+    lifecycleText=lifecycleText.slice(0,end)+".res 105-(*-heavy_damage_pin), $00\n"+lifecycleText.slice(end);
+    lifecycleText=lifecycleText.slice(0,head)+"heavy_damage_pin:\n"+lifecycleText.slice(head);
+  }
   lifecycleGeneratedAssembly=Buffer.from(lifecycleText);
   if (process.env.VS65_DUMP_GENERATED === "1") {
     writeFile(path.join(buildDirectory, "director-generated.s"), generatedAssembly);
@@ -1540,6 +1566,8 @@ async function buildHybridDirectorModule(fighterWeaponsInclude, levelDefInclude,
   const abiAssembled = await runWasmTool(
     "ca65",
     { [`${base}-abi.s`]: abiSource,
+      "/project/build/heavy-damage.s": fs.readFileSync(path.join(rootDirectory,"src/hybrid/heavy-damage.s")),
+      "/project/build/heavy-damage.inc": heavyDamageInclude,
       "/project/build/content-module.s": fs.readFileSync(path.join(rootDirectory,"src/hybrid/content-module.s")),
       "/project/build/life-capsule-layout.inc": fs.readFileSync(path.join(rootDirectory, "src/hybrid/life-capsule-layout.inc")),
       "/project/build/fighter-weapons.inc": fighterWeaponsInclude,
@@ -1603,7 +1631,8 @@ async function buildHybridDirectorModule(fighterWeaponsInclude, levelDefInclude,
   const windowFlowBytes = parsedLabels.get("__HYBRID_C_WINDOW_FLOW_SIZE__");
   const heavyWindowBytes = (parsedLabels.get("__HYBRID_C_WINDOW_HEAVY_SIZE__") ?? 0) +
     (parsedLabels.get("__HYBRID_C_WINDOW_HEAVY_RODATA_SIZE__") ?? 0) +
-    (parsedLabels.get("__HYBRID_ASM_HEAVY_WINDOW_SIZE__") ?? 0);
+    (parsedLabels.get("__HYBRID_ASM_HEAVY_WINDOW_SIZE__") ?? 0) +
+    (parsedLabels.get("__HYBRID_C_WINDOW_LOOK_SIZE__") ?? 0);
   const basicWindowBytes = [windowAsmBytes, windowCodeBytes, windowRodataBytes, windowFlowBytes]
     .every(Number.isInteger)
     ? windowAsmBytes + windowCodeBytes + windowRodataBytes + windowFlowBytes + heavyWindowBytes : undefined;
@@ -1826,6 +1855,19 @@ function renderDirectorAbiInclude(labelBytes, lightKernelAddress, pauseFrontendM
     ["HEAVY_ABI_X", "heavy_abi_x"],
     ["HEAVY_ABI_Y", "heavy_abi_y"],
     ["HEAVY_ABI_PLAYER_X", "heavy_abi_player_x"],
+    ["HEAVY_BODY_INDEX", "heavy_body_index"],
+    ["HEAVY_DAMAGE_MEMBER_STATE", "heavy_damage_member_state"],
+    ["HEAVY_DAMAGE_TARGET_SLOT", "heavy_damage_target_slot"],
+    ["HEAVY_DAMAGE_DRAW", "heavy_damage_draw"],
+    ["HEAVY_DEPARTURE_ERASE", "heavy_departure_erase"],
+    ["HEAVY_VISUAL_RETRY", "heavy_visual_retry"],
+    ["HEAVY_BREAKUP_SPAWN", "heavy_breakup_spawn"],
+    ["HEAVY_BODY_FLAGS", "heavy_body_flags"],
+    ["HEAVY_BODY_HEIGHT_OPERAND", "heavy_body_height_operand"],
+    ["HEAVY_BODY_BASE_OPERAND", "heavy_body_base_operand"],
+    ["HEAVY_ABI_SHAPE", "heavy_abi_shape"],
+    ["HEAVY_ABI_BODY_DATA", "heavy_abi_body_data"],
+    ["HEAVY_ABI_FRAME_HEIGHTS", "heavy_abi_frame_heights"],
     // Heavy break-up (plan-4.6-placement.md §7.4 variant 2): the kill frame's
     // DEFERRABLE token claim, and the deferred-once bit its forcing rule needs.
     ["HYBRID_ENEMY_HEAVY_BREAKUP_CLAIM", "enemy_heavy_breakup_claim"],
@@ -2002,6 +2044,8 @@ async function build() {
   const paletteCandidate = paletteCandidateId
     ? enemyRosterAsset.runtime.colourPolicy.candidates.find(({ id }) => id === paletteCandidateId)
     : null;
+  const heavyDamageInclude = Buffer.from(renderHeavyDamageInclude(compileHeavyDamage(enemyRosterDefinition)));
+  writeFile(path.join(buildDirectory,"heavy-damage.inc"),heavyDamageInclude);
   const enemyRosterInclude = Buffer.from(renderEnemyRosterCa65Include(enemyRosterAsset));
   writeFile(path.join(buildDirectory, "enemy-roster.inc"), enemyRosterInclude);
   const fighterWeaponsDefinitionPath = path.join(
@@ -2168,7 +2212,7 @@ async function build() {
         },
       }
     : await buildHybridDirectorModule(fighterWeaponsInclude, levelDefInclude,
-      levelDefHeader, levelDebugId !== null, bossLayoutInclude);
+      levelDefHeader, levelDebugId !== null, bossLayoutInclude, heavyDamageInclude);
   if (process.argv.includes("--director-only")) {
     writeFile(path.join(buildDirectory, "encounter-director.map"), directorModule.map);
     writeFile(path.join(buildDirectory, "encounter-director.lbl"), directorModule.labels);
@@ -2625,11 +2669,15 @@ async function build() {
   // Roadmap 4.6 step 1: the authored level compiles here, so a level file that
   // asks for something the runtime cannot honour fails the build, not the
   // owner's smoke (plan §5).
-  const compiledLevels = new Map(levelRuns.map((run) =>
-    [run.id, bossVariantLevel(run.id) !== null
-      ? compileLevelFile(bossVariantLevel(run.id), { hullAsset: capitalHullsAsset })
-      : longCapital ? compileLevelFile(path.join(rootDirectory,"assets/levels/diagnostics/l2-capital-960.json"), {hullAsset:capitalHullsAsset})
-      : compileLevelFile(levelSourcePath(levelSourceIdForRun(run.id)), { hullAsset: capitalHullsAsset })]));
+  const compiledLevels = new Map(levelRuns.map((run) => {
+    const file = bossVariantLevel(run.id) ?? (longCapital
+      ? path.join(rootDirectory,"assets/levels/diagnostics/l2-capital-960.json")
+      : levelSourcePath(levelSourceIdForRun(run.id)));
+    return [run.id, levelDebugId === 2 && levelDebugSector === 5
+      ? compileLevel(heavySmokeLevelSource(loadLevelSource(file),levelDebugId,levelDebugSector),
+        {file,hullAsset:capitalHullsAsset})
+      : compileLevelFile(file,{hullAsset:capitalHullsAsset})];
+  }));
   // ... and stamps the sector to enter into the core page's own byte, which
   // director_c_init reads only under LEVEL_DEBUG_START.
   if (levelDebugId !== null) {
@@ -5479,7 +5527,7 @@ async function build() {
         guard: "HYBRID_C_WINDOW_GUARD $BC1A-$BC1F, reserved with no segment, plus the ld65 " +
           "assert \"HYBRID_C_WINDOW reaches the sector reader BSS at $BC00\"",
         contents: basicWindowSegment === null ? null
-          : "Director: HYBRID_ASM_WINDOW + HYBRID_C_WINDOW + HYBRID_C_WINDOW_RODATA + HYBRID_C_WINDOW_FLOW + HYBRID_C_WINDOW_HEAVY + HYBRID_C_WINDOW_HEAVY_RODATA + HYBRID_ASM_HEAVY_WINDOW",
+          : "Director: HYBRID_ASM_WINDOW + HYBRID_C_WINDOW + HYBRID_C_WINDOW_RODATA + HYBRID_C_WINDOW_FLOW + HYBRID_C_WINDOW_HEAVY + HYBRID_C_WINDOW_HEAVY_RODATA + HYBRID_ASM_HEAVY_WINDOW + HYBRID_C_WINDOW_LOOK",
         transport: basicWindowRecord === null ? null : {
           record: "own DFMC record, LZ, stagingId extension",
           finalDestination: basicWindowRecord.finalDestination,

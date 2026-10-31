@@ -1,0 +1,20 @@
+✔ the SKCTL values the game leaves at rest keep async receive off and the keyboard scan on (0.975167ms)
+✔ every SKCTL write is one this diagnosis reviewed (a new one must keep bit 4 clear at rest) (3.769875ms)
+✔ the save write's exits both hand POKEY back through sector_reader_quiesce (0.396208ms)
+✔ the cold start writes SKCTL_AUDIO before it enters the main menu (1.309708ms)
+✔ the boss entry's loads leave async receive off (debug route --level=1:sector=6, real SIO) (6432.081292ms)
+✔ stage 2 arms DSTATS for receive before every SIOV call, not once per chunk (2.266458ms)
+✔ the built ATR boots through real SIO to gameplay, BASIC on and off (scripts/sio-boot-repro.mjs) (2310.761292ms)
+✔ a default run reads dist/ and build/ and writes build/runtime-wall-trace/ (0.552167ms)
+✔ --artifacts accepts a debug-route build and keeps every path inside it (0.179542ms)
+✔ --artifacts refuses anything that is not build/level-N-sM (0.334292ms)
+✔ a debug-route run is focused, writes no docs/, and matches its manifest (0.475542ms)
+✔ a debug-route replay leaves the default evidence byte-identical (29384.381083ms)
+ℹ tests 12
+ℹ suites 0
+ℹ pass 12
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 38274.062458

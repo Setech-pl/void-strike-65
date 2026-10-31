@@ -55,7 +55,7 @@ const ART = Object.freeze({
   "hull-style-R3.bin": "6ecd32d2e5812b8efd0235d3133dc261687a2c0b02535941f9359a808531408a",
   "hull-style-R4.bin": "19d564fffe4e85f94b6f1453a1f72060b275440db425174d366d5a4579d103b1",
   "level-hull-block.bin": "e9e39ec1e358a8b8841d7a700821a4dd4dad9d2ce1f550e8e697500dfd8e2674",
-  "level-payload.bin": "c97e1626223dc32d6bfca262584b2823ded5292473246b38389dfa63dd77edcf",
+  "level-payload.bin": "683c46256e6e6d304751da0443bbbd224f8468073ee34bf17d4a128648bde21e", // Owner 2026-10-31: armoured colour $46 -> $68; sole payload byte 178 changes.
   "level-summary-art-1.bin": "0367e8a39d120c8d3fff028b650568c01813c92a886445339aadc69523ce9c51",
   "boot-splash.bin": "d0b287a7b11d3eb27841a4a0cc388f553d6dfc47876d2d6607f3e27f2a16ec83",
 });

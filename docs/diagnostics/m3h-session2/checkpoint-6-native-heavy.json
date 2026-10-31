@@ -1,0 +1,171 @@
+{
+  "measurement": "MEASURED Atari800 7.1.2 PAL, DMA on, final guest bytes",
+  "finals": [
+    {
+      "name": "natural",
+      "id": "m3h-live-heavy",
+      "frames": 2400,
+      "hostLivesTopUp": 3,
+      "HPFixturePokes": null,
+      "artifact": {
+        "void-strike-65-boot.bin": {
+          "path": "build/level-2-s5/void-strike-65-boot.bin",
+          "bytes": 27136,
+          "sha256": "926f167477ef430e6c13f652ead7fca647e0913859f7d849ccaa264fead4015a"
+        },
+        "void-strike-65.atr": {
+          "path": "build/level-2-s5/void-strike-65.atr",
+          "bytes": 133136,
+          "sha256": "89d5689698785ddf05294b85fed0a1f5acdcb6b194e3e0ff632da044491989af"
+        },
+        "void-strike-65-manifest.json": {
+          "path": "build/level-2-s5/void-strike-65-manifest.json",
+          "bytes": 81293,
+          "sha256": "389f9157d5a6d534efe39af64e6179ad7b31be116a0dbb9475bae79b2c650b80"
+        }
+      },
+      "acceptance": {
+        "measured_frames": 2400,
+        "maximum_wall_cycles": 30841,
+        "wall_ceiling": 32568,
+        "physical_headroom": 4727,
+        "missed_frames": 0,
+        "extra_vbi_boundaries": 0,
+        "physical_overruns": 0,
+        "deadline_overruns": 0,
+        "dli_ordering_errors": 0,
+        "passed": true
+      },
+      "traceSha256": "aa49f18d91a997b27f05d5964ae7a1898c742febb021c000da2d667be65f041d",
+      "PMG": [
+        0,
+        0
+      ],
+      "homeWriters": [
+        {
+          "pc": 4516,
+          "count": 48,
+          "first_frame": 1505,
+          "last_frame": 2911,
+          "first_address": 21662,
+          "last_address": 21677,
+          "min_address": 21662,
+          "max_address": 21677
+        },
+        {
+          "pc": 4519,
+          "count": 48,
+          "first_frame": 1505,
+          "last_frame": 2911,
+          "first_address": 21678,
+          "last_address": 21693,
+          "min_address": 21678,
+          "max_address": 21693
+        },
+        {
+          "pc": 4644,
+          "count": 18,
+          "first_frame": 1505,
+          "last_frame": 2919,
+          "first_address": 21666,
+          "last_address": 21670,
+          "min_address": 21666,
+          "max_address": 21670
+        }
+      ],
+      "limitations": "Bomber subject; no native armoured admission claimed. Dual replay seeds HP only; no release evidence."
+    },
+    {
+      "name": "dual",
+      "id": "m3h-dual-damage",
+      "frames": 900,
+      "hostLivesTopUp": 3,
+      "HPFixturePokes": "560:5472=02,5473=02;568:5472=01,5473=01",
+      "artifact": {
+        "void-strike-65-boot.bin": {
+          "path": "build/level-2-s5/void-strike-65-boot.bin",
+          "bytes": 27136,
+          "sha256": "926f167477ef430e6c13f652ead7fca647e0913859f7d849ccaa264fead4015a"
+        },
+        "void-strike-65.atr": {
+          "path": "build/level-2-s5/void-strike-65.atr",
+          "bytes": 133136,
+          "sha256": "89d5689698785ddf05294b85fed0a1f5acdcb6b194e3e0ff632da044491989af"
+        },
+        "void-strike-65-manifest.json": {
+          "path": "build/level-2-s5/void-strike-65-manifest.json",
+          "bytes": 81293,
+          "sha256": "389f9157d5a6d534efe39af64e6179ad7b31be116a0dbb9475bae79b2c650b80"
+        }
+      },
+      "acceptance": {
+        "measured_frames": 900,
+        "maximum_wall_cycles": 30841,
+        "wall_ceiling": 32568,
+        "physical_headroom": 4727,
+        "missed_frames": 0,
+        "extra_vbi_boundaries": 0,
+        "physical_overruns": 0,
+        "deadline_overruns": 0,
+        "dli_ordering_errors": 0,
+        "passed": true
+      },
+      "traceSha256": "1d5bdb57bcc47e693fd27869100ebdddb05cf4f142bee3c8730ac31e9434e184",
+      "PMG": [
+        0,
+        0
+      ],
+      "homeWriters": [
+        {
+          "pc": 4516,
+          "count": 16,
+          "first_frame": 1489,
+          "last_frame": 1489,
+          "first_address": 21662,
+          "last_address": 21677,
+          "min_address": 21662,
+          "max_address": 21677
+        },
+        {
+          "pc": 4519,
+          "count": 16,
+          "first_frame": 1489,
+          "last_frame": 1489,
+          "first_address": 21678,
+          "last_address": 21693,
+          "min_address": 21678,
+          "max_address": 21693
+        },
+        {
+          "pc": 4644,
+          "count": 12,
+          "first_frame": 1489,
+          "last_frame": 1497,
+          "first_address": 21682,
+          "last_address": 21670,
+          "min_address": 21666,
+          "max_address": 21686
+        }
+      ],
+      "publicationHostFrames": [
+        1489,
+        1497
+      ],
+      "publicationFrames": [
+        {
+          "frame": 562,
+          "hostFrame": 1489,
+          "wall": 28972
+        },
+        {
+          "frame": 570,
+          "hostFrame": 1497,
+          "wall": 28714
+        }
+      ],
+      "maximumHitWatchDelay": 2,
+      "limitations": "Bomber subject; no native armoured admission claimed. Dual replay seeds HP only; no release evidence."
+    }
+  ],
+  "status": "BLOCKED integration, restored captured guest bytes; no post-cutoff coverage or final smoke certification"
+}

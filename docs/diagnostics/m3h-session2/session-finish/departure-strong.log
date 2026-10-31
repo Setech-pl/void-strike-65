@@ -1,0 +1,14 @@
+{"departureCases":2322,"maximumExitFrames":28,"speedRasterPixelsPerFrame":8,"newStateBytes":0}
+{"minimumHeavyFreeFrames":2,"difficulties":[0,1,2],"counterWrapCovered":true}
+✔ departing Bomber chooses nearest screen edge, flies eight pixels/frame and clears before retirement (377.358875ms)
+✔ departure hits publish both Bomber hole stages at held Y, then kill and score normally (88.157166ms)
+✔ capital admission still waits two fully Heavy-free frames, including frame-counter wrap (90.568416ms)
+✔ invalid content/phase cannot enter the departure body or its erase executor (92.912875ms)
+ℹ tests 4
+ℹ suites 0
+ℹ pass 4
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 731.904917

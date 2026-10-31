@@ -1,0 +1,24 @@
+{
+  "scope": "M3-H continuation checkpoints3\u20136; checkpoint6 blocked",
+  "before": {
+    "task": "170M\t/Users/marcinkrzetowski/Projects/dark-fighter-m3h-s2/.cache/m3h-session2",
+    "worktreeCache": "170M\t/Users/marcinkrzetowski/Projects/dark-fighter-m3h-s2/.cache",
+    "disk": "Filesystem      Size    Used   Avail Capacity iused ifree %iused  Mounted on\n/dev/disk3s5   926Gi   517Gi   383Gi    58%    5.5M  4.0G    0%   /System/Volumes/Data"
+  },
+  "after": {
+    "task": "1.4M\t/Users/marcinkrzetowski/Projects/dark-fighter-m3h-s2/.cache/m3h-session2",
+    "worktreeCache": "1.4M\t/Users/marcinkrzetowski/Projects/dark-fighter-m3h-s2/.cache",
+    "disk": "Filesystem      Size    Used   Avail Capacity iused ifree %iused  Mounted on\n/dev/disk3s5   926Gi   517Gi   383Gi    58%    5.5M  4.0G    0%   /System/Volumes/Data"
+  },
+  "retainedWorktreeNodeModules": " 13M\t/Users/marcinkrzetowski/Projects/dark-fighter-m3h-s2/node_modules",
+  "nodeModulesNote": "Worktree node_modules preserved as requested; cache copies/builds/emulator trees/NPM cache removed.",
+  "requestedATRs": {
+    "count": 14,
+    "bytes": 1863904,
+    "note": "Checkpoints1\u20135 play deliverables plus explicitly incomplete checkpoint6-diagnostic ATRs. No final checkpoint6 smoke candidate."
+  },
+  "activeTaskProcesses": [],
+  "portsOpenedByTask": 0,
+  "otherTasksTouched": false,
+  "largeEvidenceException": null
+}

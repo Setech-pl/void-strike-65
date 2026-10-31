@@ -17,7 +17,8 @@
 pin_music_stop_gameplay          = $6101   ; main
 pin_pause_silence_audio          = $6089   ; main
 ; feat/interceptor-standoff (the window full): the entry's head, PICKUP_CODE's tail.
-pin_boss_enter_head              = $8B26   ; main
+; H14 adds six pickup bytes before this cold head; instructions unchanged.
+pin_boss_enter_head              = $8B2C   ; main
 pin_capital_slot_a               = $6DE8   ; main
 pin_game_music_data_start        = $A717   ; music
 pin_sector_reader_blank          = $A03D   ; reader

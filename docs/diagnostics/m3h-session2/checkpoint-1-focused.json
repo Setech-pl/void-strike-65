@@ -1,0 +1,37 @@
+{
+  "baseline": "7fe9040",
+  "focused": {
+    "totals": {
+      "tests": 45,
+      "suites": 0,
+      "pass": 44,
+      "fail": 1,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "duration_ms": 3247.649125
+    },
+    "failures": [
+      {
+        "file": "tests/offscreen-spawn.test.mjs",
+        "declared_at": "tests/offscreen-spawn.test.mjs:157",
+        "test": "Heavy entry reaches the old per-slot anchors before unchanged crossing motion",
+        "message": "Expected values to be strictly deep-equal:",
+        "first_failing_assertion": "tests/offscreen-spawn.test.mjs:167"
+      }
+    ],
+    "hasFailingSection": true
+  },
+  "taskOnlyFailures": [],
+  "commonLaterBroadsideLabelsMoved": [],
+  "selfResolved": [
+    {
+      "test": "M3-H HP, flash hue, and spawn delta on every difficulty",
+      "reason": "H11 adds admission work; 2026-10-30 AGENTS makes component budgets report-only. HP/hue assertions remain; every profile/difficulty prints actual reset cost; native hard frame gate retained."
+    },
+    {
+      "test": "source contract: the publication skip is wired exactly as designed",
+      "reason": "Accepted H10 admission height cache replaces per-copy archetype lookup. Source assertion retains direct screen-Y consumption; real old/new NMOS body/idle comparison proves bytes and cycles."
+    }
+  ]
+}

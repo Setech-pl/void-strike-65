@@ -1,0 +1,53 @@
+{"measurement":"NMOS instruction cycles, including guard/copy/masks/draw; no ANTIC DMA","samples":[{"shape":0,"y":0,"stages":[1,0],"first":1073,"later":1170},{"shape":0,"y":0,"stages":[0,2],"first":1073,"later":651},{"shape":0,"y":0,"stages":[1,2],"first":1592,"later":651},{"shape":0,"y":0,"stages":[2,2],"first":1592,"later":132},{"shape":0,"y":15,"stages":[1,0],"first":1229,"later":1482},{"shape":0,"y":15,"stages":[0,2],"first":1229,"later":807},{"shape":0,"y":15,"stages":[1,2],"first":1904,"later":807},{"shape":0,"y":15,"stages":[2,2],"first":1904,"later":132},{"shape":0,"y":16,"stages":[1,0],"first":1241,"later":1506},{"shape":0,"y":16,"stages":[0,2],"first":1241,"later":819},{"shape":0,"y":16,"stages":[1,2],"first":1928,"later":819},{"shape":0,"y":16,"stages":[2,2],"first":1928,"later":132},{"shape":0,"y":40,"stages":[1,0],"first":1241,"later":1506},{"shape":0,"y":40,"stages":[0,2],"first":1241,"later":819},{"shape":0,"y":40,"stages":[1,2],"first":1928,"later":819},{"shape":0,"y":40,"stages":[2,2],"first":1928,"later":132},{"shape":0,"y":72,"stages":[1,0],"first":1241,"later":1506},{"shape":0,"y":72,"stages":[0,2],"first":1241,"later":819},{"shape":0,"y":72,"stages":[1,2],"first":1928,"later":819},{"shape":0,"y":72,"stages":[2,2],"first":1928,"later":132},{"shape":0,"y":225,"stages":[1,0],"first":1241,"later":1506},{"shape":0,"y":225,"stages":[0,2],"first":1241,"later":819},{"shape":0,"y":225,"stages":[1,2],"first":1928,"later":819},{"shape":0,"y":225,"stages":[2,2],"first":1928,"later":132},{"shape":0,"y":239,"stages":[1,0],"first":878,"later":780},{"shape":0,"y":239,"stages":[0,2],"first":878,"later":456},{"shape":0,"y":239,"stages":[1,2],"first":1202,"later":456},{"shape":0,"y":239,"stages":[2,2],"first":1202,"later":132},{"shape":2,"y":0,"stages":[1,0],"first":1110,"later":1244},{"shape":2,"y":0,"stages":[0,2],"first":1110,"later":688},{"shape":2,"y":0,"stages":[1,2],"first":1666,"later":688},{"shape":2,"y":0,"stages":[2,2],"first":1666,"later":132},{"shape":2,"y":15,"stages":[1,0],"first":1290,"later":1604},{"shape":2,"y":15,"stages":[0,2],"first":1290,"later":868},{"shape":2,"y":15,"stages":[1,2],"first":2026,"later":868},{"shape":2,"y":15,"stages":[2,2],"first":2026,"later":132},{"shape":2,"y":16,"stages":[1,0],"first":1302,"later":1628},{"shape":2,"y":16,"stages":[0,2],"first":1302,"later":880},{"shape":2,"y":16,"stages":[1,2],"first":2050,"later":880},{"shape":2,"y":16,"stages":[2,2],"first":2050,"later":132},{"shape":2,"y":40,"stages":[1,0],"first":1302,"later":1628},{"shape":2,"y":40,"stages":[0,2],"first":1302,"later":880},{"shape":2,"y":40,"stages":[1,2],"first":2050,"later":880},{"shape":2,"y":40,"stages":[2,2],"first":2050,"later":132},{"shape":2,"y":72,"stages":[1,0],"first":1302,"later":1628},{"shape":2,"y":72,"stages":[0,2],"first":1302,"later":880},{"shape":2,"y":72,"stages":[1,2],"first":2050,"later":880},{"shape":2,"y":72,"stages":[2,2],"first":2050,"later":132},{"shape":2,"y":225,"stages":[1,0],"first":1287,"later":1598},{"shape":2,"y":225,"stages":[0,2],"first":1287,"later":865},{"shape":2,"y":225,"stages":[1,2],"first":2020,"later":865},{"shape":2,"y":225,"stages":[2,2],"first":2020,"later":132},{"shape":2,"y":239,"stages":[1,0],"first":881,"later":786},{"shape":2,"y":239,"stages":[0,2],"first":881,"later":459},{"shape":2,"y":239,"stages":[1,2],"first":1208,"later":459},{"shape":2,"y":239,"stages":[2,2],"first":1208,"later":132}]}
+{"event":"live-damage","shape":0,"difficulty":0,"hp":1,"cycles":2391}
+{"event":"live-damage","shape":0,"difficulty":1,"hp":1,"cycles":2391}
+{"event":"live-damage","shape":0,"difficulty":2,"hp":2,"cycles":2391}
+{"event":"live-damage","shape":0,"difficulty":2,"hp":1,"cycles":1969}
+{"event":"live-damage","shape":2,"difficulty":0,"hp":3,"cycles":12}
+{"event":"live-damage","shape":2,"difficulty":0,"hp":2,"cycles":2527}
+{"event":"live-damage","shape":2,"difficulty":0,"hp":1,"cycles":2105}
+{"event":"live-damage","shape":2,"difficulty":1,"hp":3,"cycles":12}
+{"event":"live-damage","shape":2,"difficulty":1,"hp":2,"cycles":2527}
+{"event":"live-damage","shape":2,"difficulty":1,"hp":1,"cycles":2105}
+{"event":"live-damage","shape":2,"difficulty":2,"hp":4,"cycles":12}
+{"event":"live-damage","shape":2,"difficulty":2,"hp":3,"cycles":12}
+{"event":"live-damage","shape":2,"difficulty":2,"hp":2,"cycles":2527}
+{"event":"live-damage","shape":2,"difficulty":2,"hp":1,"cycles":2105}
+{"event":"forced-dual","shape":0,"cycles":2336}
+{"event":"forced-dual","shape":2,"cycles":2472}
+✔ H13 generated variant C is 24 checked-home bytes with cumulative holes (20.821292ms)
+✔ H13 rejects empty/nonexistent bits, row erasure, duplicate rows and noncumulative stages (0.911792ms)
+✔ H13 damage removes 15 then 19 pixels as one connected outline notch; rows and tail survive (0.253958ms)
+✔ H13 linked NMOS fixture clears the actual home masks into both H16 bodies exactly (16.122ms)
+✔ H12 guarded publisher forces exact current-Y planes; members and stages are independent (648.044167ms)
+✔ H12 invalid home/phase drops requests with no content read or draw (122.437875ms)
+✔ H12 skips dead members, does not re-copy damaged bodies and admission restores intact sources (11.175542ms)
+﹣ H12 review build holds the preselected stages through flight, hold, dodge and retirement (0.052584ms) # SKIP
+✔ H14 natural hit watches publish HP stages on both Heavy profiles and every difficulty (66.148625ms)
+✔ H14 token denial then rotate retry coalesces both members by the third frame (20.592917ms)
+✔ H14 first rotate denial leaves the token untouched and publishes on the next nonrotate (10.244875ms)
+✔ H14 breakup retains priority and surviving requests, including the nonrotate deadline (10.528584ms)
+✔ H14 stale/dead/assault requests and invalid-home events drop safely; admission clears all damage (52.483583ms)
+✔ H14 idle pending entry remains byte-exact LDY/BNE/RTS with zero added cycles (10.555583ms)
+✔ H14 resident notice covers surviving departure hits on both profiles, slots and difficulties (123.51675ms)
+✔ H14 notification preserves death bits and ordinary motion-watch timing (40.688875ms)
+✔ H14 queued departure damage never draws a member killed or retired before publication (82.435958ms)
+✔ H14 recovery stays within the owner window budget and preserves full segment sizes (1.219042ms)
+✔ H14 departure notice followed by an invalid home/phase drops before any home read or draw (20.305708ms)
+{"departureCases":2322,"maximumExitFrames":75,"speedRasterPixelsPerFrame":3,"newStateBytes":0}
+{"minimumHeavyFreeFrames":2,"difficulties":[0,1,2],"counterWrapCovered":true}
+✔ departing Bomber chooses nearest screen edge, averages three pixels/frame and clears before retirement (655.802125ms)
+✔ departure hits publish both Bomber hole stages at held Y, then kill and score normally (73.227125ms)
+✔ capital admission still waits two fully Heavy-free frames, including frame-counter wrap (68.89025ms)
+✔ invalid content/phase cannot enter the departure body or its erase executor (74.886041ms)
+✔ docs/memory-map.md carries exactly one generated block (0.810333ms)
+✔ the generated memory map matches the current build (52.641833ms)
+✔ the generated map reports phase-exclusive menu/L2/boss/death owners and the misnamed STARFIELD (0.229333ms)
+ℹ tests 26
+ℹ suites 0
+ℹ pass 25
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 1
+ℹ todo 0
+ℹ duration_ms 1329.321292

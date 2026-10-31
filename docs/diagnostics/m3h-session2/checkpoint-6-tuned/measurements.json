@@ -1,0 +1,362 @@
+{
+  "baselineCommit": "2d4ef8c",
+  "measurement": "linked NMOS instruction cycles; no ANTIC DMA",
+  "samples": [
+    {
+      "name": "admission",
+      "shape": 0,
+      "before": 1874,
+      "after": 1874,
+      "delta": 0
+    },
+    {
+      "name": "row tick",
+      "shape": 0,
+      "before": 200,
+      "after": 200,
+      "delta": 0
+    },
+    {
+      "name": "idle damage entry",
+      "shape": 0,
+      "before": 12,
+      "after": 12,
+      "delta": 0
+    },
+    {
+      "name": "forced body draw",
+      "shape": 0,
+      "before": 498,
+      "after": 498,
+      "delta": 0
+    },
+    {
+      "name": "first stamp 1,0",
+      "shape": 0,
+      "before": 1241,
+      "after": 1241,
+      "delta": 0
+    },
+    {
+      "name": "first stamp 0,2",
+      "shape": 0,
+      "before": 1241,
+      "after": 1241,
+      "delta": 0
+    },
+    {
+      "name": "first stamp 2,2",
+      "shape": 0,
+      "before": 1928,
+      "after": 1928,
+      "delta": 0
+    },
+    {
+      "name": "stage 1 then stage 2 stamp",
+      "shape": 0,
+      "before": 1506,
+      "after": 1506,
+      "delta": 0
+    },
+    {
+      "name": "admission",
+      "shape": 2,
+      "before": 2491,
+      "after": 2491,
+      "delta": 0
+    },
+    {
+      "name": "row tick",
+      "shape": 2,
+      "before": 200,
+      "after": 200,
+      "delta": 0
+    },
+    {
+      "name": "idle damage entry",
+      "shape": 2,
+      "before": 12,
+      "after": 12,
+      "delta": 0
+    },
+    {
+      "name": "forced body draw",
+      "shape": 2,
+      "before": 556,
+      "after": 556,
+      "delta": 0
+    },
+    {
+      "name": "first stamp 1,0",
+      "shape": 2,
+      "before": 1302,
+      "after": 1302,
+      "delta": 0
+    },
+    {
+      "name": "first stamp 0,2",
+      "shape": 2,
+      "before": 1302,
+      "after": 1302,
+      "delta": 0
+    },
+    {
+      "name": "first stamp 2,2",
+      "shape": 2,
+      "before": 2050,
+      "after": 2050,
+      "delta": 0
+    },
+    {
+      "name": "stage 1 then stage 2 stamp",
+      "shape": 2,
+      "before": 1628,
+      "after": 1628,
+      "delta": 0
+    },
+    {
+      "name": "Bomber HP1 cruise",
+      "shape": 2,
+      "before": 550,
+      "after": 550,
+      "delta": 0
+    },
+    {
+      "name": "Bomber HP1 charge",
+      "shape": 2,
+      "before": 447,
+      "after": 447,
+      "delta": 0
+    },
+    {
+      "name": "Bomber HP1 flash",
+      "shape": 2,
+      "before": 576,
+      "after": 576,
+      "delta": 0
+    },
+    {
+      "name": "Bomber HP1 flash while charging",
+      "shape": 2,
+      "before": 550,
+      "after": 550,
+      "delta": 0
+    },
+    {
+      "name": "Bomber HP2 cruise",
+      "shape": 2,
+      "before": 550,
+      "after": 550,
+      "delta": 0
+    },
+    {
+      "name": "Bomber HP2 charge",
+      "shape": 2,
+      "before": 447,
+      "after": 447,
+      "delta": 0
+    },
+    {
+      "name": "Bomber HP2 flash",
+      "shape": 2,
+      "before": 576,
+      "after": 576,
+      "delta": 0
+    },
+    {
+      "name": "Bomber HP2 flash while charging",
+      "shape": 2,
+      "before": 550,
+      "after": 550,
+      "delta": 0
+    },
+    {
+      "name": "Bomber HP3 cruise",
+      "shape": 2,
+      "before": 550,
+      "after": 550,
+      "delta": 0
+    },
+    {
+      "name": "Bomber HP3 charge",
+      "shape": 2,
+      "before": 447,
+      "after": 447,
+      "delta": 0
+    },
+    {
+      "name": "Bomber HP3 flash",
+      "shape": 2,
+      "before": 561,
+      "after": 561,
+      "delta": 0
+    },
+    {
+      "name": "Bomber HP3 flash while charging",
+      "shape": 2,
+      "before": 535,
+      "after": 535,
+      "delta": 0
+    },
+    {
+      "name": "Bomber HP4 cruise",
+      "shape": 2,
+      "before": 550,
+      "after": 550,
+      "delta": 0
+    },
+    {
+      "name": "Bomber HP4 charge",
+      "shape": 2,
+      "before": 447,
+      "after": 447,
+      "delta": 0
+    },
+    {
+      "name": "Bomber HP4 flash",
+      "shape": 2,
+      "before": 561,
+      "after": 561,
+      "delta": 0
+    },
+    {
+      "name": "Bomber HP4 flash while charging",
+      "shape": 2,
+      "before": 535,
+      "after": 535,
+      "delta": 0
+    },
+    {
+      "name": "Bomber HP5 cruise",
+      "shape": 2,
+      "before": 550,
+      "after": 550,
+      "delta": 0
+    },
+    {
+      "name": "Bomber HP5 charge",
+      "shape": 2,
+      "before": 447,
+      "after": 447,
+      "delta": 0
+    },
+    {
+      "name": "Bomber HP5 flash",
+      "shape": 2,
+      "before": 561,
+      "after": 561,
+      "delta": 0
+    },
+    {
+      "name": "Bomber HP5 flash while charging",
+      "shape": 2,
+      "before": 535,
+      "after": 535,
+      "delta": 0
+    }
+  ],
+  "resourcesBefore": {
+    "window": 2290,
+    "arena": 830,
+    "director": 324,
+    "contentHome": 1029,
+    "l2": 1290,
+    "extension": 875,
+    "extensionPacked": 750,
+    "windowPacked": 1878,
+    "contentSectors": 15,
+    "totalSectors": 213
+  },
+  "resourcesAfter": {
+    "window": 2290,
+    "arena": 830,
+    "director": 324,
+    "contentHome": 1029,
+    "l2": 1290,
+    "extension": 875,
+    "extensionPacked": 750,
+    "windowPacked": 1878,
+    "contentSectors": 15,
+    "totalSectors": 213
+  },
+  "differences": [
+    {
+      "file": "encounter-director-code-hybrid-window.bin",
+      "bytes": 2290,
+      "deltaBytes": 0,
+      "changedOffsets": [
+        2203
+      ]
+    },
+    {
+      "file": "content-module.bin",
+      "bytes": 1920,
+      "deltaBytes": 0,
+      "changedOffsets": [
+        1001,
+        1002,
+        1003,
+        1004,
+        1005,
+        1007,
+        1008,
+        1009,
+        1010,
+        1011,
+        1013,
+        1015,
+        1016,
+        1017,
+        1019,
+        1021,
+        1022,
+        1023
+      ]
+    },
+    {
+      "file": "l2.bin",
+      "bytes": 1792,
+      "deltaBytes": 0,
+      "changedOffsets": [
+        1284,
+        1286
+      ]
+    },
+    {
+      "file": "encounter-director-code-arena.bin",
+      "bytes": 830,
+      "deltaBytes": 0,
+      "changedOffsets": []
+    },
+    {
+      "file": "encounter-director.bin",
+      "bytes": 324,
+      "deltaBytes": 0,
+      "changedOffsets": []
+    },
+    {
+      "file": "resident-runtime.bin",
+      "bytes": 8192,
+      "deltaBytes": 0,
+      "changedOffsets": []
+    },
+    {
+      "file": "broadside-runtime.bin",
+      "bytes": 6653,
+      "deltaBytes": 0,
+      "changedOffsets": []
+    },
+    {
+      "file": "level-payload.bin",
+      "bytes": 256,
+      "deltaBytes": 0,
+      "changedOffsets": [
+        178
+      ]
+    }
+  ],
+  "cycleDeltaRowTick": 0,
+  "cycleDeltaOrdinaryFrame": 0,
+  "cycleDeltaStamp": 0,
+  "sessionWindowGrowth": 222
+}

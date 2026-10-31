@@ -1,6 +1,6 @@
 # VOID STRIKE 65 — CURRENT STATUS
 
-Last update: 2026-10-30 (phase resync — partial OWNER-SMOKE CANDIDATE)
+Last update: 2026-10-31 (M3-H session-finish smoke repair candidate)
 
 What is true now. Rules: [reguly-projektu.txt](reguly-projektu.txt). Roadmap:
 [plan-realizacji.md](plan-realizacji.md). Source-of-truth order:
@@ -19,6 +19,44 @@ the values below.
 ---
 
 ## Checkpoint
+
+### M3-H session 2 — smoke repair OWNER-SMOKE CANDIDATE
+
+Checkpoint6 visuals `3468204` remain OWNER-ACCEPTED. Owner smoke of the
+subsequent session-finish `77cbfd1` **FAILED**: strips after level2 capital
+entry and an overly fast sideways exit. That failed candidate is superseded
+by this repair; no new owner acceptance is inferred.
+
+Native attribution on main71a38a8,3468204 and77cbfd1 reproduces strips only
+on77cbfd1. At trace2088 the left Bomber's offscreen Wingman escort writes
+$F8/$F9 into the playfield row-pointer table ($8586/$8587, writer$37AF).
+The divider copier$5700 first spreads hull codes into the corridor at
+trace2357/host3228. Main and checkpoint6 do not corrupt the table.
+C now clamps the escort's lower X edge48, matching its existing upper200.
+No turret-shot backing, erase, renderer or scheduler code change.
+
+Bomber exits average3 raster pixels/frame, alternating1/2 HPOS steps on
+existing frame parity. Linked2,322 cases: maximum75 frames, damage/hole and
+full-erase checks pass. Capital retains the2-frame Heavy-free invariant;
+MEDIUM full level2 has229 empty frames before admission. Independent native
+terrain audit:1,864 capital/post-capital frames, zero invalid corridor cells
+or row-pointer corruption. All1,208 turret-shot restore tuples match the
+normal3468204 run byte-exactly; main matches too.
+
+Window2,302 B (+234/250 B for session2), home1,123/1,920 B; arena830,
+Director324 and L2 1,290 unchanged. No new state or reserved range. Normal
+computed gates pass; runtime release evidence remains pending. Quick Spread
+NORMAL30,465; capital-960 NORMAL31,153 (zero timing anomalies, boss entry325).
+Escort C tick+9 cycles in range/+14 at lower clamp; representative departure
+updates+19/+23 moving,+18/+19 terminal versus failed77cbfd1.
+
+Full test audit versus main: **A137/B0/C0**, candidate1512 PASS/137 shared
+FAIL/4 SKIP after two focused self-resolutions; no release/full-suite-green claim.
+
+Fresh campaign,level2 and Heavy-sector ATRs replace the failed session-finish
+files under `build/play/m3h-session2/session-finish/`.
+[Attribution, native invariant, test audit and delivery hashes](diagnostics/capital-strips/report.md).
+**NEXT TASK: owner smoke of the repaired candidate; STOP.**
 
 ### Loop-phase resync — partial OWNER-SMOKE CANDIDATE
 
@@ -72,7 +110,7 @@ explosion or music-row advance. No shot-cap or other recovery was needed.
 
 **Native16/16; home28/28; boot7/7 PASS**, frontend1390<=1402. Overall peak
 31,444 (56 target cycles spare), capital30,152, composed30,777<=31,200;
-zero native misses/VBI/DLI/shift/stale events, boss entry325<=350. All45 boss
+zero native misses/VBI/DLI/shift/stale events, boss entry 325<=350. All45 boss
 stress summaries equal main, lost-target maximum8473. Every linked segment
 start/size is unchanged: window2068 (+0), arena827/832 (+0), Director net0.
 Packed initial content12843 (+18 B), transport211 sectors unchanged. Maximum
@@ -8077,7 +8115,7 @@ in `STARFIELD`.
 
 | | reserved |
 | --- | ---: |
-| `STARFIELD` free run tail | **348 B raw** |
+| `STARFIELD` free run tail | **348 B raw ** |
 | margin to the 1,804 B correction gate | **103 B packed** |
 | margin to the 1,825 B hard gate | 124 B |
 | staging stream margins A / B | 16 / 203 B |

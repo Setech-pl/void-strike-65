@@ -126,6 +126,7 @@ const SEGMENTS = {
   HYBRID_C_WINDOW_HEAVY: ["M3-H appended C: H9 admission and wave metadata", "resident"],
   HYBRID_C_WINDOW_HEAVY_RODATA: ["M3-H H9 presentation/health tables and A2 profile-field table", "resident"],
   HYBRID_ASM_HEAVY_WINDOW: ["M3-H appended armoured Raider executor, explicit kernel ABI", "resident"],
+  HYBRID_C_WINDOW_LOOK: ["M3-H admission-only Heavy look colour policy", "resident"],
   HYBRID_ASM_WINDOW: ["the boss entry's resident half (M5b-S3), last in the Director link's window half", "resident"],
   HYBRID_C_WINDOW_FLOW: ["the Director's sector-flow verdicts (feat/sector-flow), placed after the boss entry so the Light C keeps its addresses", "resident"],
   HUD_BOOSTER_BACKUP: ["the boss entry's region read (its WARNING records gone with the text screen, feat/boss-banners), the Light kernel link's last segment (named for the S5-1 HUD booster backup, inlined into the entry's head by feat/interceptor-armour)", "resident"],
@@ -449,8 +450,11 @@ function collectRows(build) {
   // Zero-page equates outside any segment.
   add(sym("MUSIC_VOICE_COLUMN"), sym("MUSIC_VOICE_SCRATCH") + 1, "state", "menu music v2 column pointers and publication scratch (equates)", "resident", "src/main.s `MUSIC_VOICE_COLUMN`");
   add(sym("M3H_DAMAGED_BODY_BUFFER"), sym("M3H_DAMAGED_BODY_BUFFER_END") - 1,
-    "reserved", "M3-H damaged-body buffer; no writer before M3-H", "resident",
+    "reserved", "M3-H 32-B damaged-body buffer; admission invalidates its lazy copy", "resident",
     "src/main.s `M3H_DAMAGED_BODY_BUFFER`");
+  add(sym("M3H_BODY_INDEX"), sym("M3H_RENDER_STATE_END") - 1,
+    "state", "M3-H render metadata: body indices, stages, retry, profile/copy flags and scratch; initialized at admission", "resident",
+    "src/main.s `M3H_BODY_INDEX`");
   add(m.levelSummary.statBlock.address, m.levelSummary.statBlock.address + m.levelSummary.statBlock.bytes - 1, "state", "level-summary stat block (`STATS_SHOTS` … `STATS_BONUS`), cleared at every START GAME", "session", "manifest `levelSummary.statBlock`");
 
   // Display memory and hand-placed resident state.

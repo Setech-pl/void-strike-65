@@ -1,0 +1,121 @@
+{
+  "baseline": "7fe9040",
+  "finalFocused": {
+    "totals": {
+      "tests": 138,
+      "suites": 0,
+      "pass": 127,
+      "fail": 11,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "duration_ms": 3559.521625
+    },
+    "failures": [
+      {
+        "file": "tests/gfx-pins.test.mjs",
+        "declared_at": "tests/gfx-pins.test.mjs:64",
+        "test": "the art outside the boss band: build/capital-hulls.inc is the pinned bytes",
+        "message": "build/capital-hulls.inc changed: re-pin only with the owner decision that changes this art (docs/diagnostics/gfx-regression-2026-10-16.md)",
+        "first_failing_assertion": "tests/gfx-pins.test.mjs:73"
+      },
+      {
+        "file": "tests/gfx-pins.test.mjs",
+        "declared_at": "tests/gfx-pins.test.mjs:64",
+        "test": "the art outside the boss band: build/entity-effects.inc is the pinned bytes",
+        "message": "build/entity-effects.inc changed: re-pin only with the owner decision that changes this art (docs/diagnostics/gfx-regression-2026-10-16.md)",
+        "first_failing_assertion": "tests/gfx-pins.test.mjs:73"
+      },
+      {
+        "file": "tests/gfx-pins.test.mjs",
+        "declared_at": "tests/gfx-pins.test.mjs:150",
+        "test": "the boss link's colour, charset and DLI-vector stores: only the pinned routines",
+        "message": "a new colour, charset or DLI-vector store in the boss link: show it stays in the band, then re-pin",
+        "first_failing_assertion": "tests/gfx-pins.test.mjs:162"
+      },
+      {
+        "file": "tests/level-payload.test.mjs",
+        "declared_at": "tests/level-payload.test.mjs:410",
+        "test": "T13: only the Director's sector entry writes the star operand",
+        "message": "declared once, called once - from enter_sector",
+        "first_failing_assertion": "tests/level-payload.test.mjs:417"
+      },
+      {
+        "file": "tests/offscreen-spawn.test.mjs",
+        "declared_at": "tests/offscreen-spawn.test.mjs:157",
+        "test": "Heavy entry reaches the old per-slot anchors before unchanged crossing motion",
+        "message": "Expected values to be strictly deep-equal:",
+        "first_failing_assertion": "tests/offscreen-spawn.test.mjs:167"
+      },
+      {
+        "file": "tests/runtime-wall-trace.test.mjs",
+        "declared_at": "tests/runtime-wall-trace.test.mjs:70",
+        "test": "wall trace is artifact-bound and adds no guest timing work",
+        "message": "Expected values to be strictly deep-equal:",
+        "first_failing_assertion": "tests/runtime-wall-trace.test.mjs:75"
+      },
+      {
+        "file": "tests/runtime-wall-trace.test.mjs",
+        "declared_at": "tests/runtime-wall-trace.test.mjs:606",
+        "test": "Spread Shot passes PAL wall budget with a legal capsule and projectile-heavy frame",
+        "message": "Expected values to be strictly deep-equal:",
+        "first_failing_assertion": "tests/runtime-wall-trace.test.mjs:668"
+      },
+      {
+        "file": "tests/runtime-wall-trace.test.mjs",
+        "declared_at": "tests/runtime-wall-trace.test.mjs:790",
+        "test": "debris visual polish preserves foundation history and passes its +256 PAL gate",
+        "message": "Expected values to be strictly equal:",
+        "first_failing_assertion": "tests/runtime-wall-trace.test.mjs:843"
+      },
+      {
+        "file": "tests/runtime-wall-trace.test.mjs",
+        "declared_at": "tests/runtime-wall-trace.test.mjs:847",
+        "test": "explosion colour flash passes its +64 PAL gate with exact GTIA traces",
+        "message": "Expected values to be strictly deep-equal:",
+        "first_failing_assertion": "tests/runtime-wall-trace.test.mjs:895"
+      },
+      {
+        "file": "tests/runtime-wall-trace.test.mjs",
+        "declared_at": "tests/runtime-wall-trace.test.mjs:910",
+        "test": "destructible debris passes PAL, inactive-path and linked-code budgets",
+        "message": "Expected values to be strictly deep-equal:",
+        "first_failing_assertion": "tests/runtime-wall-trace.test.mjs:938"
+      },
+      {
+        "file": "tests/runtime-wall-trace.test.mjs",
+        "declared_at": "tests/runtime-wall-trace.test.mjs:970",
+        "test": "enemy breakup passes the hard PAL gate and draws no character effect",
+        "message": "Expected values to be strictly deep-equal:",
+        "first_failing_assertion": "tests/runtime-wall-trace.test.mjs:1009"
+      }
+    ],
+    "hasFailingSection": true
+  },
+  "taskOnlyFailures": [],
+  "variantPlanes": {
+    "level2": {
+      "pass": 5,
+      "fail": 0
+    },
+    "heavySector": {
+      "pass": 5,
+      "fail": 0
+    }
+  },
+  "selfResolved": [
+    {
+      "test": "T2: build/level-1.bin is 16 sectors with the LevelDef and island pages where the plan puts them",
+      "reason": "Accepted heavyLook occupies payload162..178; the untouched reserve check still covers16..161 and179..183. Full compiled-page equality stays intact."
+    },
+    {
+      "test": "the art outside the boss band: build/level-payload.bin is the pinned bytes",
+      "reason": "Owner accepted the17-B Heavy look on2026-10-30; the sole new full-suite failure was the old payload SHA. Re-pin to f3c984dfdbffca704dc9b44c3499f52cd1e6d77b1b9d5f47c7122a9c358a8bc3; all other pins remain."
+    }
+  ],
+  "setupRepairs": [
+    "New plane fixture now models start_gameplay clearing both PMG planes before admission.",
+    "New C segment renamed HYBRID_C_WINDOW_LOOK to avoid the retired HYBRID_C_HEAVY arena-name prefix; existing placement assertions stay intact.",
+    "Native custom smoke needs VS65_L2_SESSION to register its id; excluded unknown-session attempt never ran a guest."
+  ]
+}

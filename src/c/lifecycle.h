@@ -25,6 +25,7 @@ void sector_c_begin_complete(void);
 void sector_c_complete_scroll_tick(void);
 uint8_t sector_c_force_final_drain(void);
 void enemy_c_spawn_raiders(void);
+void enemy_c_heavy_look_colour(void);
 uint8_t enemy_c_retire_member(void);
 uint8_t enemy_c_apply_pending_damage(void);
 void enemy_c_recycle(void);

@@ -56,3 +56,6 @@ _enemy_c_heavy_tick:
 :   jmp _enemy_c_heavy_tick_original
 .export _asm_cc2_enter, _asm_cc2_advance, _asm_cc2_request
 .export _director_c_world_row_tick, _enemy_c_heavy_tick
+
+; H13 tables are transported only in the checked fighter/capital home.
+.include "heavy-damage.inc"

@@ -1,0 +1,149 @@
+{
+  "measurement": "MEASURED Atari800 7.1.2 PAL, DMA on; final guest bytes",
+  "quick": [
+    {
+      "route": "spread",
+      "measurement": "MEASURED Atari800 PAL DMA on; standard runtime-wall-trace timer",
+      "results": [
+        {
+          "id": "campaign-1-spread-capital",
+          "difficulty": 1,
+          "brake": false,
+          "dir": "build/frame-peak-fixed-campaign",
+          "campaign": true,
+          "spread": true,
+          "code": 0,
+          "passed": true,
+          "gateFailures": [],
+          "frames": 1800,
+          "capitalFrames": 1192,
+          "spaceFrames": 608,
+          "bossFrames": 0,
+          "peak": 30465,
+          "capitalPeak": 29547,
+          "capitalWithoutAudio": 28966,
+          "composedCapital": 30153,
+          "spacePeak": 30465,
+          "bossPeak": null,
+          "targetOverruns": 0,
+          "fence": 2172,
+          "misses": 0,
+          "extraVbi": 0,
+          "dliErrors": 0,
+          "shifted": 0,
+          "staleL2": 0,
+          "bossEntryFrames": null,
+          "coincidenceFrames": 0,
+          "artifact": "838cacb6f8b9b62221ed99dfa7444e5cf1c05782f90c9af70bebc31663628f5e",
+          "stateFileSha256": "2f509a9a4bf660a4ddb1e54e0ccd6881bc3fea9c9730173e861c884ceda7ad7d",
+          "traceSha256": "8c911baf391d22226ed12aaecb229ab7efa929ca2b47cee261c33b49186dffb0"
+        }
+      ],
+      "overruns": [],
+      "worst5": [
+        {
+          "route": "campaign-1-spread-capital",
+          "frame": 246,
+          "sector": "SPACE",
+          "cycles": 30465
+        },
+        {
+          "route": "campaign-1-spread-capital",
+          "frame": 222,
+          "sector": "SPACE",
+          "cycles": 30456
+        },
+        {
+          "route": "campaign-1-spread-capital",
+          "frame": 204,
+          "sector": "SPACE",
+          "cycles": 30427
+        },
+        {
+          "route": "campaign-1-spread-capital",
+          "frame": 207,
+          "sector": "SPACE",
+          "cycles": 30382
+        },
+        {
+          "route": "campaign-1-spread-capital",
+          "frame": 216,
+          "sector": "SPACE",
+          "cycles": 30377
+        }
+      ]
+    },
+    {
+      "route": "960",
+      "measurement": "MEASURED Atari800 PAL DMA on; standard runtime-wall-trace timer",
+      "results": [
+        {
+          "id": "l2-960-1-flight",
+          "length": 960,
+          "difficulty": 1,
+          "brake": false,
+          "dir": "build/frame-peak-fixed-960",
+          "code": 0,
+          "passed": true,
+          "gateFailures": [],
+          "frames": 3967,
+          "capitalFrames": 2273,
+          "spaceFrames": 1575,
+          "bossFrames": 119,
+          "peak": 31153,
+          "capitalPeak": 29166,
+          "capitalWithoutAudio": 28346,
+          "composedCapital": 29533,
+          "spacePeak": 31153,
+          "bossPeak": 28738,
+          "targetOverruns": 0,
+          "fence": 6395,
+          "misses": 0,
+          "extraVbi": 0,
+          "dliErrors": 0,
+          "shifted": 0,
+          "staleL2": 0,
+          "bossEntryFrames": 325,
+          "coincidenceFrames": 0,
+          "artifact": "7ee47a4a1ba6d66f12ebfee1e9b060db6ff7d5cf2530bd230ef7e0b3c36b05a5",
+          "stateFileSha256": "ea236ccbbec10655a2bfa85f062832ec1c7a325b780c42cbe8c367d0a726df7f",
+          "traceSha256": "759dfff66b74f2a21306dd70caf36cd9c93c07a15c8c788bf097aa3a71a2a50b"
+        }
+      ],
+      "overruns": [],
+      "worst5": [
+        {
+          "route": "l2-960-1-flight",
+          "frame": 2448,
+          "sector": "SPACE",
+          "cycles": 31153
+        },
+        {
+          "route": "l2-960-1-flight",
+          "frame": 2837,
+          "sector": "SPACE",
+          "cycles": 30981
+        },
+        {
+          "route": "l2-960-1-flight",
+          "frame": 2447,
+          "sector": "SPACE",
+          "cycles": 30977
+        },
+        {
+          "route": "l2-960-1-flight",
+          "frame": 2460,
+          "sector": "SPACE",
+          "cycles": 30976
+        },
+        {
+          "route": "l2-960-1-flight",
+          "frame": 2422,
+          "sector": "SPACE",
+          "cycles": 30956
+        }
+      ]
+    }
+  ],
+  "status": "BLOCKED integration, restored captured guest bytes; no post-cutoff coverage or final smoke certification"
+}

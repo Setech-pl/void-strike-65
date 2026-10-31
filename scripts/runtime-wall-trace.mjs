@@ -22,6 +22,7 @@ import {
 import { atari800ArtifactLaunches, validateAtari800Launch } from "./artifact-launch.mjs";
 import { assertTraceEmulatorFresh } from "./atari800-trace-freshness.mjs";
 import { focusedPalAcceptance } from "./focused-pal-acceptance.mjs";
+import {HEAVY_LOOK_OFFSET} from './level-compiler.mjs';
 import { assertDiagnosticRun, traceArtifactLayout } from "./trace-artifacts.mjs";
 import {capitalEntrySessions,spreadCapitalSessions,validateCapitalEntry,validateCapitalObservers,validateSpreadCapital} from './frame-peak-routes.mjs';
 import {
@@ -4303,6 +4304,16 @@ function main() {
     `Candidate manifest does not match ${name}`);
   }
   const addressEnvironment = {};
+  // Optional for pre-H11 reference builds. Infer the intended profile source,
+  // not the renderer's cached operand: a bad install must still fail the gate.
+  if(directorLabels.has('_enemy_c_heavy_look_colour')) {
+    addressEnvironment.DFTRACE_HEAVY_LOOK_FLAGS = `0x${labels.get('M3H_BODY_FLAGS').toString(16)}`;
+    addressEnvironment.DFTRACE_HEAVY_LOOK_BODY = `0x${(manifest.levelDef.payload.blockAddress+HEAVY_LOOK_OFFSET).toString(16)}`;
+  }
+  if(directorLabels.has('_enemy_c_heavy_visual_claim')) {
+    addressEnvironment.DFTRACE_HEAVY_DAMAGE_STAGES = '0x'+labels.get('M3H_DAMAGE_STAGE').toString(16);
+    addressEnvironment.DFTRACE_HEAVY_DAMAGE_HOLES = '0x'+directorLabels.get('heavy_damage_holes').toString(16);
+  }
   for (const [environmentName, labelName] of Object.entries(traceLabels)) {
     const address = labels.get(labelName) ?? glueLabels.get(labelName);
     invariant(Number.isInteger(address), `Trace label ${labelName} is missing`);

@@ -1,0 +1,290 @@
+{
+  "measurement": "MEASURED Atari800 7.1.2 PAL, DMA on; final guest bytes",
+  "quick": [
+    {
+      "route": "spread",
+      "measurement": "MEASURED Atari800 PAL DMA on; standard runtime-wall-trace timer",
+      "results": [
+        {
+          "id": "campaign-1-spread-capital",
+          "difficulty": 1,
+          "brake": false,
+          "dir": "build/frame-peak-fixed-campaign",
+          "campaign": true,
+          "spread": true,
+          "code": 0,
+          "passed": true,
+          "gateFailures": [],
+          "frames": 1800,
+          "capitalFrames": 1192,
+          "spaceFrames": 608,
+          "bossFrames": 0,
+          "peak": 30465,
+          "capitalPeak": 29547,
+          "capitalWithoutAudio": 28966,
+          "composedCapital": 30153,
+          "spacePeak": 30465,
+          "bossPeak": null,
+          "targetOverruns": 0,
+          "fence": 2172,
+          "misses": 0,
+          "extraVbi": 0,
+          "dliErrors": 0,
+          "shifted": 0,
+          "staleL2": 0,
+          "bossEntryFrames": null,
+          "coincidenceFrames": 0,
+          "artifact": "6457559dc4a1369913150804c7eb01758d4e81da91a5d3b4470466d6e643c9d1",
+          "stateFileSha256": "c39102902f8f7c61eff78443001d1d514406e7c52e8aee3e75153dcfadcb88b2",
+          "traceSha256": "2e7b0ad6c963ed7e9c81399dbea9202c1521bc806c168332ce285f570296756d"
+        }
+      ],
+      "overruns": [],
+      "worst5": [
+        {
+          "route": "campaign-1-spread-capital",
+          "frame": 246,
+          "sector": "SPACE",
+          "cycles": 30465
+        },
+        {
+          "route": "campaign-1-spread-capital",
+          "frame": 222,
+          "sector": "SPACE",
+          "cycles": 30456
+        },
+        {
+          "route": "campaign-1-spread-capital",
+          "frame": 204,
+          "sector": "SPACE",
+          "cycles": 30427
+        },
+        {
+          "route": "campaign-1-spread-capital",
+          "frame": 207,
+          "sector": "SPACE",
+          "cycles": 30382
+        },
+        {
+          "route": "campaign-1-spread-capital",
+          "frame": 216,
+          "sector": "SPACE",
+          "cycles": 30377
+        }
+      ]
+    },
+    {
+      "route": "960",
+      "measurement": "MEASURED Atari800 PAL DMA on; standard runtime-wall-trace timer",
+      "results": [
+        {
+          "id": "l2-960-1-flight",
+          "length": 960,
+          "difficulty": 1,
+          "brake": false,
+          "dir": "build/frame-peak-fixed-960",
+          "code": 0,
+          "passed": true,
+          "gateFailures": [],
+          "frames": 3967,
+          "capitalFrames": 2273,
+          "spaceFrames": 1575,
+          "bossFrames": 119,
+          "peak": 31153,
+          "capitalPeak": 29166,
+          "capitalWithoutAudio": 28346,
+          "composedCapital": 29533,
+          "spacePeak": 31153,
+          "bossPeak": 28738,
+          "targetOverruns": 0,
+          "fence": 6395,
+          "misses": 0,
+          "extraVbi": 0,
+          "dliErrors": 0,
+          "shifted": 0,
+          "staleL2": 0,
+          "bossEntryFrames": 325,
+          "coincidenceFrames": 0,
+          "artifact": "e7d59fa97695e6114b4adbefc73bbf6f7b386d3ec04eb8295f093f2a3d52133e",
+          "stateFileSha256": "143ec61bb343ff52581a0888c6d4e8c6ab123b3fb1a2d6705584bce2c42077bd",
+          "traceSha256": "cd1e36dffb5e359a9394379b331d1ec21909efa9d7af721a54245752cde945bb"
+        }
+      ],
+      "overruns": [],
+      "worst5": [
+        {
+          "route": "l2-960-1-flight",
+          "frame": 2448,
+          "sector": "SPACE",
+          "cycles": 31153
+        },
+        {
+          "route": "l2-960-1-flight",
+          "frame": 2837,
+          "sector": "SPACE",
+          "cycles": 30981
+        },
+        {
+          "route": "l2-960-1-flight",
+          "frame": 2447,
+          "sector": "SPACE",
+          "cycles": 30977
+        },
+        {
+          "route": "l2-960-1-flight",
+          "frame": 2460,
+          "sector": "SPACE",
+          "cycles": 30976
+        },
+        {
+          "route": "l2-960-1-flight",
+          "frame": 2422,
+          "sector": "SPACE",
+          "cycles": 30956
+        }
+      ]
+    }
+  ],
+  "heavy": {
+    "emulator": "Atari800 7.1.2 PAL/XL",
+    "guest_instrumentation_bytes": 0,
+    "diagnostic_allowances": {
+      "release_evidence": false,
+      "reuse_existing_traces": false,
+      "host_lives_top_up": "3",
+      "forced_booster_fixture": null,
+      "l2_exit_fixture": null,
+      "terminal_state_seed": false,
+      "l2_variant_alias": false
+    },
+    "artifact_sha256": {
+      "void-strike-65-boot.bin": {
+        "path": "build/level-2-s5/void-strike-65-boot.bin",
+        "bytes": 27264,
+        "sha256": "fd97f82488462a11502220a62af58ab50ca5bf3fbf5492321662b17e76f96119"
+      },
+      "void-strike-65.atr": {
+        "path": "build/level-2-s5/void-strike-65.atr",
+        "bytes": 133136,
+        "sha256": "40688a25a87ce374fe3e7cb59488b34588efe768c36218fc75d5b8b4f666c8e4"
+      },
+      "void-strike-65-manifest.json": {
+        "path": "build/level-2-s5/void-strike-65-manifest.json",
+        "bytes": 81285,
+        "sha256": "ce9b12ddebf3252bb71828c3a5c18b3539747585c1c5cfb1f286801a3b7b03ec"
+      }
+    },
+    "variant": "level-2-s5",
+    "diagnostic_only": true,
+    "sessions": [
+      {
+        "id": "m3h-departure-final",
+        "kind": "observer-smoke",
+        "medium": "ATR",
+        "difficulty": 2,
+        "policy": "hunt",
+        "fire_delay": 0,
+        "measured_frames": 1000,
+        "maximum_wall_cycles": 30841,
+        "deadline_overrun_frames": 0,
+        "missed_frames": 0,
+        "hull_map_draws": 0,
+        "hull_map_stale_draws": 0,
+        "hull_map_dirty_reads": 0,
+        "hull_map_rebuilds_after_boss": 0,
+        "level_summary": {
+          "start_summaries": [
+            {
+              "entry": 715,
+              "display": 717,
+              "loaded": 807,
+              "ready": 918,
+              "accept": 924,
+              "reads": 53,
+              "shown_frames": 207,
+              "best": "BEST                  --"
+            }
+          ]
+        }
+      }
+    ],
+    "acceptance": {
+      "measured_frames": 1000,
+      "maximum_wall_cycles": 30841,
+      "wall_ceiling": 32568,
+      "physical_headroom": 4727,
+      "missed_frames": 0,
+      "extra_vbi_boundaries": 0,
+      "physical_overruns": 0,
+      "deadline_overruns": 0,
+      "dli_ordering_errors": 0,
+      "passed": true
+    },
+    "passed": true,
+    "input": {
+      "fixture": "Real collision hits after seeding only the actual departure flags at gameplay frame560; no HP/projectile/PMG/code writes",
+      "pokes": "560:1580=01,813d=00,813c=00",
+      "frames": 1000,
+      "policy": "hunt",
+      "difficulty": 2,
+      "hostLivesTopUp": 3
+    },
+    "writers": [
+      {
+        "pc": 4516,
+        "count": 16,
+        "first_frame": 1507,
+        "last_frame": 1507,
+        "first_address": 21662,
+        "last_address": 21677,
+        "min_address": 21662,
+        "max_address": 21677
+      },
+      {
+        "pc": 4519,
+        "count": 16,
+        "first_frame": 1507,
+        "last_frame": 1507,
+        "first_address": 21678,
+        "last_address": 21693,
+        "min_address": 21678,
+        "max_address": 21693
+      },
+      {
+        "pc": 4644,
+        "count": 6,
+        "first_frame": 1507,
+        "last_frame": 1513,
+        "first_address": 21666,
+        "last_address": 21670,
+        "min_address": 21666,
+        "max_address": 21670
+      }
+    ],
+    "publicationFrames": [
+      {
+        "frame": 580,
+        "hostFrame": 1507,
+        "wall": 27879,
+        "live0": 1,
+        "live1": 1,
+        "colour0": 200
+      },
+      {
+        "frame": 586,
+        "hostFrame": 1513,
+        "wall": 27448,
+        "live0": 1,
+        "live1": 1,
+        "colour0": 200
+      }
+    ],
+    "PMG": [
+      0,
+      0
+    ],
+    "limitations": "Native Bomber subject; armour has linked E/M/H fixtures. Host lives top-up 3. No release evidence.",
+    "traceSha256": "5284252cea52aa8df3ef00fd8094e15f87caac08643037ba86379d7c76bdd78a",
+    "watchSha256": "40ee4572a9f404e444ea17d229ab559d4aaa12d1f81a0b7e5c6c092ee7b0f362"
+  }
+}

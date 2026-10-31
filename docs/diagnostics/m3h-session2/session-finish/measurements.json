@@ -1,0 +1,210 @@
+{
+  "baseline": "3468204",
+  "measurement": "linked NMOS instruction cycles, no ANTIC DMA",
+  "samples": [
+    {
+      "shape": 0,
+      "departure": 0,
+      "name": "heavy_member_update",
+      "before": 208,
+      "after": 208,
+      "delta": 0
+    },
+    {
+      "shape": 0,
+      "departure": 0,
+      "name": "update_enemy",
+      "before": 1653,
+      "after": 1653,
+      "delta": 0
+    },
+    {
+      "shape": 0,
+      "departure": 0,
+      "name": "director_world_row_tick",
+      "before": 200,
+      "after": 200,
+      "delta": 0
+    },
+    {
+      "shape": 0,
+      "departure": 1,
+      "name": "heavy_member_update",
+      "before": 208,
+      "after": 208,
+      "delta": 0
+    },
+    {
+      "shape": 0,
+      "departure": 1,
+      "name": "update_enemy",
+      "before": 1653,
+      "after": 1653,
+      "delta": 0
+    },
+    {
+      "shape": 0,
+      "departure": 1,
+      "name": "director_world_row_tick",
+      "before": 200,
+      "after": 200,
+      "delta": 0
+    },
+    {
+      "shape": 2,
+      "departure": 0,
+      "name": "heavy_member_update",
+      "before": 559,
+      "after": 559,
+      "delta": 0
+    },
+    {
+      "shape": 2,
+      "departure": 0,
+      "name": "update_enemy",
+      "before": 1917,
+      "after": 1917,
+      "delta": 0
+    },
+    {
+      "shape": 2,
+      "departure": 0,
+      "name": "director_world_row_tick",
+      "before": 200,
+      "after": 200,
+      "delta": 0
+    },
+    {
+      "shape": 2,
+      "departure": 1,
+      "name": "heavy_member_update",
+      "before": 328,
+      "after": 348,
+      "delta": 20
+    },
+    {
+      "shape": 2,
+      "departure": 1,
+      "name": "update_enemy",
+      "before": 2013,
+      "after": 987,
+      "delta": -1026
+    },
+    {
+      "shape": 2,
+      "departure": 1,
+      "name": "director_world_row_tick",
+      "before": 200,
+      "after": 200,
+      "delta": 0
+    },
+    {
+      "shape": 2,
+      "departure": 1,
+      "name": "member at X48",
+      "before": 328,
+      "after": 348,
+      "delta": 20
+    },
+    {
+      "shape": 2,
+      "departure": 1,
+      "name": "member at X100",
+      "before": 328,
+      "after": 348,
+      "delta": 20
+    },
+    {
+      "shape": 2,
+      "departure": 1,
+      "name": "member at X111",
+      "before": 328,
+      "after": 348,
+      "delta": 20
+    },
+    {
+      "shape": 2,
+      "departure": 1,
+      "name": "member at X112",
+      "before": 328,
+      "after": 351,
+      "delta": 23
+    },
+    {
+      "shape": 2,
+      "departure": 1,
+      "name": "member at X152",
+      "before": 328,
+      "after": 351,
+      "delta": 23
+    },
+    {
+      "shape": 2,
+      "departure": 1,
+      "name": "member at X176",
+      "before": 328,
+      "after": 351,
+      "delta": 23
+    },
+    {
+      "shape": 2,
+      "departure": 1,
+      "name": "member at X4",
+      "before": 328,
+      "after": 691,
+      "delta": 363
+    },
+    {
+      "shape": 2,
+      "departure": 1,
+      "name": "member at X220",
+      "before": 328,
+      "after": 696,
+      "delta": 368
+    },
+    {
+      "shape": 2,
+      "departure": 1,
+      "name": "both members terminal update",
+      "before": 2013,
+      "after": 1832,
+      "delta": -181
+    }
+  ],
+  "raiderFramesIdentical": 168,
+  "resources": [
+    {
+      "window": 2290,
+      "arena": 830,
+      "director": 324,
+      "l2": 1290,
+      "home": 1029,
+      "extension": 875,
+      "extensionPacked": 750,
+      "windowPacked": 1878,
+      "totalSectors": 213
+    },
+    {
+      "window": 2290,
+      "arena": 830,
+      "director": 324,
+      "l2": 1290,
+      "home": 1097,
+      "extension": 875,
+      "extensionPacked": 750,
+      "windowPacked": 1878,
+      "totalSectors": 213
+    }
+  ],
+  "dataSizes": {
+    "header": 1,
+    "code": 1067,
+    "data": 29,
+    "holeTable": 24,
+    "homeState": 5,
+    "heavyPolicyState": 13,
+    "renderMetadata": 8,
+    "damagedBodiesReused": 32,
+    "newDepartureState": 0
+  }
+}

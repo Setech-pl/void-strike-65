@@ -1,0 +1,80 @@
+{
+  "status": "OWNER-SMOKE CANDIDATE",
+  "window": 2159,
+  "arena": 830,
+  "content": {
+    "address": 4480,
+    "endExclusive": 6400,
+    "capacityBytes": 1920,
+    "usedBytes": 636,
+    "runIndex": 12,
+    "validAddress": 34483,
+    "phase": "checked fighter/capital content; disarmed before boss"
+  },
+  "load": {
+    "measurement": "MEASURED linked NMOS checked content-load fixture; synthetic drive, not physical host frames",
+    "end": "armed",
+    "cpuCycles": 313556,
+    "driveFixtureFrames": 90,
+    "readSectors": [
+      265,
+      266,
+      267,
+      268,
+      269,
+      270,
+      271,
+      272,
+      273,
+      274,
+      275,
+      276,
+      277,
+      278,
+      279
+    ],
+    "contentUsed": 636,
+    "contentRun": {
+      "index": 12,
+      "name": "content-module",
+      "startSector": 265,
+      "sectors": 15,
+      "destination": 4480,
+      "bytes": 1920,
+      "sha256": "cedca15f4e30b62e36dd27a7711662414726cf50d14fb4d841eeed0720679b1b",
+      "file": "content-module.bin"
+    }
+  },
+  "holes": [
+    2,
+    8,
+    4,
+    16,
+    6,
+    4,
+    2,
+    24,
+    4,
+    56,
+    6,
+    12,
+    4,
+    24,
+    5,
+    32,
+    8,
+    4,
+    4,
+    56,
+    5,
+    96,
+    8,
+    6
+  ],
+  "tests": {
+    "pass": 22,
+    "fail": 0
+  },
+  "atr": "build/play/m3h-session2/checkpoint-4/campaign.atr",
+  "sha256": "36b7d66c33707e988136482089330827f4302133e1ad6ac81c34705d8421e855"
+}

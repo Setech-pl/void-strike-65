@@ -7,7 +7,8 @@ Roadmap 4.6 step 1 (`docs/plans/director-4.6.md` §6). The compiler emits the
 bytes and the level image carries them. The runtime reads the core page since
 step 2, the hull geometry since step 4, and since step 5 the payload page's
 Light and weapon looks and each sector's sky (§8.3). Paths (step 6),
-`hull_params` (4.8a) are still unread; `boss_def` is read by the boss (M5b, "The boss" below). The format was
+the remaining `hull_params` (4.8a) bytes are still unread; M3-H reads its first
+17 bytes as the armoured Heavy look. `boss_def` is read by the boss (M5b, "The boss" below). The format was
 frozen at step 1 and no step since has changed it.
 
 ## The commands
@@ -82,6 +83,7 @@ numbers; world rows, not eighths.
 | `nebula` | 0 | 0 | the nebula (variant S3) is not built; any other value is refused |
 | `payload.appearances` | 0-3 looks | `[]` | Light looks for appearance slots 1-3, in order. Each is `{ "name", "rows" }`: a lower-case name a wave can use, and eight rows of eight pixels, left cell then right cell, each pixel `.` black, `W` white, `S` steel or `R` hostile red (a Light's code carries the hostile bit, so `%11` is `COLPF3`). A look is a re-skin (decision AD): the Light keeps its archetype's motion, HP, fire and score |
 | `payload.weapons` | 0-2 looks | `[]` | hostile weapon looks laid over the defaults at level start. Each is `{ "class": "pulse" \| "laser", "rows" }`, `rows` the eight 8-bit masks of `assets/graphics/fighter-weapons.json` with its rules: pixels 0-1 only (the right phase is the glyph shifted two pixels) and never `%11`, so hostile fire stays white and steel. One look per class. `bomber` is refused: its second animation phase does not fit the 9-B record |
+| `payload.heavyLook` | one armoured Raider look | `enemy-roster.json`'s `heavyLooks.armouredRaider` | `{ "rows", "colour" }`: exactly 14 strings of eight binary PMG pixels; row 13 must be clear and the body nonempty. Colour `$44`, `$46` or `$48` (or its integer value). Stored at `$ABA2`: 14 rows, 2 zero storage rows, colour; 17 of the 22 hullParams bytes, leaving 5. Override pixels must contain every `heavyDamage.armouredRaider` clear-mask bit and preserve the authored hole rows. Read in place at Heavy admission; no new archetype, collision box or PMG slot. Applies only to the wave's `kind: "armoured"`; assault and Bomber art stay unchanged |
 | `boss` | 0-255 | 0 | BossDef index; 0 = none. Non-zero needs a `boss` sector and a `bossDef` ("The boss" below) |
 | `pickupPolicy` | 0-255 | 3 | every-Nth-kill divisor plus allowed booster bits |
 | `debrisDensity` | 0-255 | 0 | base debris cadence |
@@ -91,6 +93,13 @@ numbers; world rows, not eighths.
 | `hull.rows` | multiple of 8, 288-960 | — | right-aligned on the universal 960-row axis; prow at 928-959, drain at 968; combat modules repeat deterministically while the 224 end-section rows remain fixed |
 | `hull.turrets` | 3 | 3 | fixed density policy: E/M/H stations per side are 7/10/14 at 352 rows, 10/15/20 at 480, 22/33/44 at 960; nested subsets with bounded gaps, unchanged difficulty fire rates. Other selector values are rejected |
 
+
+Generate the source-derived assault/armoured PMG preview with
+`node scripts/heavy-look-preview.mjs`: PNG and labelled SVG go under
+`build/m3h-session2/checkpoint-2/`. Source profiles live in
+`assets/graphics/enemy-roster.json`; level 2 supplies an explicit override in
+its JSON. Rebuild with `npm run build -- --level=2:sector=5` for the direct
+Heavy-sector smoke; the generated Atari bytes are never edited by hand.
 
 ### Sector fields
 
@@ -553,3 +562,19 @@ The repository always described that alternation as smoke scheduling and not a
 gameplay contract (`src/c/lifecycle.c` before step 2: *"nothing in the Heavy
 lifecycle, the Bomber handler or the renderer depends on this order"*), which
 is why the density and the cadence were reproduced and the order was not.
+
+### Heavy damage variant C
+
+`assets/graphics/enemy-roster.json` owns `heavyDamage`: variant `C`, two shapes
+(`armouredRaider`, `bomber`), two stages each, exactly three `[row,clearMask]`
+pairs per stage. Masks clear existing bits from one wing/outline, preserve at
+least one bit in each occupied row, and stage2 must include all stage1 holes.
+The current masks remove 15 then 19 total pixels, in one connected notch.
+Runtime
+uses the same generated 24-byte home table as the preview. No packed alternate
+sprites are stored. Rebuild preview with
+`node scripts/heavy-damage-preview.mjs build/heavy-damage-variant-c.png`.
+
+C chooses stage1 at 2 HP and stage2 at 1 HP after a surviving hit; a skipped
+threshold goes directly to the later stage. Assault Raiders remain whole.
+Damage never alters hit boxes, scores, movement or weapons.

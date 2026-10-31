@@ -16,8 +16,8 @@ There are two classes of enemy:
 
 Difficulty is chosen in the menu as **ROOKIE**, **PILOT** or **ACE**. Where a
 number below has three values, they are for those three in that order. An
-enemy takes the same number of hits on every difficulty; difficulty changes
-how often it fires.
+enemy keeps the listed durability unless a profile gives three values;
+difficulty also changes how often it fires.
 
 <img src="media/badges/coming-soon.svg" height="16" alt="COMING SOON">
 marks what is built but not in v0.3.0. It arrives with the campaign.
@@ -45,6 +45,13 @@ respawn.
 
 The standard enemy fighter, flying as a pair.
 
+Level 2 also uses an armoured profile: broader plated wings, a violet
+hull, 2 /2 /3 hits to kill, an authored firing stop and a sideways dodge after
+a surviving hit. Assault Raiders keep their original silhouette and one-hit
+health. Both profiles share the Raider's weapons, score and renderer.
+Armour loses a visible piece of one wing at 2 and 1 HP; a 2-HP Raider jumps straight to the
+last damage look after its first surviving hit.
+
 - **Hits to kill:** 1. **Points:** 10.
 - **Weapon:** the pair shares one gun rhythm. It fires five pulse shots 15
   frames apart, then pauses for 60 / 50 / 40 frames (1.2 / 1.0 / 0.8 s). A
@@ -67,8 +74,9 @@ The standard enemy fighter, flying as a pair.
 A heavy bomber with a catamaran silhouette (two hulls, one bridge), so it never
 reads as a big Raider. It is green, a colour nothing else in the battle wears.
 
-- **Hits to kill:** 4. The hull gets darker with every hit, so its colour
-  tells you how much is left, and it flashes on a hit it survives.
+- **Hits to kill:** 4 / 4 / 5. At 2 HP the green hull gets darker; at 1 HP it
+  turns orange-red. It flashes on a surviving hit and loses a visible piece
+  of one side at 2 and 1 HP.
 - **Points:** 50.
 - **Weapon:** an attack run. The Bomber stops, its hull brightens for 20
   frames while it aims, then it fires two shells 8 frames apart from the same
@@ -77,6 +85,9 @@ reads as a big Raider. It is green, a colour nothing else in the battle wears.
 - **Movement:** each of the pair sweeps its own lane, one on the left and one
   on the right. It turns at the lane's edge or after half a second to a
   second, and sinks one line every other frame.
+- **Before a capital run:** it stops firing and flies sideways toward the
+  nearer screen edge, at an average of three raster pixels per frame.
+  It disappears when fully off screen. You can still damage or destroy it while it leaves.
 - **Contact:** costs your whole hull.
 - **Where:** level 1's first sector (four pairs), and one pair after the
   capital run.

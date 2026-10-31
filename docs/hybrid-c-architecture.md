@@ -182,6 +182,52 @@ audio hot paths, hardware writes, low-level rendering, loader, and ATR entry.
 ASM also owns damage-source mailboxes; C consumes them at one coarse lifecycle
 boundary.
 
+M3-H session 2 caches the formation's PMG body base, two member indices and
+height at admission. The existing ASM spawn veneer calls C first, then
+`heavy_look_install`, before either forced plane draw. The draw routine keeps
+its stationary-body skip and clipping; no movement or HP policy moves to ASM.
+Eight bytes at `$54BE–$54C5` hold render metadata; the existing 32-B damage
+buffer stays `$549E–$54BD`. Admission resets metadata after boot staging and
+before reading any cached index. The body copy remains lazy/invalid until the
+content-home damage publisher installs it. A new formation always
+reinstalls a whole body. Fixed cross-link operand/data bindings have linker
+assertions at their actual main-link instructions and tables.
+
+The admission-only C helper selects the armoured profile's payload colour;
+ASM installs its body pointer and indices without copying a body at admission.
+Render flags at `$54C3` latch appearance in bit5 independently of the runway
+cutoff's movement flag; bit0 records lazy damage-copy validity.
+The native plane observer derives expected rows from this appearance and the
+payload plus generated clear masks, not from the cached draw operand or RAM copy.
+Checkpoint2 is owner-accepted; checkpoints3–6 await final owner smoke.
+The owner approved recovery A after the departure-notification byte blocker:
+a resident C helper in `HYBRID_C_WINDOW_LOOK`, reached by tail calls from the
+two nonlethal HP branches. Its validity/phase checks precede the read of
+`heavy_departure`, which is checked-home data. A 105-byte pin preserves the
+existing damage entry and all later extension/ASM addresses (two bytes pad).
+No frame/row poll or movement policy changes; killed and retired members are
+pruned by the existing C stage decision and ASM executor before drawing. H12 ASM, H13
+24-byte tables and H14 C stage/claim policy live in checked home `$1180–$18FF`.
+The resident entry shares `cc2_valid` (valid `$86B3` and gameplay `$9A=6`)
+before entering any home instruction/data. Invalid requests clear safely.
+This extends the plan's home placement to the new H14 C helper to stay within
+250 B of total window growth, without moving an existing hot entry.
+
+H14 uses the existing polled `heavy_breakup_pending` byte: bits0/1 request
+member damage, bit7 requests death fragments. `$813F`'s former damage byte
+remains reserved. No-pending LDY/BNE/RTS is unchanged. Death forcing retains
+priority and clears only bit7. C derives stage from live HP, prunes requests,
+then claims the shared event token. Retries may ignore exhaustion but never
+rotate prediction; dual requests coalesce. Admission resets copy/stage/retry
+and pending damage. H16 bodies are copied lazily once, independently stamped,
+and forced through the existing current-Y renderer even during a hold.
+
+The fixed 33-byte arena death-claim entry is a 3-byte tail call plus 30-byte
+pad; masked policy sits after existing hot window code. H14 spends six of seven
+pickup-tail bytes. Cold boss-head and LIFE continuation bindings move by six
+bytes and remain explicitly checked; protected reservations and main hot entries
+are unchanged. Neither renderer class nor collision bounds changes.
+
 ## Calling convention and ABI
 
 `src/hybrid/c-asm-abi.s` is the stable boundary. ASM calls coarse C routines at

@@ -55,7 +55,7 @@ const ATTACK = 0;
 const AIM_FRAMES = 20;
 const SALVO_INTERVAL = 8;
 const SALVO_SHELLS = 2;
-// Identity: hue C (green) with the remaining HP as the luminance; the charge
+// Identity: green until the final HP, then orange-red; the charge
 // (+4) and hit flash (+4) are added on top, unclamped.
 // Re-pinned 2026-09-23 from hue 8 (blue). 4.5d's $88 was byte-identical to
 // GAMEPLAY_COLPF1, the allied steel, so the Bomber wore the allied capital
@@ -65,7 +65,8 @@ const BOMBER_HUE = 0xc0;
 // src/main.s GAMEPLAY_COLPF1 and its darker second-half level steps: the
 // values the Bomber must not land on.
 const ALLIED_STEEL = [0x88, 0x8a, 0x86, 0x84];
-const HULL_AT = (hp) => BOMBER_HUE | (hp << 1);
+// Owner 2026-10-31: the final surviving HP changes hue, within the same table.
+const HULL_AT = (hp) => [0xc0,0x28,0xc6,0xc8,0xc8,0xc8][hp];
 const CHARGE_AT = (hp) => HULL_AT(hp) + 4;
 const FLASH_AT = (hp) => HULL_AT(hp) + 4;
 const HULL = HULL_AT(4);
@@ -427,7 +428,7 @@ test("charge telegraph and hit flash: per-member COLPM, Raider formations untouc
     "the hull brightens from the brake to the last shell");
   assert.equal(frames[AIM_FRAMES + SALVO_INTERVAL].colour, HULL, "and dims when it resumes");
   // The ramp itself: every HP step, and every charge/flash combination on it,
-  // stays inside hue C ($C0-$CF). HP is existing state, so no new per-slot byte.
+  // stays inside the selected hue. HP is existing state, no new per-slot byte.
   const ramp = [];
   for (const hp of [5, 4, 3, 2, 1]) {
     const cruise = bomberFormation();
@@ -446,14 +447,15 @@ test("charge telegraph and hit flash: per-member COLPM, Raider formations untouc
     ramp.push([hp, base, charged[COLPM1], flashed[COLPM1]]);
   }
   assert.deepEqual(ramp, [
-    [5, 0xca, 0xce, 0xce],
+    [5, 0xc8, 0xcc, 0xcc],
     [4, 0xc8, 0xcc, 0xcc],
-    [3, 0xc6, 0xca, 0xca],
-    [2, 0xc4, 0xc8, 0xc8],
-    [1, 0xc2, 0xc6, 0xc6],
+    [3, 0xc8, 0xcc, 0xcc],
+    [2, 0xc6, 0xca, 0xca],
+    [1, 0x28, 0x2c, 0x2c],
   ]);
-  assert.ok(ramp.every(([, ...colours]) => colours.every((c) => c >= 0xc0 && c <= 0xcf)),
-    "no combination overflows hue C");
+  assert.ok(ramp.every(([hp, ...colours]) => colours.every((c) =>
+    (c&0xf0)===(hp===1?0x20:0xc0)&&(c&15)<=12)),
+    "flash/charge never spill hue or exceed luminance 12");
   assert.ok(ramp.every(([, base]) => base !== 0x44 && base !== 0x24),
     "the Bomber no longer shares the Raider red family");
   // The reason for the 2026-09-23 re-pin: not one value of the ramp, charge or
@@ -466,7 +468,7 @@ test("charge telegraph and hit flash: per-member COLPM, Raider formations untouc
     colours.every((c) => (c & 0xf0) !== 0x80 && (c & 0xf0) !== 0x40)),
     "the Bomber hull leaves both the allied steel hue and the hostile red hue");
   // A hit (HP 4 -> 3) flashes the member for 6 ticks, over the charge colour,
-  // and the hull stays one luma step darker afterwards.
+  // Healthy HP3..5 share a base; holes distinguish the low-HP thresholds.
   const hit = attackRun(1, (image, frame) => { if (frame === 5) image[L("ENEMY_HP")] = 3; }).frames;
   assert.deepEqual(hit.slice(4, 13).map(({ colour }) => colour),
     [CHARGE_AT(4), FLASH_AT(3), FLASH_AT(3), FLASH_AT(3), FLASH_AT(3), FLASH_AT(3),

@@ -1,0 +1,19 @@
+{
+  "checks": "PASS",
+  "h13Bytes": 24,
+  "maskAddress": 5480,
+  "sourcePreviewMatchesLinkedTable": true,
+  "allDeliveredArmourPayloadsAgree": true,
+  "armourColour": 104,
+  "criticalBomberColour": 40,
+  "reviewFixtureEnabled": false,
+  "sources": {
+    "assets/graphics/enemy-roster.json": "36cd0a43c697826a7329275702d3ccb8c50b95bc00a484fb2531faa17187b81b",
+    "assets/levels/level-02.json": "3067e5c7b73e5454a182510891500b963328eb8f9aa2a11d645acc23eba1776f",
+    "src/c/lifecycle.c": "f63c769ba9520f93a0b16f39d38a4d4631155dfe11392221c883163dc740cc52",
+    "scripts/build.mjs": "4bd8b1894ff63667a20665e2074fd78f2f3c8d63da8e84526e555d47bcdf85c4",
+    "scripts/heavy-damage.mjs": "db40910c6418c6b2196183f3928fc34aade22fd133ed8b72b29f0dc9ef89ac9c",
+    "scripts/enemy-roster.mjs": "b99d0eb9f974fec4b316a431d2b0d1003dc85a5de885dfe7c801480f7e4e9585",
+    "scripts/heavy-smoke-level.mjs": "3f5eda97f57cc5fc128126f44eddf157f3418b71be4262420a48db1e88e15c1f"
+  }
+}

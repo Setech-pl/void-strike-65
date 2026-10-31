@@ -1,0 +1,515 @@
+{
+  "productionCommit": "761ec2a",
+  "mainCommit": "71a38a8",
+  "atrSHA256": "40688a25a87ce374fe3e7cb59488b34588efe768c36218fc75d5b8b4f666c8e4",
+  "reconstructedAtrMatches": true,
+  "buildCommand": "node scripts/build.mjs --level=2:sector=5",
+  "variant": "level-2-s5",
+  "HEAVY_DAMAGE_REVIEW": 0,
+  "LEVEL_DEBUG_START": 1,
+  "difficulty": "MEDIUM (1), unchanged boot default",
+  "nativeGameCodeChanges": 0,
+  "nativeStateInjection": false,
+  "window": {
+    "bytes": 2290,
+    "exactAtrMatch": true
+  },
+  "packedRuns": [
+    {
+      "file": "content-module.bin",
+      "startSector": 265,
+      "sectors": 15,
+      "bytes": 1920,
+      "sha256": "81c5f7896d275a291dc4565b662ead3146e726d00bad30a60fcaa8ceb7850acb",
+      "exactAtrMatch": true
+    },
+    {
+      "file": "l2.bin",
+      "startSector": 251,
+      "sectors": 14,
+      "bytes": 1792,
+      "sha256": "b13ed9c4ad791f0e1abbabd3fa95e6866152a9f6f45c971099c52955e7fd09c7",
+      "exactAtrMatch": true
+    },
+    {
+      "file": "level-2.bin",
+      "startSector": 320,
+      "sectors": 16,
+      "bytes": 2048,
+      "sha256": "ff07413db1bd112684fdda410ede8625a9b6acf9cc2ca5f22ab832d6da407766",
+      "exactAtrMatch": true
+    }
+  ],
+  "calls": [
+    {
+      "from": "heavy_look_spawn",
+      "to": "_enemy_c_spawn_raiders",
+      "address": 46620,
+      "opcode": "JSR",
+      "bytes": "20a5b4"
+    },
+    {
+      "from": "heavy_look_spawn",
+      "to": "_enemy_c_heavy_look_colour",
+      "address": 46623,
+      "opcode": "JSR",
+      "bytes": "20a0b6"
+    },
+    {
+      "from": "heavy_visual_retry",
+      "to": "_enemy_c_heavy_visual_claim",
+      "address": 46717,
+      "opcode": "JSR",
+      "bytes": "209a14"
+    },
+    {
+      "from": "heavy_visual_retry",
+      "to": "heavy_damage_stamp",
+      "address": 46722,
+      "opcode": "JMP",
+      "bytes": "4c8111"
+    }
+  ],
+  "armour": {
+    "address": 43938,
+    "colour": 70,
+    "bodyHex": "c3e7ffdbffe7ffe77e7e3c2424000000"
+  },
+  "bomberRamp": {
+    "address": 46746,
+    "bytes": "c0c4c6c8c8c8"
+  },
+  "waves": [
+    {
+      "index": 13,
+      "numberInSector": 1,
+      "row": 0,
+      "flags": 10,
+      "count": 6
+    },
+    {
+      "index": 14,
+      "numberInSector": 2,
+      "row": 192,
+      "flags": 8,
+      "count": 6
+    },
+    {
+      "index": 15,
+      "numberInSector": 3,
+      "row": 384,
+      "flags": 3,
+      "count": 4
+    },
+    {
+      "index": 16,
+      "numberInSector": 4,
+      "row": 480,
+      "flags": 40,
+      "count": 6
+    },
+    {
+      "index": 17,
+      "numberInSector": 5,
+      "row": 672,
+      "flags": 8,
+      "count": 6
+    },
+    {
+      "index": 18,
+      "numberInSector": 6,
+      "row": 864,
+      "flags": 40,
+      "count": 6
+    }
+  ],
+  "metrics": {
+    "assaultBits": 56,
+    "armourBits": 72,
+    "bomberBits": 72,
+    "assaultToArmourChangedBits": 32,
+    "armourFirstHitRemovedBits": 7,
+    "bomberHp2RemovedBits": 4,
+    "bomberHp1RemovedBits": 7
+  },
+  "captures": [
+    {
+      "kind": "capture",
+      "subject": 0,
+      "slot": 0,
+      "file": "assault-intact.png",
+      "host": 1785,
+      "frame": 122,
+      "seconds": 2.44,
+      "formation": 1,
+      "difficulty": 1,
+      "sector": 5,
+      "waveCursor": 14,
+      "remaining": 5,
+      "shape": 0,
+      "flags": 0,
+      "valid": 1,
+      "departure": 0,
+      "source": 30565,
+      "lives": 3,
+      "playerState": 0,
+      "claims": 0,
+      "stamps": 0,
+      "members": [
+        {
+          "state": 1,
+          "hp": 1,
+          "x": 80,
+          "y": 48,
+          "stage": 0,
+          "colour": 68,
+          "index": 0,
+          "bodyHex": "81c3e7ffe7c399db7e3c181818000000"
+        },
+        {
+          "state": 0,
+          "hp": 0,
+          "x": 80,
+          "y": 59,
+          "stage": 0,
+          "colour": 68,
+          "index": 0,
+          "bodyHex": "00000000000000000000000000000000"
+        }
+      ],
+      "game": 6,
+      "row": 54,
+      "worldRow": 54,
+      "replay": "bomber",
+      "sha256": "a3739b839a8c0511152ff932bd42d5f7003b568c8d84a77aae5ecdc138f036ce",
+      "nativeRaster": {
+        "bad": 0,
+        "x": 96,
+        "y": 40,
+        "rgb": [
+          100,
+          19,
+          83
+        ],
+        "width": 32,
+        "height": 14,
+        "litPixels": 224
+      }
+    },
+    {
+      "kind": "capture",
+      "subject": 3,
+      "slot": 0,
+      "file": "bomber-full.png",
+      "host": 2603,
+      "frame": 940,
+      "seconds": 18.8,
+      "formation": 7,
+      "difficulty": 1,
+      "sector": 5,
+      "waveCursor": 15,
+      "remaining": 5,
+      "shape": 2,
+      "flags": 0,
+      "valid": 1,
+      "departure": 0,
+      "source": 30565,
+      "lives": 3,
+      "playerState": 0,
+      "claims": 0,
+      "stamps": 0,
+      "members": [
+        {
+          "state": 1,
+          "hp": 4,
+          "x": 68,
+          "y": 20,
+          "stage": 0,
+          "colour": 200,
+          "index": 32,
+          "bodyHex": "c3e7e7dbffffdbe7e7e7c3c381000000"
+        },
+        {
+          "state": 1,
+          "hp": 4,
+          "x": 156,
+          "y": 18,
+          "stage": 0,
+          "colour": 200,
+          "index": 32,
+          "bodyHex": "c3e7e7dbffffdbe7e7e7c3c381000000"
+        }
+      ],
+      "game": 6,
+      "row": 423,
+      "worldRow": 423,
+      "replay": "bomber",
+      "sha256": "8d6806a5280a5303894c7fc9c5c9bd0b1c70573ed44bb4554a133a187cc8b6b2",
+      "nativeRaster": {
+        "bad": 0,
+        "x": 72,
+        "y": 12,
+        "rgb": [
+          82,
+          132,
+          13
+        ],
+        "width": 64,
+        "height": 14,
+        "litPixels": 576
+      }
+    },
+    {
+      "kind": "capture",
+      "subject": 4,
+      "slot": 0,
+      "file": "bomber-hp2.png",
+      "host": 2662,
+      "frame": 1000,
+      "seconds": 19.98,
+      "formation": 7,
+      "difficulty": 1,
+      "sector": 5,
+      "waveCursor": 15,
+      "remaining": 5,
+      "shape": 2,
+      "flags": 1,
+      "valid": 1,
+      "departure": 0,
+      "source": 21662,
+      "lives": 3,
+      "playerState": 0,
+      "claims": 1,
+      "stamps": 1,
+      "members": [
+        {
+          "state": 1,
+          "hp": 2,
+          "x": 74,
+          "y": 45,
+          "stage": 1,
+          "colour": 198,
+          "index": 0,
+          "bodyHex": "c3e7e7dbe7dfdbe7e3e7c3c381000000"
+        },
+        {
+          "state": 1,
+          "hp": 4,
+          "x": 160,
+          "y": 45,
+          "stage": 0,
+          "colour": 204,
+          "index": 16,
+          "bodyHex": "c3e7e7dbffffdbe7e7e7c3c381000000"
+        }
+      ],
+      "game": 6,
+      "row": 449,
+      "worldRow": 449,
+      "replay": "bomber",
+      "sha256": "99142eb04f17b50968a04b42fd6279e2a83c147c95cd81721897d0043c6e2efb",
+      "nativeRaster": {
+        "bad": 0,
+        "x": 82,
+        "y": 38,
+        "rgb": [
+          57,
+          108,
+          0
+        ],
+        "width": 64,
+        "height": 14,
+        "litPixels": 544
+      }
+    },
+    {
+      "kind": "capture",
+      "subject": 5,
+      "slot": 0,
+      "file": "bomber-hp1.png",
+      "host": 2700,
+      "frame": 1037,
+      "seconds": 20.74,
+      "formation": 7,
+      "difficulty": 1,
+      "sector": 5,
+      "waveCursor": 15,
+      "remaining": 5,
+      "shape": 2,
+      "flags": 1,
+      "valid": 1,
+      "departure": 0,
+      "source": 21662,
+      "lives": 3,
+      "playerState": 0,
+      "claims": 2,
+      "stamps": 2,
+      "members": [
+        {
+          "state": 1,
+          "hp": 1,
+          "x": 52,
+          "y": 61,
+          "stage": 2,
+          "colour": 196,
+          "index": 0,
+          "bodyHex": "c3e7e7dbc79fdbe7e1e7c3c381000000"
+        },
+        {
+          "state": 1,
+          "hp": 4,
+          "x": 144,
+          "y": 53,
+          "stage": 0,
+          "colour": 200,
+          "index": 16,
+          "bodyHex": "c3e7e7dbffffdbe7e7e7c3c381000000"
+        }
+      ],
+      "game": 6,
+      "row": 466,
+      "worldRow": 466,
+      "replay": "bomber",
+      "sha256": "8b81dff2e10ce73f9c33f8749939b679c1184ea14dd546a5c87b1a66df5ebb65",
+      "nativeRaster": {
+        "bad": 0,
+        "x": 42,
+        "y": 54,
+        "rgb": [
+          29,
+          80,
+          0
+        ],
+        "width": 64,
+        "height": 14,
+        "litPixels": 520
+      }
+    },
+    {
+      "kind": "capture",
+      "subject": 1,
+      "slot": 0,
+      "file": "armour-intact.png",
+      "host": 4286,
+      "frame": 2622,
+      "seconds": 52.46,
+      "formation": 13,
+      "difficulty": 1,
+      "sector": 5,
+      "waveCursor": 17,
+      "remaining": 0,
+      "shape": 0,
+      "flags": 33,
+      "valid": 1,
+      "departure": 0,
+      "source": 21662,
+      "lives": 2,
+      "playerState": 0,
+      "claims": 28,
+      "stamps": 24,
+      "members": [
+        {
+          "state": 1,
+          "hp": 2,
+          "x": 86,
+          "y": 33,
+          "stage": 0,
+          "colour": 70,
+          "index": 0,
+          "bodyHex": "c3e7ffdbffe7ffe77e7e3c2424000000"
+        },
+        {
+          "state": 0,
+          "hp": 0,
+          "x": 126,
+          "y": 11,
+          "stage": 2,
+          "colour": 70,
+          "index": 16,
+          "bodyHex": "00000000000000000000000000000000"
+        }
+      ],
+      "game": 6,
+      "row": 1152,
+      "worldRow": 1152,
+      "replay": "armour",
+      "sha256": "a24b0951cd2a6f20567554b9db05a79e28319feab43dac9328582cf3d13a4044",
+      "nativeRaster": {
+        "bad": 0,
+        "x": 108,
+        "y": 25,
+        "rgb": [
+          128,
+          48,
+          111
+        ],
+        "width": 32,
+        "height": 14,
+        "litPixels": 288
+      }
+    },
+    {
+      "kind": "capture",
+      "subject": 2,
+      "slot": 0,
+      "file": "armour-first-hit.png",
+      "host": 4323,
+      "frame": 2659,
+      "seconds": 53.2,
+      "formation": 13,
+      "difficulty": 1,
+      "sector": 5,
+      "waveCursor": 17,
+      "remaining": 0,
+      "shape": 0,
+      "flags": 33,
+      "valid": 1,
+      "departure": 0,
+      "source": 21662,
+      "lives": 2,
+      "playerState": 0,
+      "claims": 30,
+      "stamps": 25,
+      "members": [
+        {
+          "state": 1,
+          "hp": 1,
+          "x": 70,
+          "y": 48,
+          "stage": 2,
+          "colour": 70,
+          "index": 0,
+          "bodyHex": "c3e7e7dbc7e7f3e77e7e3c2424000000"
+        },
+        {
+          "state": 0,
+          "hp": 0,
+          "x": 126,
+          "y": 11,
+          "stage": 2,
+          "colour": 70,
+          "index": 16,
+          "bodyHex": "00000000000000000000000000000000"
+        }
+      ],
+      "game": 6,
+      "row": 1152,
+      "worldRow": 1152,
+      "replay": "armour",
+      "sha256": "8b35227d0943cde8093aee6d2c5ef137e56f2af66ccd5be8f78da85f378558be",
+      "nativeRaster": {
+        "bad": 0,
+        "x": 76,
+        "y": 40,
+        "rgb": [
+          128,
+          48,
+          111
+        ],
+        "width": 32,
+        "height": 14,
+        "litPixels": 260
+      }
+    }
+  ]
+}

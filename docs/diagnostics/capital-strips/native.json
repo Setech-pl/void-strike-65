@@ -1,0 +1,58 @@
+{
+  "fixture": "native Atari800 PAL MEDIUM, full authored level2, l2-matrix, lives held at3; no enemy/phase/position/admission injection",
+  "level2": {
+    "frames": 4200,
+    "capitalAdmissionTrace": 2337,
+    "capitalAdmissionActive": 2313,
+    "lastHeavyTrace": 2107,
+    "lastHeavyActive": 2083,
+    "fullyHeavyFreeFrames": 229,
+    "peak": 31170,
+    "anomalies": {
+      "missed_frames": 0,
+      "extra_vbi_boundaries": 0,
+      "dli_sequence_violations": 0
+    }
+  },
+  "spread": {
+    "frames": 1800,
+    "peak": 30465,
+    "anomalies": {
+      "missed_frames": 0,
+      "extra_vbi_boundaries": 0,
+      "dli_sequence_violations": 0
+    }
+  },
+  "capital960": {
+    "id": "l2-960-1-flight",
+    "length": 960,
+    "difficulty": 1,
+    "brake": false,
+    "dir": "build/frame-peak-fixed-960",
+    "code": 0,
+    "passed": true,
+    "gateFailures": [],
+    "frames": 3967,
+    "capitalFrames": 2273,
+    "spaceFrames": 1575,
+    "bossFrames": 119,
+    "peak": 31153,
+    "capitalPeak": 29166,
+    "capitalWithoutAudio": 28346,
+    "composedCapital": 29533,
+    "spacePeak": 31153,
+    "bossPeak": 28738,
+    "targetOverruns": 0,
+    "fence": 6394,
+    "misses": 0,
+    "extraVbi": 0,
+    "dliErrors": 0,
+    "shifted": 0,
+    "staleL2": 0,
+    "bossEntryFrames": 325,
+    "coincidenceFrames": 0,
+    "artifact": "c0cfa71c3c0872071a4089cf9cc514ddfeb2b4f770510e18130dc33df78692fe",
+    "stateFileSha256": "00ec878fad0aba0652e6f31d3ce792326953e8b86811b96d62fdfa35e540298b",
+    "traceSha256": "9560e7172cb2eb023f3a1f6c8da87bf1a582796fc82ec25d16e57a64722e0054"
+  }
+}

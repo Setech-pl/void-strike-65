@@ -347,7 +347,9 @@ test("source contract: the publication skip is wired exactly as designed", () =>
   assert.match(source,
     /draw_enemy_member:[\s\S]+stx ENEMY_TARGET_SLOT\s+cmp ENEMY_Y,x\s+php[\s\S]+sta HPOSP1,x\s+plp\s+beq @body_done/);
   // enemy_member_screen_y already republishes ENEMY_TARGET_Y for its readers.
-  assert.match(source, /jsr enemy_member_screen_y[^\n]*\n\s+tay\s+ldx ENEMY_ARCHETYPE/);
+  // H10 caches height and member indices at admission; it still consumes the
+  // screen-Y helper's return directly. Byte/cycle equality is tested natively.
+  assert.match(source, /jsr enemy_member_screen_y[^\n]*\n\s+tay/);
   assert.match(source, /enemy_member_screen_y:\s+lda ENEMY_Y,x\s+sta ENEMY_TARGET_Y/);
   assert.match(source, /draw_enemy_offscreen_layout_pad:\s+\.res 1,\$EA/);
 });

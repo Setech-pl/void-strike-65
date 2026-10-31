@@ -1,0 +1,25 @@
+{
+  "scope": "M3-H checkpoint6 approved recovery and final delivery",
+  "before": {
+    "task": "149M\t/Users/marcinkrzetowski/Projects/dark-fighter-m3h-s2/.cache/m3h-session2",
+    "worktreeCache": "149M\t/Users/marcinkrzetowski/Projects/dark-fighter-m3h-s2/.cache",
+    "disk": "Filesystem      Size    Used   Avail Capacity iused ifree %iused  Mounted on\n/dev/disk3s5   926Gi   508Gi   392Gi    57%    5.4M  4.1G    0%   /System/Volumes/Data"
+  },
+  "after": {
+    "task": "2.2M\t/Users/marcinkrzetowski/Projects/dark-fighter-m3h-s2/.cache/m3h-session2",
+    "worktreeCache": "2.2M\t/Users/marcinkrzetowski/Projects/dark-fighter-m3h-s2/.cache",
+    "disk": "Filesystem      Size    Used   Avail Capacity iused ifree %iused  Mounted on\n/dev/disk3s5   926Gi   508Gi   392Gi    57%    5.4M  4.1G    0%   /System/Volumes/Data"
+  },
+  "retainedEvidenceBytes": 2027299,
+  "worktreeNodeModules": " 13M\tnode_modules",
+  "nodeModulesPreserved": true,
+  "playATRs": {
+    "count": 18,
+    "bytes": 2396448,
+    "note": "Requested checkpoints1\u20136 play ATRs plus historical incomplete checkpoint6-diagnostic artifacts; final owner smoke uses checkpoint-6."
+  },
+  "activeTaskProcesses": [],
+  "portsOpenedByTask": 0,
+  "otherTasksTouched": false,
+  "largeEvidenceException": null
+}

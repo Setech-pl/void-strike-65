@@ -24,6 +24,8 @@ import { fileURLToPath } from "node:url";
 
 import { compileCapitalHulls, loadCapitalHullsDefinition, HULL_MAX_ROWS } from "./capital-hulls.mjs";
 import { hostileWeaponGlyphRows } from "./fighter-weapons.mjs";
+import {compileHeavyDamage} from "./heavy-damage.mjs";
+import { compileHeavyLook, defaultArmouredRaiderLook } from "./enemy-roster.mjs";
 
 const scriptDirectory = path.dirname(fileURLToPath(import.meta.url));
 const rootDirectory = path.resolve(scriptDirectory, "..");
@@ -86,6 +88,8 @@ export const PAYLOAD_OFFSET = Object.freeze({
 export const PAYLOAD_BLOCK_BYTES = Object.freeze({
   appearance: 48, path: 96, weaponGlyph: 18, hullParams: 22, summary: 10, bossDef: 62,
 });
+export const HEAVY_LOOK_BYTES = 17;
+export const HEAVY_LOOK_OFFSET = PAYLOAD_OFFSET.hullParams;
 // The grade's thresholds (decision 28; M8 tunes them): two accuracy tiers in
 // per cent, two time limits in whole seconds (16-bit), two lives-lost bounds,
 // and the bonus per tier point as one packed-BCD byte in score units.
@@ -508,6 +512,13 @@ function compilePayload(source, context) {
     page[offset + 8] = target;
   }
   compileSummary(source, context).copy(page, PAYLOAD_OFFSET.summary);
+  try {
+    const look=compileHeavyLook(Object.hasOwn(payload, "heavyLook") ? payload.heavyLook : defaultArmouredRaiderLook());
+    compileHeavyDamage(undefined,look); // every generated hole must exist in an override too
+    look.copy(page, HEAVY_LOOK_OFFSET);
+  } catch (error) {
+    fail(context, "payload.heavyLook", error.message);
+  }
   return { page, looks: names, weaponClasses: classes };
 }
 
@@ -1035,6 +1046,7 @@ export function renderLevelDefCa65Include() {
     `$${(LEVEL_PAYLOAD_ADDRESS + PAYLOAD_OFFSET.appearance).toString(16).toUpperCase()}`);
   lines.push(`LEVEL_PAYLOAD_SUMMARY = ` +
     `$${(LEVEL_PAYLOAD_ADDRESS + PAYLOAD_OFFSET.summary).toString(16).toUpperCase()}`);
+  lines.push(`LEVEL_PAYLOAD_HEAVY_LOOK = $${(LEVEL_PAYLOAD_ADDRESS + HEAVY_LOOK_OFFSET).toString(16).toUpperCase()}`);
   lines.push(`LEVEL_PAYLOAD_BOSS_DEF = ` +
     `$${(LEVEL_PAYLOAD_ADDRESS + PAYLOAD_OFFSET.bossDef).toString(16).toUpperCase()}`);
   lines.push(`BOSS_DEF_LASER_DAMAGE = ${BOSS_DEF_LASER_DAMAGE_OFFSET}`);
@@ -1122,6 +1134,7 @@ export function renderLevelDefCHeader() {
   // M5b-S3 (plan §5.6): boss_def's bonus, packed BCD lo then hi; M5b-S4a-i
   // (Q-B3): the hit-point scale, one byte a difficulty.
   lines.push("", "/* boss_def, payload page */",
+    `#define LEVEL_HEAVY_LOOK_COLOUR_ADDRESS 0x${(LEVEL_PAYLOAD_ADDRESS + HEAVY_LOOK_OFFSET + 16).toString(16).toUpperCase()}u`,
     `#define LEVEL_BOSS_DEF_ADDRESS   0x${(LEVEL_PAYLOAD_ADDRESS + PAYLOAD_OFFSET.bossDef)
       .toString(16).toUpperCase()}u`,
     "#define BOSS_DEF_BONUS_LO        0u",

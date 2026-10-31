@@ -63,6 +63,7 @@
 #define LIGHT_OFFSET_INTERCEPTOR ENEMY_ARCHETYPE_OFFSET(ENEMY_ARCHETYPE_INTERCEPTOR)
 #define LIGHT_CENTRE_OFFSET      4u
 #define LIGHT_ROUND              2u
+#define LIGHT_X_FIRST            48u
 #define LIGHT_X_LAST             200u
 #define LIGHT_LAG_Y              12u
 #define LIGHT_FIRE_TOP           24u
@@ -195,7 +196,7 @@
  * at all, so green separates from burgundy, from steel and from the amber
  * allied faction colour on both hull styles. The frontend/loader greens ($D8,
  * $D0) are hue D on screens gameplay never shares.
- *   HP 4 -> $C8   HP 3 -> $C6   HP 2 -> $C4   HP 1 -> $C2
+ *   HP 5/4/3 -> $C8   HP 2 -> $C6   HP 1 -> orange-red $28 (owner 2026-10-31)
  * HULL_COLOUR_BOMBER is the full-HP entry, published to COLPM1/COLPM2 when
  * the formation is admitted; bomber_colour() derives the rest per tick. The
  * cost is zero: only the value of this constant changes. */
@@ -207,7 +208,14 @@
  * real hardware, over the burgundy enemy capital hull, in one sitting. */
 #define BOMBER_HULL_HUE          BOMBER_HULL_HUE_OVERRIDE
 #endif
-#define BOMBER_HULL_HP_LUMA      1u      /* left shift: two luma steps per HP */
+#pragma rodata-name (push, "HYBRID_C_WINDOW_LOOK")
+/* Critical hue is a table entry, with the same +4 flash/charge priority. */
+#define BOMBER_CRITICAL_COLOUR  0x28u
+static const uint8_t bomber_hull_ramp[6] = {
+    BOMBER_HULL_HUE, BOMBER_CRITICAL_COLOUR, BOMBER_HULL_HUE | 6u,
+    BOMBER_HULL_HUE | 8u, BOMBER_HULL_HUE | 8u, BOMBER_HULL_HUE | 8u
+};
+#pragma rodata-name (pop)
 #define HULL_COLOUR_BOMBER       (BOMBER_HULL_HUE | 0x08u)
 #define HEAVY_PROFILE_BYTES      9u
 #define HEAVY_SLOT_STATE_LAST    11u
@@ -319,9 +327,12 @@ typedef char enemy_archetype_must_remain_twelve_bytes[
 /* The Bomber ramp is added to without clamping: prove at compile time that the
  * brightest combination still lies inside the Bomber's hue. */
 typedef char bomber_hull_ramp_must_stay_inside_its_hue[
-    (HULL_COLOUR_BOMBER == (BOMBER_HULL_HUE | (4u << BOMBER_HULL_HP_LUMA))) &&
+    (HULL_COLOUR_BOMBER == (BOMBER_HULL_HUE | 8u)) &&
     (HULL_COLOUR_BOMBER + BOMBER_FLASH_LUMA) < (BOMBER_HULL_HUE + 0x10u) &&
-    (HULL_COLOUR_BOMBER + BOMBER_CHARGE_LUMA) < (BOMBER_HULL_HUE + 0x10u) ? 1 : -1
+    (HULL_COLOUR_BOMBER + BOMBER_CHARGE_LUMA) < (BOMBER_HULL_HUE + 0x10u) &&
+    (BOMBER_CRITICAL_COLOUR & 0x0Fu) <= 8u &&
+    ((BOMBER_CRITICAL_COLOUR + BOMBER_FLASH_LUMA) & 0xF0u) == 0x20u &&
+    ((BOMBER_CRITICAL_COLOUR + BOMBER_CHARGE_LUMA) & 0xF0u) == 0x20u ? 1 : -1
 ];
 
 /* Roadmap 4.6 step 2: the escort schedule, the entry-column cycle and the
@@ -352,7 +363,7 @@ volatile uint8_t heavy_member_colour;
 uint8_t heavy_descent_mask;
 uint8_t heavy_armoured;
 uint8_t heavy_hold_row;
-uint8_t heavy_damage_pending;
+uint8_t heavy_damage_pending; /* former H15 queue: reserved; shared bits live at $8128 */
 #pragma bss-name ("HYBRID_HEAVY_MEMBERS")
 uint8_t heavy_hold_left[2];
 uint8_t heavy_last_hp[2];
@@ -536,8 +547,8 @@ uint8_t light_screen_slot_limit;
 uint8_t light_rotate_frame;
 #pragma bss-name ("HYBRID_HEAVY_BREAKUP")
 /* Heavy break-up (plan-4.6-placement.md §7.4 variant 2, owner smoke
- * 2026-09-21). ONE byte: "a Heavy member died and its fragments have not been
- * spawned yet". It is the Heavy's equivalent of the Light's
+ * 2026-09-21). H14 shares this byte: bit7 is deferred death fragments,
+ * bits0/1 are member damage requests. No additional per-frame test. It is the Heavy's equivalent of the Light's
  * LIGHT_BREAKUP_PENDING state, which the Light gets for free because it has a
  * per-slot state byte; HYBRID_HEAVY_STATE is 11 of 11, so this takes the next
  * byte of the same unowned gap light_screen_slot_limit and light_rotate_frame
@@ -1090,6 +1101,21 @@ uint8_t enemy_c_retire_member(void)
     return ENEMY_LIVE_COUNT;
 }
 
+/* Owner-approved recovery A: the cutoff bypasses motion HP watches. This
+ * resident C decision queues only a visual notice on surviving departure hits.
+ * Tail calls replace existing nonlethal returns; no idle/row/frame polling. */
+extern uint8_t heavy_departure;
+#pragma code-name (push, "HYBRID_C_WINDOW_LOOK")
+uint8_t enemy_c_heavy_departure_notice(void)
+{
+    /* departure is checked-home data too: never inspect it after disarm. */
+    if (U8_AT(0x86B3u) != 0u && U8_AT(0x009Au) == 6u && heavy_departure != 0u) {
+        heavy_breakup_pending |= (uint8_t)(ENEMY_TARGET_SLOT + 1u);
+    }
+    return 0u;
+}
+#pragma code-name (pop)
+
 uint8_t enemy_c_apply_pending_damage(void)
 {
     if (ENEMY_TARGET_SLOT == 0u) {
@@ -1098,7 +1124,7 @@ uint8_t enemy_c_apply_pending_damage(void)
         }
         if (ENEMY_HP_0 > ENEMY_PENDING_DAMAGE_0) {
             ENEMY_HP_0 = (uint8_t)(ENEMY_HP_0 - ENEMY_PENDING_DAMAGE_0);
-            return 0u;
+            return enemy_c_heavy_departure_notice();
         }
         ENEMY_MEMBER_STATE_0 = ENEMY_INACTIVE;
         ENEMY_HP_0 = 0u;
@@ -1108,7 +1134,7 @@ uint8_t enemy_c_apply_pending_damage(void)
         }
         if (ENEMY_HP_1 > ENEMY_PENDING_DAMAGE_1) {
             ENEMY_HP_1 = (uint8_t)(ENEMY_HP_1 - ENEMY_PENDING_DAMAGE_1);
-            return 0u;
+            return enemy_c_heavy_departure_notice();
         }
         ENEMY_MEMBER_STATE_1 = ENEMY_INACTIVE;
         ENEMY_HP_1 = 0u;
@@ -1284,6 +1310,11 @@ static uint8_t light_tick_body(void)
         light_work = (uint8_t)((uint8_t)(ENEMY_X_0 + (uint8_t)(LIGHT_CENTRE_OFFSET + LIGHT_ROUND)) & 0xFCu);
         if (light_work > LIGHT_X_LAST) {
             light_work = LIGHT_X_LAST;
+        }
+        /* A sideways Heavy can leave left of the character playfield. The
+         * escort must stay addressable, just as the upper clamp guarantees. */
+        if (light_work < LIGHT_X_FIRST) {
+            light_work = LIGHT_X_FIRST;
         }
         light_x[light_slot] = light_work;
         /* 0 above the lag: a leader under LIGHT_LAG_Y wraps the byte to
@@ -1568,6 +1599,7 @@ void enemy_c_spawn_raiders(void)
     heavy_hold_row = heavy_wave_hold_row;
     heavy_hold_left[0] = heavy_hold_left[1] = heavy_wave_hold_frames;
     heavy_damage_pending = heavy_dodge_left[0] = heavy_dodge_left[1] = 0u;
+    heavy_breakup_pending &= 0x80u; /* admission drops every old visual request */
     ENEMY_MEMBER_STATE_0 = ENEMY_ACTIVE_STATE;
     ENEMY_MEMBER_STATE_1 = ENEMY_ACTIVE_STATE;
     ENEMY_LIVE_COUNT = RAIDER_SLOT_COUNT;
@@ -1596,20 +1628,16 @@ static void bomber_turn(void)
     heavy_member_turn_timer = (uint8_t)((FRAME_COUNTER & BOMBER_TURN_SPREAD) + BOMBER_TURN_MIN);
 }
 
-/* Hull colour of the ticked member: BOMBER_HULL_HUE with the remaining HP as its
- * luminance, brightened while it charges an attack, brighter still for a few
- * frames after a hit. BOMBER_FLASH_LUMA and BOMBER_CHARGE_LUMA are added
- * unclamped, so the worst case must stay inside the hue: HP 5 ($CA) + flash 4
- * is $CE. Uses heavy_index only: heavy_scratch carries the tick's return
- * value. */
+/* Readable HP base, then mutually exclusive flash/charge. Uses heavy_index
+ * only: heavy_scratch carries the tick return value. Maximum luma 8+4=12. */
 static void bomber_colour(void)
 {
     heavy_index = ENEMY_HP_0_ADDRESS[HEAVY_SLOT];
-    heavy_member_colour = (uint8_t)(BOMBER_HULL_HUE | (heavy_index << BOMBER_HULL_HP_LUMA));
+    heavy_member_colour = bomber_hull_ramp[heavy_index];
     if (heavy_index != (heavy_member_aux & BOMBER_HP_MASK)) {
         heavy_member_aux = (uint8_t)(heavy_index | (BOMBER_FLASH_FRAMES << 4));
         if (heavy_index <= 2u) {
-            heavy_damage_pending |= (uint8_t)(HEAVY_SLOT + 1u);
+            heavy_breakup_pending |= (uint8_t)(HEAVY_SLOT + 1u);
         }
         heavy_index = 2u;
         if (heavy_member_x < PLAYER_X) {
@@ -1734,9 +1762,10 @@ colour:
  * begin_enemy_fighter_explosion_tail has just overwritten the snapshot - the
  * truncation plan §7.6 records as owner question Q-3, resolved here in the
  * cheap direction. */
-uint8_t enemy_c_heavy_breakup_claim(void)
+#pragma code-name (push, "HYBRID_C_WINDOW_LOOK")
+uint8_t enemy_c_heavy_breakup_policy(void)
 {
-    if (heavy_breakup_pending != 0u) {
+    if ((heavy_breakup_pending & 0x80u) != 0u) {
         return 0u;
     }
     /* THE ROTATE GATE (docs/plans/m3-waves-heavy.md §9). This claim runs
@@ -1747,7 +1776,7 @@ uint8_t enemy_c_heavy_breakup_claim(void)
      * rotate? A denial parks without touching the token, exactly as the
      * marker's denial does; the frame after a rotate frame never rotates. */
     if (asm_world_rotate_due() != 0u) {
-        heavy_breakup_pending = 1u;
+        heavy_breakup_pending |= 0x80u;
         return 0u;
     }
     if (light_take_deferrable_token() != 0u) {
@@ -1757,15 +1786,104 @@ uint8_t enemy_c_heavy_breakup_claim(void)
      * update_enemy, and is not gated at all - it ignores the rotate marker and
      * the token budget alike. That is what bounds the wait at two frames with
      * no counter, exactly as the Light's BREAKUP_PENDING branch does. */
-    heavy_breakup_pending = 1u;
+    heavy_breakup_pending |= 0x80u;
     return 0u;
 }
 
+#pragma code-name (pop)
+
+/* Fixed 33-byte arena entry: build pins the 3-byte tail-call + 30-byte pad. */
+uint8_t enemy_c_heavy_breakup_claim(void)
+{
+    return enemy_c_heavy_breakup_policy();
+}
+
 #pragma code-name (push, "CONTENT_CODE")
-extern uint8_t heavy_departure;
+extern void asm_heavy_departure_erase(void);
 uint8_t cc2_heavy_tick(void)
 {
-    if (heavy_departure != 0u) { ++heavy_member_y; return 0u; }
+    if (heavy_departure != 0u) {
+        /* QUAD body is 32 HPOS wide; screen is [32,224). Its centre is
+         * nearer the left edge below X112, right otherwise (ties right).
+         * One/two HPOS steps give three raster pixels/frame on average.
+         * Monotonic X keeps the chosen side stable without new state. */
+        heavy_index = (uint8_t)(1u + (FRAME_COUNTER & 1u));
+        if (heavy_member_x < 112u) {
+            if (heavy_member_x > heavy_index) {
+                heavy_member_x -= heavy_index;
+                return 0u;
+            }
+            heavy_member_x = 0u;
+        } else {
+            if (heavy_member_x < (uint8_t)(224u - heavy_index)) {
+                heavy_member_x += heavy_index;
+                return 0u;
+            }
+            heavy_member_x = 224u;
+        }
+        /* Clear the old plane before the existing Y240 retirement dispatch;
+         * its usual one-departing-row erase alone would leave stale bytes. */
+        asm_heavy_departure_erase();
+        heavy_member_y = 240u;
+        return 0u;               /* never emit a departure shot */
+    }
     return enemy_c_heavy_tick_original();
 }
+
+/* H14 policy runs only through the resident home/phase guard. Requests share
+ * breakup's existing polled byte: bits0/1 damage, bit7 death. The obsolete
+ * heavy_damage_pending byte remains reserved at its ABI address. */
+#define HEAVY_VISUAL_APPLIED     ((volatile uint8_t*)0x54C0u)
+#define HEAVY_VISUAL_RETRY       U8_AT(0x54C2u)
+#define HEAVY_VISUAL_FLAGS       U8_AT(0x54C3u)
+#define HEAVY_VISUAL_REQUEST     ((volatile uint8_t*)0x54C4u)
+#define HEAVY_MEMBER_STATES      ((volatile uint8_t*)0x5470u)
+uint8_t enemy_c_heavy_visual_claim(void)
+{
+    heavy_scratch = 0u;
+    heavy_index = 1u;
+    do {
+        HEAVY_VISUAL_REQUEST[heavy_index] = 0u;
+        if ((heavy_breakup_pending & (heavy_index + 1u)) != 0u &&
+            HEAVY_MEMBER_STATES[heavy_index] == ENEMY_ACTIVE_STATE &&
+            ENEMY_HP_0_ADDRESS[heavy_index] != 0u &&
+            ENEMY_HP_0_ADDRESS[heavy_index] <= 2u &&
+            ((HEAVY_VISUAL_FLAGS & 0x20u) != 0u || ENEMY_ARCHETYPE == 2u)) {
+            heavy_scratch = (uint8_t)(3u - ENEMY_HP_0_ADDRESS[heavy_index]);
+            HEAVY_VISUAL_REQUEST[heavy_index] = heavy_scratch;
+            if (heavy_scratch <= HEAVY_VISUAL_APPLIED[heavy_index]) {
+                HEAVY_VISUAL_REQUEST[heavy_index] = 0u;
+            }
+        }
+    } while (heavy_index-- != 0u);
+    /* Prune dead/retired/already-applied requests before any denial. Death
+     * priority was consumed by ASM before this function could be entered. */
+    heavy_scratch = 0u;
+    if (HEAVY_VISUAL_REQUEST[0] != 0u) { heavy_scratch = 1u; }
+    if (HEAVY_VISUAL_REQUEST[1] != 0u) { heavy_scratch |= 2u; }
+    heavy_breakup_pending = heavy_scratch;
+    if (heavy_scratch == 0u) {
+        HEAVY_VISUAL_RETRY = 0u;
+        return 0u;
+    }
+    /* Choice B: retries ignore the token, but NEVER the rotate prediction. */
+    if (asm_world_rotate_due() != 0u ||
+        (HEAVY_VISUAL_RETRY == 0u && light_take_deferrable_token() == 0u)) {
+        HEAVY_VISUAL_RETRY = 1u;
+        return 0u;
+    }
+    HEAVY_VISUAL_RETRY = heavy_breakup_pending = 0u;
+    return 1u;
+}
+
+/* Admission-only visual profile policy. Kept after existing hot window code;
+ * ASM consumes the selected profile and performs operand/PMG publication. */
+#pragma code-name (push, "HYBRID_C_WINDOW_LOOK")
+void enemy_c_heavy_look_colour(void)
+{
+    if (heavy_armoured != 0u) {
+        heavy_hull_colour = U8_AT(LEVEL_HEAVY_LOOK_COLOUR_ADDRESS);
+    }
+}
+#pragma code-name (pop)
 #pragma code-name (pop)

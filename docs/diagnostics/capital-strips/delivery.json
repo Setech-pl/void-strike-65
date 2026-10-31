@@ -1,0 +1,40 @@
+{
+  "window": {
+    "before": 2290,
+    "after": 2302
+  },
+  "home": {
+    "before": 1097,
+    "after": 1123
+  },
+  "arena": 830,
+  "l2": 1290,
+  "newStateBytes": 0,
+  "delivery": [
+    {
+      "path": "build/play/m3h-session2/session-finish/campaign.atr",
+      "bytes": 133136,
+      "sha256": "e777080b16f95c29d0da9fff16f0f444c3790a91ef87e4fac178c3908a24ef3a",
+      "buildFlags": []
+    },
+    {
+      "path": "build/play/m3h-session2/session-finish/level-2.atr",
+      "bytes": 133136,
+      "sha256": "06387bcb77535fa72b970ff1887c77ea9125062f217b5b3c87940fa5366a6329",
+      "buildFlags": [
+        "--level=2"
+      ]
+    },
+    {
+      "path": "build/play/m3h-session2/session-finish/heavy-sector.atr",
+      "bytes": 133136,
+      "sha256": "f2966e0f1907621363b6154b61b037d4d1a91ad4855173f7d76871a0de169ef7",
+      "buildFlags": [
+        "--level=2:sector=5"
+      ]
+    }
+  ],
+  "parent": "77cbfd1",
+  "branch": "codex/m3h-session2",
+  "status": "OWNER-SMOKE CANDIDATE"
+}

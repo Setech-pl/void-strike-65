@@ -1,4 +1,32 @@
 {
+  "capital_strips_smoke_repair_unit_debt_2026_10_31": {"comparedMain":"71a38a8","comparison":"docs/diagnostics/capital-strips/tests-ab.json","classification":"PRE_EXISTING_MAIN_DEBT","count":137,"existing_entries_reference":"m3h_session2_finish_unit_debt_2026_10_31 (same137 exact tuples)","new_entries":[],"note":"One fresh full run on each revision. Raw candidate1510 PASS/139 FAIL/4 SKIP; main1483/137/3. Generated map refreshed and a Heavy comment reworded to avoid an unrelated ALTERNATE source regex; focused checks pass. Audited1512/137/4; A137/B0/C0 by file/name/first assertion/message. Canonical legacy reconciliation remains nonzero; no new gameplay regression."},
+  "m3h_session2_finish_unit_debt_2026_10_31": {
+    "status": "PRE_EXISTING_MAIN_DEBT",
+    "main": "71a38a8",
+    "task_head": "bbc34a9",
+    "raw": {
+      "tests": 1652,
+      "pass": 1510,
+      "fail": 138,
+      "skipped": 4
+    },
+    "audited": {
+      "pass": 1514,
+      "fail": 137,
+      "skipped": 1
+    },
+    "diff": {
+      "A": 137,
+      "B": 0,
+      "C": 0
+    },
+    "evidence": "docs/diagnostics/m3h-session2/session-finish/tests-ab.json",
+    "note": "Exact file/name/first-assertion/message diff. One stale generated map regenerated and focused PASS; three emulator-location skips pass prepared focused rerun. One full npm test. Canonical legacy registry reconciliation remains nonzero; trace has no new/moved clauses."
+  },
+  "m3h_session2_plan_unit_debt_2026_10_30":{"baseline":"7fe90409bd09db58ff263806bec711db21a76457","comparison":"docs/diagnostics/m3h-session2-plan/tests-ab.json","classification":"pre-existing-unclassified","count":139,"existing_entries_reference":"phase_resync_unit_debt_2026_10_30.entries","new_entries":[],"note":"Planning-only task: source-identity current-main comparison A139/B0/C0, 1484 PASS/139 FAIL of 1623. All 139 tuples match existing debt exactly by file, test, first assertion and message; no new, moved or cleared tuple. Canonical release failures and unit registry remain unchanged."},
+  "m3h_session2_unit_debt_2026_10_30":{"baseline":"7fe9040","comparedMain":"71a38a847ab1d3702b77b292d6873159ecf4c2ff","comparison":"docs/diagnostics/m3h-session2/checkpoint-2-tests-ab.json","classification":"pre-existing-unclassified","count":137,"existing_entries_reference":"phase_resync_unit_debt_2026_10_30.entries (excluding repaired hardware-audio/hardware-boot fixture cases)","note":"A137/B0/C0 matched by file, name, first assertion and first message. Raw task140 failures: one accepted payload-art SHA correction plus two private SIO-emulator setup repairs pass focused. No new gameplay regression; canonical release predicates and unit registry unchanged."},
+  "m3h_session2_checkpoint6_unit_debt_2026_10_30":{"comparedMain":"71a38a847ab1d3702b77b292d6873159ecf4c2ff","comparison":"docs/diagnostics/m3h-session2/checkpoint-6-final-tests-ab.json","classification":"pre-existing-unclassified","count":137,"existing_entries_reference":"m3h_session2_unit_debt_2026_10_30 (same137 exact tuples)","new_entries":[],"note":"A137/B0/C0 by file/name/first assertion/message after one accepted packing-pin correction, passing focused. Raw1507/138/1 skip of1646; audited1508/137/1 skip. Canonical release predicates and unit registry unchanged."},
+  "m3h_session2_visual_tuning_unit_debt_2026_10_31":{"comparedMain":"71a38a847ab1d3702b77b292d6873159ecf4c2ff","comparison":"docs/diagnostics/m3h-session2/checkpoint-6-tuned/tests-ab.json","classification":"pre-existing-unclassified","count":137,"existing_entries_reference":"m3h_session2_checkpoint6_unit_debt_2026_10_30 (same 137 exact tuples)","new_entries":[],"note":"One full run: raw1505/139/4 skip of1648. Owner-requested palette hash and equivalent compiler-call expectation corrected; both pass focused. Three optional source-location skips pass after private emulator setup. Audited1510/137/1 skip, A137/B0/C0. Canonical unit/trace release predicates unchanged."},
   "schema_version": 1,
   "purpose": "The single source of truth for behavioural clause failures the owner has accepted as open in docs/runtime-wall-trace.json. Read by scripts/build.mjs (the release gate) and by tests/runtime-evidence-binding.test.mjs (the tripwire), so the build and the tripwire cannot disagree about what is recorded. An entry's `message` is its clause's first failing assertion - the text the harness throws - so the records are matched by session and first assertion; scripts/reconcile-failures.mjs --trace prints new, moved and disappeared failures against this file (chore/evidence-integrity).",
   "owner_decision": "2026-09-21 — release gate semantics. The default build passes when there is no UNRECORDED gate failure and gate.timing_and_dli_passed is true. A new failure, or a recorded failure that silently disappears, fails the build exactly as it fails the tripwire. gate.passed keeps its meaning: false while any failure is recorded.",

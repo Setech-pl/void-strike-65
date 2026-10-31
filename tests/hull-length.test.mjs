@@ -29,7 +29,7 @@ import {
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const labels = new Map();
 for (const file of ["build/void-strike-65.lbl", "build/encounter-director.lbl",
-  "build/integration-glue.lbl"]) {
+  "build/integration-glue.lbl", "build/l2.lbl"]) {
   for (const line of fs.readFileSync(path.join(root, file), "utf8").split(/\r?\n/)) {
     const match = /^al\s+([0-9a-f]+)\s+\.?([^\s]+)$/i.exec(line.trim());
     if (match) labels.set(match[2], Number.parseInt(match[1], 16));
@@ -91,23 +91,23 @@ test("T7: turret stations keep today's density per row over each length", () => 
   }
 });
 
-test("T7: a short hull is right-aligned - it ends on row 479, where the prow always ended", () => {
+test("T7: a short hull is right-aligned - it ends on finite row 959", () => {
   const short = compileCapitalHulls(hullAsset.definition, { combatRows: 128 });
   const page = levelTwo.pages.geometry;
   assert.deepEqual([...page.subarray(GEOMETRY_OFFSET.phaseStarts, GEOMETRY_OFFSET.phaseStarts + 4)],
-    [20, 30, 46, 56], "aft, combat, forward, prow in absolute modules; engines start at 16");
+    [80, 90, 106, 116], "aft, combat, forward, prow in absolute modules; engines start at 76");
   assert.deepEqual([...levelOne.pages.geometry.subarray(GEOMETRY_OFFSET.phaseStarts,
-    GEOMETRY_OFFSET.phaseStarts + 4)], [4, 14, 46, 56], "level 1 is today's hull");
+    GEOMETRY_OFFSET.phaseStarts + 4)], [64, 74, 106, 116], "level 1 is today's hull");
   for (const [side, offset] of [["allied", GEOMETRY_OFFSET.alliedSequence],
     ["enemy", GEOMETRY_OFFSET.enemySequence]]) {
-    const sequence = [...page.subarray(offset, offset + 60)];
-    assert.deepEqual(sequence.slice(16), [...short.sector.moduleSequences.get(side)],
-      `${side}: modules 16-59 are the 352-row hull`);
+    const sequence = [...page.subarray(offset, offset + 120)];
+    assert.deepEqual(sequence.slice(76), [...short.sector.moduleSequences.get(side)],
+      `${side}: modules 76-119 are the 352-row hull`);
     const engine = short.sector.engineModuleIds.get(side);
-    assert.deepEqual(sequence.slice(0, 16), new Array(16).fill(engine),
+    assert.deepEqual(sequence.slice(0, 76), new Array(76).fill(engine),
       `${side}: the modules before the hull are the engine module`);
-    assert.equal(sequence[59], short.sector.moduleSequences.get(side).at(-1),
-      `${side}: the prow tip is module 59, row 472-479`);
+    assert.equal(sequence[119], short.sector.moduleSequences.get(side).at(-1),
+      `${side}: the prow tip is module 119, row 952-959`);
   }
 });
 
@@ -124,13 +124,14 @@ test("T7: the compiler refuses a turret density the owner has not defined", () =
 const PHASES = { engines: 0, aft: 1, combat: 2, forward: 3, prow: 4, drain: 5 };
 
 function phaseAt(image, row) {
+  row += 480; // 0285cd5: finite coordinates are right-aligned to 960, formerly 480.
   image[labels.get("corridor_phase")] = row & 0xff;
   image[labels.get("CORRIDOR_PHASE_HI")] = row >> 8;
   run(image, "sector_update_capital_phase");
   return image[labels.get("CAPITAL_SECTOR_STATE")];
 }
 
-test("T7: the phase machine reads the page - a 352-row hull enters DRAIN at row 488", () => {
+test("T7: the phase machine reads the page - a 352-row hull enters DRAIN at finite row 968", () => {
   const image = imageWithLevel(levelTwo);
   for (const [row, phase] of [[128, "engines"], [159, "engines"], [160, "aft"],
     [239, "aft"], [240, "combat"], [367, "combat"], [368, "forward"], [447, "forward"],
@@ -160,22 +161,16 @@ test("T7: the resolvers read the page's sequences at $AC08/$AC44", () => {
         `${side}: row 243 resolves through page module ${moduleId}`);
     }
     // The hull ends at row 479 for every length; row 480 is past it.
-    assert.equal(run(image, `resolve_${side}_sector_row`, { a: 479 & 0xff, x: 1 }).carry, false);
-    assert.equal(run(image, `resolve_${side}_sector_row`, { a: 480 & 0xff, x: 1 }).carry, true);
+    assert.equal(run(image, `resolve_${side}_sector_row`, { a: 959 & 0xff, x: 3 }).carry, false);
+    assert.equal(run(image, `resolve_${side}_sector_row`, { a: 960 & 0xff, x: 3 }).carry, true);
   }
 });
 
-test("T7: capital entry starts level 2's row clock at row 128, level 1's at row 0", () => {
-  for (const [level, capitalRow, startRow] of [[levelOne, 272, 0], [levelTwo, 1120, 128]]) {
+test("finite L2 entry starts at 960 minus hull rows for both legacy hull lengths", () => {
+  for (const level of [levelOne, levelTwo]) {
     const image = imageWithLevel(level);
-    run(image, "director_init", { a: level.seed });
-    run(image, "init_broadside");
-    for (let row = 0; row < capitalRow; row += 1) run(image, "director_world_row_tick");
-    run(image, "integration_update_first_capital");
-    assert.equal(image[labels.get("CAPITAL_SECTOR_STATE")], PHASES.engines,
-      `level ${level.level}: the capital is admitted on its authored row`);
+    run(image, "_l2_c_enter");
     assert.equal(image[labels.get("corridor_phase")] |
-      image[labels.get("CORRIDOR_PHASE_HI")] << 8, startRow,
-    `level ${level.level}: the row clock starts at ${startRow}`);
+      image[labels.get("CORRIDOR_PHASE_HI")] << 8, 960 - level.geometry.hullRows);
   }
 });

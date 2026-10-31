@@ -764,8 +764,8 @@ test("capital debris retries rejected admissions without overwriting its occupie
   "an occupied debris slot must neither request, queue nor restart its timer");
 });
 
-test("capital debris uses existing 3/4/5 pressure ceilings on EASY, MEDIUM and HARD", () => {
-  for (const [difficulty, pressure, ceiling] of [[0, 2, 3], [1, 3, 4], [2, 4, 5]]) {
+test("island capitals suppress small debris without changing Director pressure", () => {
+  for (const [difficulty, pressure] of [[0, 2], [1, 3], [2, 4]]) {
     const memory = createRuntimeMemory();
     initialiseRows(memory);
     runRoutine(memory, "init_entity_effects");
@@ -779,8 +779,7 @@ test("capital debris uses existing 3/4/5 pressure ceilings on EASY, MEDIUM and H
     memory[addresses.playerY] = 184;
     runRoutine(memory, "entity_effects_update");
     assert.deepEqual([memory[addresses.activeMask], memory[addresses.activeCount], memory[0x80f8]],
-      [1, 1, ceiling], `difficulty ${difficulty} did not admit one debris beside capital pressure`);
-    runRoutine(memory, "integration_debris_release");
+      [0, 0, pressure], `difficulty ${difficulty} must suppress small debris during island capital traversal`);
     assert.deepEqual([memory[addresses.activeMask], memory[addresses.activeCount], memory[0x80f8]],
       [0, 0, pressure], `difficulty ${difficulty} release did not restore Director pressure`);
   }

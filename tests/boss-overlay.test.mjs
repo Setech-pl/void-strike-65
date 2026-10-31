@@ -224,7 +224,7 @@ test("the window pays the entry's resident half inside the plan's S3 figure, and
   // RE-PINNED 2026-10-06, 13,621 -> 13,618: plasma FX B1.2 (docs/plans/plasma-fx.md §12): the break-up is main's again, its renderer one stage list with no per-fragment codes and no growth hold, so the initial block content is 13,618 B, 3 B under main's 13,621. No byte of the boss is in it.
   // RE-PINNED 2026-10-10, fix/hardware-audio (docs/diagnostics/hardware-audio.md, F2): `lda #SKCTL_AUDIO / sta SKCTL` before the first menu, 5 B in ENTITY_CODE's cold start: 13,618 -> 13,623. Still no byte of the boss.
   // L1: menu data leaves boot; compressed padding restores gameplay addresses.
-  assert.equal(manifest.transportCapacity.initialBootContentBytes, 12829);
+  assert.equal(manifest.transportCapacity.initialBootContentBytes, 12865);
   assert.ok(manifest.boss.reservedSectors.code[0] > manifest.transportCapacity.initialBootSectors,
     "boss code starts after the initial block");
 });

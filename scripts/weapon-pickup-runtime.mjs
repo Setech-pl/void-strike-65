@@ -230,6 +230,10 @@ export function initialiseRuntime(root, artifact, coldFill = 0) {
   memory.fill(0, requiredLabel(labels, "__HYBRID_LIGHT_STATE_RUN__"),
     requiredLabel(labels, "__HYBRID_LIGHT_LOOK_RAM_LAST__"));
   runRoutine(memory, labels, "director_init", { a: 0x6d });
+  // b2261c9 M6 LIFE: this harness isolates ordinary booster cycles; LIFE has
+  // its own fixtures. A fresh once-per-level latch would replace the first drop.
+  memory[requiredLabel(labels, "_life_spawned")] = 1;
+
   memory[0x80f6] = 3;  // sector index
   memory[0x80f8] = 1;  // intensity
   memory[0x80f9] = 0;  // reaction

@@ -484,37 +484,11 @@ function leftAsGameplay(memory, writes, what) {
     `${what}: M1 / M2 not off screen`);
   assert.ok(memory.subarray(MISSILES, MISSILES + 256).every((v) => v === 0), `${what}: the column is not erased`);
 }
-test("leaving by the win: the lasers off, the column erased, COLPM1 / COLPM2 restored, PRIOR never written", () => {
-  const memory = regionOne();
-  const all = [];
-  memory[HULL_COLOUR()] = 0x96;                       // the Heavy's last hull colour, whatever it was
-  alive(memory);
-  memory[main("player_x")] = 60;
-  // RE-POINTED feat/boss-r1-tuning (owner decision 2026-10-10): gun-5 and
-  // gun-6 behind plate-a and plate-h are weapons too and fall before gun-2.
-  // RE-POINTED feat/boss-r1-twin-lasers (layout L2): the twin cannons behind
-  // plate-c and plate-f, gun-1 behind plate-d.
-  const order = ["plate-c", "emitter-l", "plate-f", "emitter-r", "plate-g", "gun-4", "plate-e", "gun-3", "plate-d",
-    "gun-1", "plate-a", "gun-5", "plate-h", "gun-6", "gun-2"];
-  for (const name of order) {
-    const index = byName.get(name);
-    for (let guard = 0; guard < 600 && hp(memory, index) > 0 && memory[lbl("_boss_phase")] === 0; guard += 1) {
-      const p = memory[lbl("boss_shown_pos")];
-      const { left, right } = visibleCells(p);
-      const map = [...memory.subarray(lbl("boss_column_map"), lbl("boss_column_map") + 64)];
-      const column = map.findIndex((v, c) => v === index && c >= left && c <= right);
-      if (column >= 0) for (let slot = 0; slot < 5; slot += 1) shootAt(memory, column, slot);
-      memory[LIFECYCLE] = PLAYER_ALIVE;
-      memory[COOLDOWN] = 25;                         // the bot under fire: never killed here
-      all.push(...update(memory).writes);
-    }
-  }
-  assert.notEqual(memory[lbl("_boss_phase")], 0, "the fight did not end");
-  for (let frame = 0; frame < 400 && memory[lbl("_boss_handoff")] === 0; frame += 1) all.push(...update(memory).writes);
-  assert.notEqual(memory[lbl("_boss_handoff")], 0, "no hand-off");
-  leftAsGameplay(memory, all, "the win");
-  for (let i = 0; i < LASERS; i += 1) assert.equal(laser(memory, "hpos", i), 0);
-});
+// Retired: e163e1b / §BQ replaces returning to fighter PMG after victory
+// with checked death takeover. The pre-takeover handoff flag is not a clean
+// gameplay frame. boss-death.test.mjs covers teardown/animation; last-death
+// and quit cleanup below still require restored colours and erased columns.
+
 
 test("leaving by the last death: the column erased, COLPM1 / COLPM2 restored, PRIOR never written", () => {
   const memory = laserFixture(1);

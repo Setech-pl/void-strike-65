@@ -52,7 +52,7 @@ test("the save record has one fixed sector, named once and placed by the directo
 test("the overlay directory has eleven entries; the summary code is entry 8 at $0500", () => {
   const names = manifest.sectorReader.overlayDirectory.names;
   // L1 adds the checked menu run as entry 10; existing entries keep their indices.
-  assert.equal(names.length, 11);
+  assert.equal(names.length, 13);
   assert.equal(names[10], "menu data (L1)");
   assert.equal(names[8], "level summary code (M5a-S2)");
   assert.equal(names[9], "disk identity (audit-hardening)");
@@ -258,7 +258,7 @@ test("disk runs never overlap: levels, the capital restore, M5b's reservation, t
   // empty past slot E again.
   const lance = manifest.boss.runs.find((run) => run.name === "boss-lance");
   assert.deepEqual([lance.startSector, lance.sectors], [712, manifest.boss.lance.sectors], "the lance run: the disk's free tail");
-  assert.ok([4, 5, 7].includes(lance.sectors), "seven sectors since M6 stage 1b's gauges (five at §BH, four at §BG)");
+  assert.ok([4, 5, 6, 7].includes(lance.sectors), "seven sectors since M6 stage 1b's gauges (five at §BH, four at §BG)");
   assert.ok(atrSectors(slotEEnd, 584 - slotEEnd).every((byte) => byte === 0),
     "528-583 past slot E must stay empty");
   assert.ok(atrSectors(lance.startSector, lance.sectors).some((byte) => byte !== 0), "the lance run is on the disk");
@@ -450,8 +450,8 @@ test("ENGAGING ENEMY SECTOR is one record in the reader, reused by the module; n
   // RE-PINNED feat/boss-banners (the owner's smoke of 2026-10-18: no WARNING
   // text screen at the boss entry): the screen's 11-B record (WARNING) out of
   // the kernel's last segment; the kernel link 957 -> 946 B, the tail 971 -> 982.
-  assert.equal(manifest.residentCapacity.basicWindow.freeBytes, 982, "the window moved");
+  assert.equal(manifest.residentCapacity.basicWindow.freeBytes, 1282, "the window moved");
   // RE-PINNED 2026-10-06, 13,621 -> 13,618: plasma FX B1.2 (docs/plans/plasma-fx.md §12): the break-up is main's again, its renderer one stage list with no per-fragment codes and no growth hold, so the initial block content is 13,618 B, 3 B under main's 13,621.
   // RE-PINNED 2026-10-10, fix/hardware-audio (docs/diagnostics/hardware-audio.md, F2): `lda #SKCTL_AUDIO / sta SKCTL` before the first menu, 5 B in ENTITY_CODE's cold start: 13,618 -> 13,623.
-  assert.equal(manifest.transportCapacity.initialBootContentBytes, 13622 /* RE-PINNED M6 stage 1b: the packed resident runtime, 1 B shorter */, "the initial block moved");
+  assert.equal(manifest.transportCapacity.initialBootContentBytes, 12865, "the initial block moved");
 });

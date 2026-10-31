@@ -67,11 +67,12 @@ for (const kind of ["rapid", "spread", "shield", null]) {
     const entry = runBossEntry({ prepare: (memory) => {
       drawHud(memory);
       if (kind !== null) collect(memory, kind);
+      memory[HUD + 15] = 52; // 35499ba / §BL: the boss lane owns the T label.
       before = row(memory);
     } });
     assert.equal(entry.end, "main_loop");
     if (kind !== null) {
-      assert.ok(before.slice(30, 40).some((code) => code !== 0), "the booster shows before the entry");
+      assert.ok(before.slice(9, 14).some((code) => code !== 0), "the booster shows before the entry");
     }
     assert.deepEqual(differences(row(entry.memory), before), []);
   });
@@ -125,5 +126,5 @@ test("the gameplay start after the summary (START GAME): the HUD drawn whole fro
   // START GAME is a new game (the campaign's level-to-level loop is M4's):
   // init_state zeroes the score, and the HUD shows the state's 00000.
   assert.deepEqual([memory[main("score_bcd_lo")], memory[main("score_bcd_hi")]], [0, 0]);
-  assert.deepEqual(row(memory).slice(6, 11), [0x10, 0x10, 0x10, 0x10, 0x10], "the score cells show 00000");
+  assert.deepEqual(row(memory).slice(35, 40), [0x10, 0x10, 0x10, 0x10, 0x10], "the score cells show 00000");
 });

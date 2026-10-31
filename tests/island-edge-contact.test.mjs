@@ -13,11 +13,10 @@ test('exact island contact matches every rendered-mask sweep case',()=>{
   assert.ok(groups.every(g=>g.maxMissOverlap===0),'no positive overlap is missed');
  }
 });
-test('exact contact leaves both unfired side lanes clear at every row and phase',()=>{
- const result=passage('build/island-edge-test-passage.json');
- assert.equal(result.records.length,6);
- for(const r of result.records){assert.equal(r.minLeftHpos,32-4*r.difficulty);assert.equal(r.minRightHpos,32-4*r.difficulty);assert.equal(r.fire,false);}
-});
+// Retired: e2bd1ff adds authored slalom placement. Fixed x=92/148 across every
+// row is no longer a promised route. The pixel-mask sweep above stays fatal;
+// capital-slalom-proof/contact diagnostics cover the authored moving lanes.
+
 test('owner BY changes only the L2 first-contents budget and preserves reserve/C ABI gates',()=>{
  const source=fs.readFileSync('scripts/build.mjs','utf8'),asm=fs.readFileSync('src/hybrid/l2.s','utf8');
  assert.match(source,/Owner decision §BY, 2026-10-26/);

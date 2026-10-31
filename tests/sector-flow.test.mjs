@@ -94,7 +94,7 @@ function swarm(rows, waves = []) {
   return { kind: "space", subtype: "swarm", rows, archetypes: ["wingman", "interceptor"],
     lights: 3, heavies: 0, hazards: { debris: 2, pickups: true }, waves };
 }
-const capital = { kind: "capital", archetypes: [], hazards: { debris: 1, pickups: true, broadside: true } };
+const capital = { kind: "capital", archetypes: [], hazards: { debris: 0, pickups: true, broadside: true } };
 
 // The kernel's admission of the armed Heavy wave's formation, as the Director
 // sees it: STATE_WAVE_REMAINING counts down and the formation is live.
@@ -242,12 +242,20 @@ test("C1: no hold where the next sector admits the population (elite after elite
   assert.equal(image[state.sector], 1, "a pair and one Light are legal in an elite sector");
 });
 
-test("C1: no hold before a capital - its entry waits for the drain itself", () => {
+// a4e1197 / merged capital increment 0: two Heavy-free frames precede capital.
+test("capital cut waits for a live Heavy and then two Heavy-free physical frames", () => {
   const image = level([elite(32, [heavyWave(0)]), capital, elite(64)]);
   admitFormation(image);
   tick(image, 32);
-  assert.equal(image[state.sector], 1, "the capital is entered on the row count");
-  assert.notEqual(image[state.flags] & FLAG_CAPITAL_DUE, 0, "and raises CAPITAL_DUE as before");
+  assert.equal(image[state.sector], 0, "a live Heavy delays the capital cut");
+  image[ENEMY_ACTIVE] = 0;
+  for (const frame of [10, 11]) {
+    image[at("frame_counter")] = frame; tick(image);
+    assert.equal(image[state.sector], 0, "the two-frame clear fence has not elapsed");
+  }
+  image[at("frame_counter")] = 12; tick(image);
+  assert.equal(image[state.sector], 1);
+  assert.notEqual(image[state.flags] & FLAG_CAPITAL_DUE, 0);
 });
 
 test("C1: the last sector's cut still completes the level", () => {

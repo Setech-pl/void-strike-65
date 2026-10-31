@@ -8,6 +8,17 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const report = JSON.parse(fs.readFileSync(
   path.join(root, "docs", "runtime-wall-trace.json"), "utf8"));
 const manifest = JSON.parse(fs.readFileSync(path.join(root, "build", "manifest.json"), "utf8"));
+// 12d35c1 / §BR: historical evidence remains testable, but pending normal builds
+// must not copy its measured values into the current manifest.
+const pendingEvidence = manifest.runtimeEvidence.status === "normal-awaiting-trace";
+function currentMeasurement(value) {
+  if (!pendingEvidence) return value;
+  assert.equal(manifest.runtimeEvidence.phase, "normal");
+  assert.equal(manifest.runtimeEvidence.reportSha256, null);
+  assert.equal(manifest.runtimeTiming.wallTrace, null);
+  assert.match(manifest.runtimeEvidence.warning, /release build will fail/);
+  return null;
+}
 const observerSource = fs.readFileSync(
   path.join(root, "scripts", "atari800-wall-trace.h"), "utf8");
 const traceGeneratorSource = fs.readFileSync(
@@ -72,11 +83,18 @@ test("wall trace is artifact-bound and adds no guest timing work", () => {
   assert.equal(report.evidence.partial, false);
   assert.equal(report.evidence.required_sessions, report.evidence.completed_sessions);
   for (const name of ["void-strike-65-boot.bin", "void-strike-65.atr"]) {
+    if (pendingEvidence && manifest.runtimeEvidence.staleFiles.includes(name)) {
+      assert.notEqual(report.artifacts[name].sha256, manifest.artifacts[name].sha256,
+        "the stale-file entry must identify an actual binding mismatch");
+      assert.equal(manifest.runtimeEvidence.reportPath, null);
+      assert.equal(manifest.runtimeTiming.wallTrace, null);
+    } else {
     assert.deepEqual(report.artifacts[name], {
       path: `dist/${name}`,
       bytes: manifest.artifacts[name].bytes,
       sha256: manifest.artifacts[name].sha256,
-    });
+    })
+    };
   }
   assert.equal(report.artifact.sha256, report.artifacts["void-strike-65.atr"].sha256);
   assert.equal(report.instrumentation.start_label, "main_loop_option_poll");
@@ -673,10 +691,10 @@ test("Spread Shot passes PAL wall budget with a legal capsule and projectile-hea
     targetWallLimitCycles: 32_240,
     hardWallLimitCycles: 32_540,
     minimumPhysicalHeadroomCycles: 3_028,
-    measuredWallCycles: 32_072,
-    actualDeltaCycles: 32,
-    missedSynchronization: 0,
-    deadlineOverruns: 0,
+    measuredWallCycles: currentMeasurement(32_072),
+    actualDeltaCycles: currentMeasurement(32),
+    missedSynchronization: currentMeasurement(0),
+    deadlineOverruns: currentMeasurement(0),
   });
 });
 
@@ -841,7 +859,7 @@ test("debris visual polish preserves foundation history and passes its +256 PAL 
   assert.equal(feature.budget_overrun_frames, 0);
   assert.equal(manifest.runtimeTiming.entityEffects.emptyPathCpuCycles <= 124, true);
   assert.equal(manifest.entityEffects.runtimeBudget.debrisVisualPolish.actualDeltaCycles,
-    feature.actual_delta_cycles);
+    currentMeasurement(feature.actual_delta_cycles));
 });
 
 test("explosion colour flash passes its +64 PAL gate with exact GTIA traces", () => {
@@ -899,11 +917,11 @@ test("explosion colour flash passes its +64 PAL gate with exact GTIA traces", ()
     featureWallLimitCycles: 32_145,
     deltaLimitedMinimumPhysicalHeadroomCycles: 3_423,
     absoluteMinimumPhysicalHeadroomCycles: 3_200,
-    measuredWallCycles: feature.measured_wall_cycles,
-    actualDeltaCycles: feature.actual_delta_cycles,
-    remainingApprovedCycles: feature.remaining_approved_cycles,
-    missedSynchronization: 0,
-    deadlineOverruns: 0,
+    measuredWallCycles: currentMeasurement(feature.measured_wall_cycles),
+    actualDeltaCycles: currentMeasurement(feature.actual_delta_cycles),
+    remainingApprovedCycles: currentMeasurement(feature.remaining_approved_cycles),
+    missedSynchronization: currentMeasurement(0),
+    deadlineOverruns: currentMeasurement(0),
   });
 });
 
@@ -943,12 +961,12 @@ test("destructible debris passes PAL, inactive-path and linked-code budgets", ()
     targetWallLimitCycles: 32_762,
     hardWallLimitCycles: 32_890,
     minimumPhysicalHeadroomCycles: 2_800,
-    measuredWallCycles: feature.measured_wall_cycles,
-    actualDeltaCycles: feature.actual_delta_cycles,
-    remainingTargetCycles: feature.remaining_target_cycles,
-    remainingHardCycles: feature.remaining_hard_cycles,
-    missedSynchronization: 0,
-    deadlineOverruns: 0,
+    measuredWallCycles: currentMeasurement(feature.measured_wall_cycles),
+    actualDeltaCycles: currentMeasurement(feature.actual_delta_cycles),
+    remainingTargetCycles: currentMeasurement(feature.remaining_target_cycles),
+    remainingHardCycles: currentMeasurement(feature.remaining_hard_cycles),
+    missedSynchronization: currentMeasurement(0),
+    deadlineOverruns: currentMeasurement(0),
   });
   assert.equal(manifest.runtimeCodeBudget.baselineBytes, 13_697);
   assert.equal(manifest.runtimeCodeBudget.approvedDeltaBytes, 768);
@@ -1014,12 +1032,12 @@ test("enemy breakup passes the hard PAL gate and draws no character effect", () 
     targetWallLimitCycles: 32_847,
     hardWallLimitCycles: 32_943,
     minimumPhysicalHeadroomCycles: 2_600,
-    measuredWallCycles: 32_869,
-    actualDeltaCycles: 150,
-    remainingTargetCycles: -22,
-    remainingHardCycles: 74,
-    missedSynchronization: 0,
-    deadlineOverruns: 0,
+    measuredWallCycles: currentMeasurement(32_869),
+    actualDeltaCycles: currentMeasurement(150),
+    remainingTargetCycles: currentMeasurement(-22),
+    remainingHardCycles: currentMeasurement(74),
+    missedSynchronization: currentMeasurement(0),
+    deadlineOverruns: currentMeasurement(0),
   });
   const runtimeCode = manifest.runtimeCodeBudget.enemyBreakupEffects;
   assert.equal(runtimeCode.baselineBytes, 14_184);

@@ -402,7 +402,7 @@ function boltBoundsFromDisplay(memory, slot) {
   };
 }
 
-function prepareIndependentRasterScene({ owner, slot, ringRotations, playerDmaTop }) {
+function prepareIndependentRasterScene({ owner, slot, ringRotations, position }) {
   const memory = createLinkedRuntimeMemory();
   runAssembledRoutine(memory, "copy_charset");
   runAssembledRoutine(memory, "init_broadside");
@@ -420,6 +420,14 @@ function prepareIndependentRasterScene({ owner, slot, ringRotations, playerDmaTo
   runAssembledRoutine(memory, "set_broadside_row_ptr", { x: slot });
   runAssembledRoutine(memory, "render_capital_shell_overlays");
 
+  // Place the independent oracle relative to the published shell, not a pre-HUD-move Y pin.
+  memory[0xd409] = 0x44; // the gameplay charset must be selected before reading the published shell.
+  const shell = boltBoundsFromDisplay(memory, slot);
+  const tops = {"top edge": shell.bottom, "upper third": shell.bottom - 3,
+    "middle": Math.floor((shell.top + shell.bottom - 14) / 2),
+    "lower third": shell.top - 12, "bottom edge": shell.top - 14,
+    "one scanline above": shell.bottom + 1, "one scanline below": shell.top - 15};
+  const playerDmaTop = tops[position] + ATARI800_CAPTURE_FIRST_DMA_SCANLINE;
   memory[labels.get("player_x")] = 124;
   memory[labels.get("player_y")] = playerDmaTop;
   memory[0xd000] = 124;
@@ -434,18 +442,18 @@ function prepareIndependentRasterScene({ owner, slot, ringRotations, playerDmaTo
 
 test("capital/player collision agrees with independently reconstructed final raster Y", () => {
   const positions = [
-    { name: "top edge", playerDmaTop: 126, expectedHit: true },
-    { name: "upper third", playerDmaTop: 123, expectedHit: true },
-    { name: "middle", playerDmaTop: 114, expectedHit: true },
-    { name: "lower third", playerDmaTop: 108, expectedHit: true },
-    { name: "bottom edge", playerDmaTop: 107, expectedHit: true },
-    { name: "one scanline above", playerDmaTop: 127, expectedHit: false },
-    { name: "one scanline below", playerDmaTop: 106, expectedHit: false },
+    { name: "top edge", expectedHit: true },
+    { name: "upper third", expectedHit: true },
+    { name: "middle", expectedHit: true },
+    { name: "lower third", expectedHit: true },
+    { name: "bottom edge", expectedHit: true },
+    { name: "one scanline above", expectedHit: false },
+    { name: "one scanline below", expectedHit: false },
   ];
   for (const owner of [0, 1]) for (const slot of [0, 1, 2]) {
     for (const ringRotations of [0, 1, 13, 26, 27]) for (const position of positions) {
       const memory = prepareIndependentRasterScene({
-        owner, slot, ringRotations, playerDmaTop: position.playerDmaTop,
+        owner, slot, ringRotations, position: position.name,
       });
       const player = playerBoundsFromPmg(memory);
       const bolt = boltBoundsFromDisplay(memory, slot);
@@ -970,7 +978,7 @@ test("capital cadence restores the legacy world rate without changing fighter ti
   assert.equal(slot.x - x, 2, "shell movement remains two HPOS units per PAL frame");
   assert.match(routine("init_state", "clear_pmg"), /lda #\$00[\s\S]+sta scroll_accumulator/);
   assert.match(routine("update_starfield", "generate_corridor_row"),
-    /cmp #CAPITAL_HULL_STATE_OPEN[\s\S]+lda world_scroll_rates,x[\s\S]+asl[\s\S]+lda hull_scroll_rates,x[\s\S]+cmp #HULL_SCROLL_RATE_DENOMINATOR[\s\S]+sbc #HULL_SCROLL_RATE_DENOMINATOR/);
+    /lda L2_SCROLL_RATE[\s\S]+cmp #HULL_SCROLL_RATE_DENOMINATOR[\s\S]+sbc #HULL_SCROLL_RATE_DENOMINATOR/);
   assert.match(routine("main_loop", "wait_frame"),
     /jsr wait_for_master_pal_frame[\s\S]+jsr update_starfield[\s\S]+jmp main_loop/);
   const rateTableAddress = labels.get("hull_scroll_rates");
@@ -1985,7 +1993,7 @@ test("centered player survives every finite hull row while runtime contact state
 
 test("assembled 16-bit hull visibility maps states 0-5 and rejects terminal COMPLETE/OPEN", () => {
   const constants = readGameGraphicsSource(source, definition).constants;
-  const expectedSectorRows = [269, 269, 269, 269, 269, 479, null, null];
+  const expectedSectorRows = [269, 269, 269, 269, 269, 959, null, null];
 
   for (let state = 0; state < 8; state += 1) {
     const memory = createLinkedRuntimeMemory();

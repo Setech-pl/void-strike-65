@@ -163,10 +163,10 @@ test("boss_def carries the boss bonus as packed BCD at payload offset 194, then 
     { hullAsset, file: "level-01.json" }), LevelValidationError, "a scale outside the quarters");
 });
 
-test("the level image still ends before $AC80, where band rows 6-7 and the tables land", () => {
+test("the level image stays inside the reserved $A600-$ADFF level buffer", () => {
   const image = read("build/level-1.bin");
-  assert.ok(0xa600 + image.length <= 0xac80,
-    `level 1 is ${image.length} B and would reach band B at $AC80`);
+  assert.ok(0xa600 + image.length <= 0xae00,
+    `level 1 is ${image.length} B and would exceed the $AE00 level-buffer limit`);
 });
 
 // ---------------------------------------------------------------------------

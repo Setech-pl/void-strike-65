@@ -64,6 +64,16 @@ test("additive DMA/DLI estimate is explicit and never reported as physical headr
 
 test("measured DMA-on fields come only from an artifact-matched Atari800 trace", () => {
   const trace = timing.wallTrace;
+  // 12d35c1 / §BR: pending normal builds must publish no DMA-on measurement.
+  if (trace === null) {
+    assert.equal(manifest.runtimeEvidence.status, "normal-awaiting-trace");
+    assert.equal(manifest.runtimeEvidence.phase, "normal");
+    assert.equal(manifest.runtimeEvidence.reportSha256, null);
+    assert.match(manifest.runtimeEvidence.warning, /release build will fail/);
+    assert.equal(timing.measured_wall_cycles_dma_on, null);
+    assert.equal(timing.measured_physical_headroom, null);
+    return;
+  }
   assert.ok(trace, "runtime wall trace is missing");
   assert.equal(timing.measured_wall_cycles_dma_on,
     trace.semantics.measured_wall_cycles_dma_on);

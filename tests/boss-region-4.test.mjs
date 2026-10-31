@@ -199,7 +199,10 @@ function frame(memory, { lifecycle = 0, regs = null, holdBand = false } = {}) {
   const hooks = regs === null ? {} : { write: (address, value) => { regs[address] = value; } };
   nmi(memory, lbl("boss_dli"), { hooks });
   call(memory, lbl("boss_update"));
-  call(memory, manifest.overlays.capitalVectors.address + 8 * 3);
+  // Late publication waits for a real VCOUNT; this unit frame is after the band.
+  memory[0xd40b] = 0x77;
+  call(memory, manifest.overlays.capitalVectors.address + 8 * 3,
+    {hooks, stopAt: [lbl("boss_death_read")]});
   call(memory, lbl("boss_motion"));
   nmi(memory, lbl("boss_dli"), { hooks });
   nmi(memory, lbl("boss_dli"), { hooks });

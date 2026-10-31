@@ -57,7 +57,7 @@ test("master PAL gate makes transition-only fire/audio catch-up obsolete", () =>
   // broadside missile M3 and the player explosion. The regex keeps every
   // ordering it asserted; it only admits that one immediate store per branch.
   assert.match(publication,
-    /lda FIGHTER_PROJECTILE_PUBLICATION_FRAME\s+beq @fighter_window[\s\S]+jsr erase_dynamic_near_star_overlays\s+jsr publish_dynamic_near_star_phase\s+jmp fighter_projectile_publication_capital_render\s+@fighter_window:\s+lda #PICKUP_BOOST_COLOUR\s+sta COLPM3\s+ldx #\$77\s+jsr wait_frame_at_line\s+fighter_projectile_publication_begin/);
+    /lda FIGHTER_PROJECTILE_PUBLICATION_FRAME\s+beq @fighter_window[\s\S]+jsr erase_dynamic_near_star_overlays\s+jsr publish_dynamic_near_star_phase\s+jmp fighter_projectile_publication_capital_render\s+@fighter_window:\s+jsr SECTOR_READER_STATS_FIGHTER[^\n]*\s+nop\s+nop\s+ldx #\$77\s+jsr wait_frame_at_line\s+fighter_projectile_publication_begin/);
   assert.doesNotMatch(publication, /jsr update_sound|player_fire_transition_tick/);
   assert.doesNotMatch(source, /player_fire_transition_tick:/);
   assert.match(source,

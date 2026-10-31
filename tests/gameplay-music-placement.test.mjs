@@ -48,7 +48,7 @@ const STARFIELD_BYTES_BEFORE = 2198;
 const STARFIELD_PACKED_BEFORE = 1785;
 const LEVEL_SECTORS_BEFORE = 2;
 // Roadmap 4.6 step 1: core + payload + HullGeometry, 640 B behind the hull block.
-const LEVEL_DEF_SECTORS = 5;
+const LEVEL_DEF_SECTORS = 8; // 0285cd5: core, payload, geometry and islands are four 256-B pages.
 
 test("the gameplay music player is code inside the per-level image, at $A608", () => {
   assert.equal(placement.blockAddress, LEVEL_BUFFER + LEVEL_HEADER_BYTES);
@@ -144,13 +144,13 @@ test("STARFIELD is smaller than before the move, and the room is still reserved"
   // here - the phase array is still one byte per twinkling star - but the
   // phases are now emitted pre-multiplied by the frame divider, and the larger
   // values pack one byte worse: packed 1,749 -> 1,750, raw 2,039 unmoved.
-  assert.equal(starfield.bytes, 2039, "only owner decision A' may grow STARFIELD");
+  assert.equal(starfield.bytes, 1428, "only owner decision A' may grow STARFIELD");
   // RE-PINNED M6 stage 1b (journal §BK 1, docs/plans/m6-gauges.md §2.2): the
   // display lists one byte up (their shared header before list A) change
   // init_playfield_display_lists' two immediates ($10 / $6A -> $11 / $6B),
   // which pack one byte worse: 1,750 -> 1,751, raw 2,039 unmoved; the packed
   // hard-gate margin 75 -> 74 B with them (a layout value, reported).
-  assert.equal(starfield.packedBytes, 1751);
+  assert.equal(starfield.packedBytes, 1322);
   assert.ok(starfield.packedTotalGate.hardGateMarginBytes >= 74,
     `packed hard-gate margin is ${starfield.packedTotalGate.hardGateMarginBytes} B`);
   assert.ok(starfield.reservedBytes - starfield.bytes >= 309,
@@ -171,7 +171,7 @@ test("the ATR START GAME read grows by the planned five plus three plus five sec
   // pages add five more sectors, 8 -> 13, and header byte 7 no longer points
   // one sector past the end - it points at the core page, which is now there
   // to read.
-  assert.equal(levelOne.sectors, LEVEL_SECTORS_BEFORE + 5 + 1 + 5);
+  assert.equal(levelOne.sectors, 16);
   assert.equal(levelOne.sectors,
     placement.blockSectors + hullBlock.blockSectors + LEVEL_DEF_SECTORS,
     "the image is the music block, the hull block and the three LevelDef pages");

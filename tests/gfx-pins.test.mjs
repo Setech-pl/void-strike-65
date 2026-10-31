@@ -40,8 +40,8 @@ const REPIN = "re-pin only with the owner decision that changes this art (docs/d
 // building both.
 const ART = Object.freeze({
   "enemy-roster.inc": "98feca26ed79abc7808423ef9ee555e69772e9d4a674a2dc341379a8da43fa40",
-  "capital-hulls.inc": "6322db92f0f239635299d0869edfd1855b93c9c0f073a0a1e9b9506e0c11b175",
-  "entity-effects.inc": "252d5050d327afb6df8e84fa9b270f16ffa6c7203d463533d6a91817fc736da7",
+  "capital-hulls.inc": "ccdea30b8561a3cc96eabbe7534f3d67eaccea9670720ba80a459b4b2c1a9b04",
+  "entity-effects.inc": "4b67a8524d304e93e92523a74b66e9f6493ed6dff16c94e762fc6fed5082b008",
   // RE-PINNED M6 stage 1b with the owner's decision §BK 1 (the HUD at the
   // bottom): HUD_TOP / HUD_BOTTOM 8 / 16 -> 240 / 248, no art byte changed.
   "fighter-weapons.inc": "1b01457cd77aede933543419631336993ab60ced6ea23e4c399c8ba6a73ee13c",
@@ -167,13 +167,16 @@ test("the boss link's colour, charset and DLI-vector stores: only the pinned rou
     // phase 0 sets COLPF0-3 every frame before the divider row (the route
     // test below runs the entry with the banner).
     "boss_banner COLPF0": 1, "boss_banner COLPF1": 1,
+    // e163e1b / §BQ: the accepted disk-only death strobe owns these writes.
+    "boss_death_dli VDSLST": 1, "boss_death_hud CHBASE": 1, "boss_death_hud COLPF2": 1,
+    "boss_death_hud VDSLST": 1, "boss_death_strobe COLPF3": 1, "boss_death_strobe VDSLST": 1,
     // RE-PINNED feat/boss-banners (the owner's smoke of 2026-10-18, §AY 8):
     // the old WARNING screen set the banner's CHBASE (the frontend charset)
     // and COLPF2 (black); without it the cold tail sets them with the display
     // off, on the loading screen only - the install sets CHBASE and COLPF2
     // again and the boss DLI's phase 0 every frame.
     "boss_entry_cold CHBASE": 1, "boss_entry_cold COLPF2": 1,
-    "boss_dli CHBASE": 2, "boss_dli COLPF0": 2, "boss_dli COLPF1": 2, "boss_dli COLPF2": 2, "boss_dli COLPF3": 2,
+    "boss_dli CHBASE": 2, "boss_dli COLPF0": 2, "boss_dli COLPF1": 2, "boss_dli COLPF2": 3, "boss_dli COLPF3": 2,
     "boss_install CHBASE": 1, "boss_install COLBK": 1, "boss_install COLPF1": 1, "boss_install COLPF2": 1,
     "boss_install COLPF3": 1, "boss_install VDSLST": 1,
     "boss_pal_dli COLPF1": 1, "boss_pal_dli COLPF3": 1, "boss_pal_frame VDSLST": 1, "boss_pal_landed VDSLST": 1,

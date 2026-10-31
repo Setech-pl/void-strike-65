@@ -58,7 +58,7 @@ test("Shield capsule uses only steel $84, white $0E and black selectors", () => 
 // shared at runtime (manifest dynamicPickupGlyphBankShared is false) and no
 // backing exists.
 
-test("pickup rotation is exactly Rapid Spread Shield Rapid without RNG", () => {
+test("ordinary pickup rotation is exactly Rapid Spread Shield Rapid without RNG", () => {
   const trace = executeSpreadShotTrace({ root, artifact: "atr" });
   assert.deepEqual(trace.drops.map(({ pickupType, nextPickupType, renderId }) =>
     [pickupType, nextPickupType, renderId]), [
@@ -67,8 +67,9 @@ test("pickup rotation is exactly Rapid Spread Shield Rapid without RNG", () => {
     // subject and is unchanged.
     [0, 1, 0], [1, 2, 0], [2, 0, 0],
   ]);
-  const rotation = source.slice(source.indexOf("weapon_pickup_record_qualified_kill:"),
-    source.indexOf('.segment "STARFIELD"', source.indexOf("weapon_pickup_record_qualified_kill:")));
+  // b2261c9: LIFE may use RNG; the ordinary three-way rotation never does.
+  const life = fs.readFileSync(path.join(root, "src/hybrid/life-capsule.s"), "utf8");
+  const rotation = life.slice(life.indexOf("life_pick_ordinary:"), life.indexOf("life_enter:"));
   assert.doesNotMatch(rotation, /rng|RNG|random/);
 });
 
@@ -164,7 +165,7 @@ test("Shield HUD uses exact 188 126 63 thresholds and a continuous distinct glyp
   assert.deepEqual(boundary(63).hudSegments, [8, 8, 0, 0]);
   assert.deepEqual(boundary(62).hudSegments, [8, 0, 0, 0]);
   // RE-PINNED M6 stage 1b (journal §BK 1): the HUD's separator is the glyph's first row.
-  assert.deepEqual(shield.shieldGlyph, [0xff, 0xc3, 0xdb, 0xff, 0xdb, 0xdb, 0xff, 0xc3]);
+  assert.deepEqual(shield.shieldGlyph, [0x00, 0xc3, 0xdb, 0xff, 0xdb, 0xdb, 0xff, 0xc3]);
 });
 
 test("critical Shield segment has both 8-frame blink phases", () => {

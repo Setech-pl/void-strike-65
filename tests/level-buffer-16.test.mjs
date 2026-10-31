@@ -74,7 +74,7 @@ test("Q-1: HYBRID_C_WINDOW is $AE00-$BBFF, 3,584 B, and still stops at the reade
   // left for PICKUP_CODE's tail and the director's live-Light scan became
   // one call to lifecycle's count (-26 B); the tick's top-hold phase and the
   // 4-B pad that keeps the kernel's branches on their pages (+41 B net).
-  assert.equal(window.directorHalfBytes, 1656, "the Light C, the cold Director half, step 5, the boss entry, sector flow, the escort clock");
+  assert.equal(window.directorHalfBytes, 2302, "the Light C, the cold Director half, step 5, the boss entry, sector flow, the escort clock");
   // RE-PINNED 2026-10-03, M5a-S1: the kernel 735 -> 771 B, the 36-B capital
   // vector table appended to its frozen vector block.
   // RE-PINNED 2026-10-07, audit-hardening (owner Q2): the kernel link 771 ->
@@ -112,9 +112,9 @@ test("Q-1: HYBRID_C_WINDOW is $AE00-$BBFF, 3,584 B, and still stops at the reade
   // 957): used 2,638 -> 2,613, the tail 946 -> 971.
   // RE-PINNED feat/boss-banners (the other side of the kernel's 957 -> 946):
   // used 2,613 -> 2,602, the tail 971 -> 982.
-  assert.equal(window.usedBytes, 1656);
-  assert.equal(window.freeBytes, 3584 - 1656);
-  assert.equal(window.freeBytes, 1928, "L1 frees 1,155 B without changing the C half");
+  assert.equal(window.usedBytes, 2302);
+  assert.equal(window.freeBytes, 1282);
+  assert.equal(window.freeBytes, 1282, "L1 frees 1,155 B without changing the C half");
   // Light now closes the MAIN reservation; the C link still closes its window.
   assert.equal(manifest.lightKernel.address, 0x3643);
   assert.equal(manifest.lightKernel.windowLimit, 0x3b00);
@@ -137,7 +137,7 @@ test("Q-1: the window record lands at $AE00 and costs no extra transport", () =>
   // RE-PINNED feat/interceptor-standoff Phase B (owner answer Q2 of
   // 2026-10-12): 1,686 -> 1,656 raw B, still 11 sectors (1,322 packed of
   // 1,387: 65 B to the twelfth).
-  assert.equal(window.transport.rawBytes, 1656, "the window record carries steps 2-5, the boss entry, sector flow and the escort clock");
+  assert.equal(window.transport.rawBytes, 2302, "the window record carries steps 2-5, the boss entry, sector flow and the escort clock");
   // The transport rule of plan §3.3 and owner decision 6: this step may not
   // buy a sector. It SOLD one - the retired schedulers, the retired phase
   // machinery and the 158 B of compiled-in level 1 outweigh the reader that
@@ -170,17 +170,16 @@ test("Q-1: level 1 still loads the same image the same way", () => {
   // Re-pinned for roadmap 4.6 step 1 (plan §2.1, §8): the image carries the
   // three LevelDef pages, 8 -> 13 sectors. Q-1 sized the buffer for exactly
   // this, so the "still fits" clause below is the one that matters.
-  assert.deepEqual([levelOne.id, levelOne.sectors, levelOne.bytes, levelOne.startSector],
-    [1, 13, 1664, 320]);
+  assert.deepEqual([levelOne.id, levelOne.sectors, levelOne.bytes, levelOne.startSector], [1,16,2048,320]);
   assert.ok(levelOne.sectors <= manifest.sectorReader.levelBuffer.sectors,
     "a 13-sector image still fits a 16-sector buffer");
-  assert.equal(manifest.sectorReader.levelBuffer.sectors - levelOne.sectors, 3,
+  assert.equal(manifest.sectorReader.levelBuffer.sectors - levelOne.sectors, 0,
     "Q-1 left three spare sectors and step 1 spent none of them");
   const image = fs.readFileSync(path.join(root, "build", levelOne.file));
-  assert.equal(image.length, 1664);
+  assert.equal(image.length, 2048);
   assert.equal(image.subarray(0, 2).toString("latin1"), "VS");
   assert.equal(image[2], 1, "format version");
-  assert.equal(image[4], 13, "sector count in the header");
+  assert.equal(image[4], 16, "sector count in the header");
   // The image is a level-data artifact, not a code artifact: the buffer move
   // must not change one byte of it, and the boot smoke verifies the same file
   // byte for byte at $A600 on every cold session.

@@ -414,10 +414,10 @@ test("T13: only the Director's sector entry writes the star operand", () => {
   const writes = sources.match(/sta\s+NEAR_STAR_PIXEL_OPERAND\b/g) ?? [];
   assert.equal(writes.length, 1, "one store, in the veneer");
   const director = fs.readFileSync(path.join(root, "src/c/director.c"), "utf8");
-  assert.equal((director.match(/asm_publish_star_pixel\(/g) ?? []).length, 2,
+  assert.equal((director.match(/asm_publish_star_pixel_and_life\(/g) ?? []).length, 2,
     "declared once, called once - from enter_sector");
   const enter = /static void enter_sector\(void\)\s*\{([\s\S]*?)\n\}/.exec(director);
-  assert.ok(enter && /asm_publish_star_pixel\(/.test(enter[1]), "the call is in enter_sector");
+  assert.ok(enter && /asm_publish_star_pixel_and_life\(/.test(enter[1]), "the call is in enter_sector");
 });
 
 test("T13: the byte rules - light_pair_for_record size-neutral, decoded record 5 unchanged, initial block under the STOP line", () => {

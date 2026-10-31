@@ -230,8 +230,8 @@ test("assembled gameplay display list and DLI switch a dedicated ANTIC 2 HUD", (
   }
   for (const [name, expected] of [
     // RE-PINNED M6 stage 1b: the separator is the glyphs' first row.
-    ["CH_HUD_HULL_FULL", [0xff, 0, 0, 0, 0x3c, 0x7e, 0xff, 0x7e]],
-    ["CH_HUD_HULL_DAMAGED", [0xff, 0, 0, 0, 0x3c, 0x42, 0x5a, 0x24]],
+    ["CH_HUD_HULL_FULL", [0x00, 0, 0, 0, 0x3c, 0x7e, 0xff, 0x7e]],
+    ["CH_HUD_HULL_DAMAGED", [0, 0, 0, 0x3c, 0x42, 0x5a, 0x24, 0xff]],
     ["CH_HUD_BOOSTER_FULL", [0xff, 0x30, 0x30, 0x30, 0x30, 0x30, 0x30, 0x30]],
   ]) {
     const code = graphics.constants.get(name);
@@ -277,7 +277,7 @@ test("assembled ANTIC 2 HUD keeps independent live score, life, and hull fields"
     scoreAddress,
     labels.get("update_starfield") - scoreAddress,
   );
-  for (let offset = 6; offset <= 10; offset += 1) {
+  for (let offset = 35; offset <= 39; offset += 1) {
     assert.notEqual(
       scoreBytes.indexOf(absoluteStore(0x4000 + offset)),
       -1,
@@ -290,11 +290,11 @@ test("assembled ANTIC 2 HUD keeps independent live score, life, and hull fields"
     statusAddress,
     labels.get("begin_broadside_impact") - statusAddress,
   );
-  assert.notEqual(statusBytes.indexOf(absoluteStore(0x4000 + 18)), -1,
+  assert.notEqual(statusBytes.indexOf(absoluteStore(0x4000 + 1)), -1,
     "HUD LIFE digit at screen offset 18 must remain live");
-  assert.notEqual(statusBytes.indexOf(Buffer.from([0x9d, 0x19, 0x40])), -1,
+  assert.notEqual(statusBytes.indexOf(Buffer.from([0x9d, 0x04, 0x40])), -1,
     "HUD HULL plates must update only the indexed 25-28 field");
-  assert.match(source, /hud_ascii:\s*\.byte "SCORE 00000  LIFE 3 HULL "/);
+  assert.match(source, /hud_ascii:\s*\.byte "L  H                         SCORE"/);
   assert.doesNotMatch(source, /hud_ascii:[\s\S]*?\.byte [^\n]*\b(?:FUEL|ARM)\b/);
   assert.match(source,
     /update_hud_status:[\s\S]+lda PLAYER_LIVES[\s\S]+HUD_LIFE_DIGIT_OFFSET[\s\S]+lda BROAD_PLAYER_HEALTH/);

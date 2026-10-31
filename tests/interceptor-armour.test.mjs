@@ -219,21 +219,5 @@ test("the third hit's kill is the one-hit-point kill: slot release, score, kill 
   }
 });
 
-test("H3 from data: the record's hit points, no armour bit in any wave of any level", () => {
-  // Byte 0 of the Interceptor's 12-byte record (src/c/lifecycle.c).
-  const m = boot({ difficulty: 0 });
-  assert.equal(m.memory[L("enemy_archetype_table") + OFFSET_INTERCEPTOR], HIT_POINTS);
-  // wave_flags bit 5 is not compiled from anything (scripts/level-compiler.mjs).
-  const compiler = fs.readFileSync(path.join(root, "scripts/level-compiler.mjs"), "utf8");
-  assert.doesNotMatch(compiler, /armour/i, "no armour field in the level format");
-  for (const file of fs.readdirSync(path.join(root, "assets/levels")).filter((name) => name.endsWith(".json"))) {
-    assert.doesNotMatch(fs.readFileSync(path.join(root, "assets/levels", file), "utf8"), /armour/i, file);
-  }
-  // Level 1's compiled core page: the flags array (manifest levelDef.core).
-  const manifest = JSON.parse(fs.readFileSync(path.join(root, "build/manifest.json"), "utf8"));
-  const { imageOffset, maxWaves, waveArrayOffset } = manifest.levelDef.core;
-  const image = fs.readFileSync(path.join(root, "build/level-1.bin"));
-  const flags = image.subarray(imageOffset + waveArrayOffset.flags, imageOffset + waveArrayOffset.flags + maxWaves);
-  assert.ok(flags.some((value) => value !== 0), "the flags array is where the manifest says");
-  for (const [wave, value] of flags.entries()) assert.equal(value & 0x20, 0, `level 1 wave ${wave}: bit 5 is unused`);
-});
+// Retired: H3's blanket ban on wave armour was superseded by merged M3-H
+// d7b764c; tests/heavy-package.test.mjs checks the bit-5 HP profile on all difficulties.

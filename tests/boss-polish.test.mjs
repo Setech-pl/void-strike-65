@@ -35,7 +35,8 @@ import {
 
 const main = (name) => label("main", name);
 const HUD = 0x4000;
-const HULL_CELLS = [25, 26, 27, 28];
+// 35499ba / owner §BL: M6 HUD places HULL at columns 4–7.
+const HULL_CELLS = [4, 5, 6, 7];
 const HULL_THRESHOLDS = [3, 5, 8, 10];      // src/main.s hud_hull_segment_thresholds
 const CH_SPACE = 0, CH_HULL_FULL = 5;
 const hull = (memory) => HULL_CELLS.map((cell) => memory[HUD + cell]);

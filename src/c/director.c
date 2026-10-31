@@ -152,6 +152,8 @@ uint8_t wave_count[LEVEL_MAX_WAVES];
 uint8_t wave_spacing[LEVEL_MAX_WAVES];
 uint8_t wave_entry[LEVEL_MAX_WAVES];
 uint8_t wave_member_offset[LEVEL_MAX_WAVES];
+#pragma bss-name ("LEVEL_PATHS")
+uint8_t level_paths[96];
 #pragma bss-name ("BSS")
 
 #pragma bss-name ("DIRECTOR_C_BSS")
@@ -369,7 +371,7 @@ uint8_t director_c_try_event(void)
     /* A Light wave runs in the code window at one admission attempt per frame.
      * The lock is what keeps a swarm and a Heavy formation from coexisting:
      * _asm_director_can_allocate refuses the ASM Heavy retry while it is up. */
-    light_wave_archetype = heavy_archetype_offset;
+    asm_m3_wave_arm();
     light_wave_entry = wave_entry[director_scratch0];
     light_wave_remaining = STATE_WAVE_REMAINING;
     light_wave_timer = 0u;
@@ -434,6 +436,7 @@ static void enter_sector(void)
 #pragma code-name ("DIRECTOR_C_LOW")
 void director_c_init(void)
 {
+    asm_m3_reset();
     LIFE_CAPSULE_SPAWNED = 0u;
     STATE_ROW_LO = 0u;
     STATE_ROW_HI = 0u;

@@ -223,8 +223,15 @@ capital ceiling fails at 30,025/29,756; no smoke candidate or native authored
 level-2 PASS is claimed. See the
 [sixth-continuation audit](audits/2026-10-27-m3h-step1.md#sixth-continuation--boss-deltas-fixed-native-capital-ceiling-stop).
 
-`path` is **not** authorable yet: the path evaluator and its library are step 6,
-and a file naming one is rejected. Every Light wave compiles with `wave_path = $FF`,
+M3 checkpoint1 accepts `"path": "straight"` on a free Light SPACE wave.
+It replaces archetype motion, keeps weapon/HP/score and uses the existing
+96-B payload block (up to8 deduplicated12-B records). No-path remains `$FF`.
+Paths on Heavy/boss waves and `path` combined with nonzero `loops` are refused.
+Optional `payload.paths.<name>` is exactly four `{dy, frames, flags}` segments;
+checkpoint1 allows dy1, frames0..255 and flags16 (fire)/128 (retire at end).
+Duration0 runs until bottom retirement, so cannot also retire at segment end.
+The fourth finite segment must retire; no new image or payload allocation.
+Every no-path Light wave compiles with `wave_path = $FF`,
 "the archetype's own movement".
 
 ## What the compiler refuses

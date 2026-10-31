@@ -26,6 +26,7 @@ import { compileCapitalHulls, loadCapitalHullsDefinition, HULL_MAX_ROWS } from "
 import { hostileWeaponGlyphRows } from "./fighter-weapons.mjs";
 import {compileHeavyDamage} from "./heavy-damage.mjs";
 import { compileHeavyLook, defaultArmouredRaiderLook } from "./enemy-roster.mjs";
+import {packWavePaths} from "./wave-paths.mjs";
 
 const scriptDirectory = path.dirname(fileURLToPath(import.meta.url));
 const rootDirectory = path.resolve(scriptDirectory, "..");
@@ -805,8 +806,9 @@ function compileSectors(source, context, warnings) {
       const onCleared = requireBoolean(context, waveWhere, "afterCleared",
         wave.afterCleared, false);
       if (wave.path !== undefined) {
-        fail(context, waveWhere, "names a path; the path evaluator and its library are " +
-          "plan step 6 (docs/plans/director-4.6.md §8)");
+        if(waveClass!=="light" || !isSpace)
+          fail(context,waveWhere,"a path requires a free Light wave in SPACE");
+        if(wave.loops)fail(context,waveWhere,"path and Interceptor loops cannot be combined");
       }
       // feat/interceptor-standoff (the owner's smoke of 2026-10-11): how many
       // times an Interceptor of this wave climbs to the top-hold row and dives
@@ -854,7 +856,7 @@ function compileSectors(source, context, warnings) {
         (heavyKind === "armoured" ? 0x20 : 0) | loops << 6;
       waves.push({
         sector: index + 1, row, flags, count, spacing, entry, appearance, mirror,
-        onCleared, loops, archetype, escort, class: waveClass, kind: heavyKind, motion, hold: wave.hold ?? null,
+        onCleared, loops, archetype, escort, class: waveClass, kind: heavyKind, motion, path:wave.path, hold: wave.hold ?? null,
         rowModules: row / HULL_MODULE_ROWS,
         archetypeOffset: ARCHETYPE_INDEX[archetype] * ARCHETYPE_RECORD_BYTES,
         escortOffset: escort === null
@@ -906,6 +908,9 @@ export function compileLevel(source, { hullAsset, file = "level.json" } = {}) {
 
   const hull = compileHull(source, context);
   const { sectors, waves, bossSectorIndex } = compileSectors(source, context, warnings);
+  let paths;
+  try { paths=packWavePaths(waves,source.payload?.paths); }
+  catch(error) { fail(context,"paths",error.message); }
   if (bossId !== 0 && bossSectorIndex < 0) {
     fail(context, null, `names boss ${bossId} but no sector has kind "boss"`);
   }
@@ -961,6 +966,7 @@ export function compileLevel(source, { hullAsset, file = "level.json" } = {}) {
   // Step 5 fills the appearances and the weapon looks; the path and
   // hull_params blocks stay zero until steps 6 and 4.8a. M5b-S3 fills boss_def.
   const payload = payloadPage.page;
+  paths.copy(payload,PAYLOAD_OFFSET.path);
   compileBossDef(source, context, bossId).copy(payload, PAYLOAD_OFFSET.bossDef);
 
   return {

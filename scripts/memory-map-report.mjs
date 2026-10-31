@@ -78,6 +78,7 @@ const SEGMENTS = {
   CONTENT_HEADER: ["checked content entry header", "level"],
   CONTENT_CODE: ["phase-exclusive content C policy", "level"],
   CONTENT_DATA: ["checked content state, reset on level load", "level"],
+  LEVEL_PATHS: ["M3 path records: alias of the existing level payload path block", "level"],
   CONTENT: ["checked content home; overwritten by boss/banner/death", "level"],
   L2: ["checked fighter/capital phase module; overwritten by boss D/death", "level"],
   ZEROPAGE: ["main: zero-page runtime variables", "resident"],

@@ -20,29 +20,25 @@ the values below.
 
 ## Checkpoint
 
-### M3 core plan accepted; regional skins — OWNER REVIEW CANDIDATE
+### M3 checkpoint1 — OWNER-SMOKE CANDIDATE; checkpoint2 authorized
 
-Branch `codex/m3-plan`, main baseline `6046c0b` including M3-H session 2.
-[Core plan](plans/m3-waves.md) Q1–Q6 were accepted as recommended A on
-2026-10-31; [owner decisions](decisions/2026-10-31-m3-waves.md). The new §7
-is planning only and still needs owner review: measured glyph/palette/HP
-storage, regional/per-wave options and costs. Recommendation: regional packs
-using current payloads, existing per-wave Light appearance, plus a four-byte
-per-skin Light HP table as a separate M3 checkpoint extension if approved.
-Core content/window budgets remain ESTIMATES 732/224 B; with the proposed HP
-extension, extra 48/16 B leaves 17 content /269 usable window B. No implementation
-is authorized in this task. Actual CPU/RAM/residency delta is 0/0/0.
+Main4e84bc4 merged into `codex/m3-plan` as `a6f3476`, documentation conflicts
+preserve both sides. Owner accepted per-level Option A (regional presets only
+optional M7), C-skin separately at4 with64-B content free-floor/L2 fallback;
+B-shot, independent hues and Bomber skins/re-skin stay deferred.
+[Decisions](decisions/2026-10-31-m3-waves.md).
 
-Fresh normal build computed gates PASS; full unit comparison A137/B0/C0
-against task-start main `6046c0b`, by input identity and exact tuples:
-1,512 PASS /137 shared FAIL /4 SKIP. Main advanced to `4e84bc4` with test-debt
-repairs during the task; those test edits are not imported and this is not
-a fresh comparison against the advanced suite.
-Previous quick native baselines remain 30,465 /31,153, not remeasured for this
-documentation-only extension; artifact/runtime inputs are unchanged. Release
-evidence remains pending; no release or new gameplay acceptance.
-[Regional planning audit](diagnostics/m3-regional-skins/audit.md).
-**NEXT TASK: owner reviews §7 and its recommendation; STOP before implementation.**
+Checkpoint1 straight paths +guarded dispatch/state are implemented and verified.
+Content1,491 B (+368), window2,384 B (+82), L2 1,290 (+0); full M3 plan budgets
+were+732/+224/0. No-path Wingman/Interceptor positions/actions/cadence/loops
+match main over380 frames. Focused16/16; normal computed gates PASS. Native
+Spread30,465 /capital-96031,156 /straight600-frame route30,832; zero timing
+anomalies, boss entry325. No-path hook+70–71 CPU/member, whole C path tick
+maximum528 (no render/DMA), report-only. Release evidence remains pending.
+[Checkpoint1 audit](diagnostics/m3/checkpoint-1/report.md).
+
+**NEXT TASK: implement/verify/commit authorized checkpoint2, then pause for
+owner smoke.** No later checkpoint, push, release or owner acceptance.
 
 ### Pre-v0.4.0 test debt triage — uncommitted infrastructure changes
 

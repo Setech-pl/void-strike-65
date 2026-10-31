@@ -4,7 +4,7 @@
     "steel $88 both follow from the level NUMBER in scripts/build.mjs - there is",
     "no field for either, and level 2 is inside the brighter half either way.",
     "",
-    "APPROVED by the owner on 2026-09-30 with two changes (plan §11 item 15):",
+    "APPROVED by the owner on 2026-09-30 with two changes (plan \u00a711 item 15):",
     "sector 4 is three Interceptor waves of 8 at spacing 20 instead of four at",
     "the 16-frame floor, and debris is 1 wherever the draft said 2. Roadmap 4.6",
     "step 3. It uses only archetypes, code paths and format fields that exist",
@@ -73,11 +73,11 @@
     "    row 479 like level 1's - and keeps today's turret density per row:",
     "    7 / 10 / 14 stations on EASY / MEDIUM / HARD against level 1's 10/15/20.",
     "",
-    "Seed 77 (the plan's own §6 example) gives level 2 its own RNG stream:",
+    "Seed 77 (the plan's own \u00a76 example) gives level 2 its own RNG stream:",
     "director_c_init XORs it with the difficulty, so all three streams differ",
     "from level 1's $6D.",
     "",
-    "PAYLOAD, roadmap 4.6 step 5 (docs/plans/director-4.6.md §8.3, owner decision",
+    "PAYLOAD, roadmap 4.6 step 5 (docs/plans/director-4.6.md \u00a78.3, owner decision",
     "2026-10-01: level 2 shows the full payload). Waves, rows and counts are the",
     "ones approved on 2026-09-30; only their LOOK changes.",
     "  * THE SKY, the rule level 1 follows too - capital steel, last sector",
@@ -359,7 +359,8 @@
           "count": 8,
           "spacing": 20,
           "entry": 64,
-          "appearance": "hunter"
+          "appearance": "hunter",
+          "path": "straight"
         },
         {
           "row": 128,

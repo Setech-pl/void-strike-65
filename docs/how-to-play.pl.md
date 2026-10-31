@@ -178,6 +178,9 @@ uszkodzić lub zniszczyć; korytarz zaczyna się, gdy ciężka formacja opuści 
 **Lekkie przelatują.** Fala leci swoją trasą i odchodzi. Zestrzeliwanie jej to
 wybór między punktami a bezpieczeństwem.
 
+Niektóre lekkie fale lecą ustaloną trasą zamiast ścigać twój myśliwiec.
+Broń, wytrzymałość i punkty nadal zależą od tego samego typu przeciwnika.
+
 Jeden wyjątek: lekkie myśliwce eskortujące ciężkiego zostają razem z nim.
 
 ## Ulepszenia

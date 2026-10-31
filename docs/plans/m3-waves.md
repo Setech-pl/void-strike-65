@@ -1,13 +1,14 @@
 # M3 — wave paths, envelopes and chains
 
 **Core plan (§1–§6): OWNER-ACCEPTED PLAN, 2026-10-31.**
-**§7: OWNER REVIEW CANDIDATE — planning only, 2026-10-31.** Branch
+**§7 policy accepted with owner amendments, 2026-10-31.** Branch
 `codex/m3-plan`, based on task-start main
 `6046c0b6beb25f15c53ca15cda8f39a431983cd3` (includes M3-H session 2).
-This document authorizes no implementation. Actual task delta: **0 code B,
-0 state B, 0 resident B, 0 guest cycles**. Owner accepted Q1–Q6 as recommended
-(A); [decision record](../decisions/2026-10-31-m3-waves.md). Review of the new
-regional-skin extension in §7 is the next task.
+Owner authorizes checkpoints1–2, each verified and committed separately,
+then a mandatory pause for owner smoke after2. Planning commits had zero
+runtime delta; actual implementation sizes are recorded in §8.
+[Owner decisions](../decisions/2026-10-31-m3-waves.md) include Q1–Q6A and the
+§7 amendments. No C-skin implementation before checkpoint4.
 
 This rebases the **M3/P1–P8** portion of
 [the original plan](m3-waves-heavy.md#2-m3--wave-paths-v1-lights-only).
@@ -397,11 +398,16 @@ changes and final balance belong to M8, with measurements if paths get faster.
 
 ## 7. Enemy variants (regional skins)
 
-**OWNER REVIEW CANDIDATE, planning only.** The owner wants visual and
-durability variants of the same Light archetypes and Raiders, without new
-enemy AI, movement or fire logic. Q1–Q6 acceptance does not automatically
-accept these additional options.
-
+**OWNER-ACCEPTED POLICY, 2026-10-31.** Option A is per LEVEL: each level
+may author its own mix within3 Light looks plus default, PULSE/LASER shot
+overrides and one `heavyLook`. Regional packs are optional M7 authoring
+helpers, never a forced per-region policy. C-skin is accepted in principle
+as a separate smokeable checkpoint4 commit. Measure compiled M3 first:
+use content only if adding admission code keeps **at least64 B free**;
+otherwise use L2, fighter-only, through its existing guard. Report the actual
+choice/bytes then. B-shot, independent hues, Bomber body skins and Bomber
+shot re-skin stay DEFER. Historical prices below are estimates, not scope
+authorization.
 ### 7.1 Measured storage and publication today
 
 Fresh normal build at unchanged main runtime `6046c0b`, task HEAD `b161f92`.
@@ -456,11 +462,11 @@ remain separate placement work. M3's 100-B contingency is not spent twice.
 
 | Option | Window /content /other RAM added | Payload /disk /sectors | CPU during play /at load | What remains for M4 |
 | --- | --- | --- | --- | --- |
-| **A. Regional pack in current formats** | **0 /0 /0 B**; host compiler resolves the pack | Reuse 48 Light +18 shot +17 Raider =**83 existing payload B/level**. Four source packs 332 art B, repeated 996 meaningful B in 12 fixed images. **0 extra sectors/reads for skins** | Ordinary frame/row **+0**. Existing 391-cycle payload install when needed; load uses existing 957…1,529-cycle shot builder, at most +572 vs no overrides; no extra transfer | Window 285 /content 65 /payload 5 B; provisional M4 core leaves 105 window B |
+| **A. Per-level skins in current formats** | **0 /0 /0 B**; host compiler resolves the pack | Reuse 48 Light +18 shot +17 Raider =**83 existing payload B/level**. Four optional presets would carry332 art B; each level may instead author its own mix. **0 extra sectors/reads for skins** | Ordinary frame/row **+0**. Existing 391-cycle payload install when needed; load uses existing 957…1,529-cycle shot builder, at most +572 vs no overrides; no extra transfer | Window 285 /content 65 /payload 5 B; provisional M4 core leaves 105 window B |
 | **A-colour: new shared hostile hue**, optional | Window **8–16 B** guarded load hook; content **16–32 B** cold publisher; 0 new resident state if patching immediates | **1 B** `$ABB7` for shared COLPF3. 0 fixed-image sectors; allow 0–1 extra window-record sector | Ordinary frame/DLI **+0** with immediate patching; load **+40…80 CPU cycles** estimated. Patch relevant gameplay restores, not a single GTIA write | Worst window 269 /content 33 /payload 4 B; M4 core leaves 89 window B. Recolours every COLPF3 user, including hull accents/laser palette: visual approval required |
 | **B-Light. Skin selection per wave** | **0 /0 /0 B**, already implemented | Existing `wave_flags[1:0]` and 48-B bank; 0 extra field/sectors; Heavy appearance remains escort-only | Ordinary frame/row **+0 new CPU**; existing 391-cycle install when a pair changes look; token/pair rules remain. **0 extra load CPU** over A | Same as A; no independent RGB hues or unlimited simultaneous looks |
 | **B-shot. Independent per-wave PULSE/LASER look, old shots retain theirs** | Window **96–128 B** ASM/guards, content **24–48 B** C selection; **6 B resident state** (five shot tags +published choice), plus **12–24 B resident call-site code** outside window | Existing 18-B payload can hold alternate sources; 32 extra published bytes fit existing 160-B charset bank. Independent binary choice for 20 waves needs **3 B** `$ABB3–$ABB5`. Budget **0–4 transport sectors**, including call-site packing; no new DFMC record | Estimate **+6…16 cycles/live enemy shot/frame**, ≤80 for 5; +10…30/emission, +30…60/wave arm. Load +500…800 CPU cycles for alternate phases. Weapon class/rate unchanged | Worst window 157 /content 17 /payload 2 B; M4 core is **23 B short**. M3 window growth 352 exceeds target by 52. Resident state/call sites need placement proof; not selected |
-| **C-skin. Light HP by selected appearance** | Window **0–16 B**, content **32–48 B** admission C; **0 new per-slot RAM**, reuse `light_hp[]` | **4 B** `$ABB3–$ABB6`, indices 0–3: 0 means archetype default, explicit 1…4 HP. Entry 0 stays 0, preserving base archetypes. 0 fixed-image sectors; allow 0–1 window sector | Ordinary frame/row **+0**; **+20…60 CPU/admission**, plus guard if not shared with P4. Load validation/reset ≤40 CPU cycles, no extra SIO | Worst window 269 /content 17 /payload 1 B; growth 240, M4 core leaves 89 window B |
+| **C-skin. Light HP by selected appearance** | Window **0–16 B**, estimated **32–48 B** admission C in content only if≥64 B remain, otherwise L2; **0 new per-slot RAM**, reuse `light_hp[]` | **4 B** `$ABB3–$ABB6`, indices 0–3: 0 means archetype default, explicit 1…4 HP. Entry 0 stays 0, preserving base archetypes. 0 fixed-image sectors; allow 0–1 window sector | Ordinary frame/row **+0**; **+20…60 CPU/admission**, plus guard if not shared with P4. Load validation/reset ≤40 CPU cycles, no extra SIO | With old core budget this selects L2: window269 /content65 /L2 usable198 /payload1 B. Actual placement waits for compiled M3; M4 core leaves89 window B |
 | **C-wave. Light HP independently per wave** | Window **0–16 B**, content **48–80 B**, including 1 armed-HP state B; 0 new per-slot RAM | **5 B** `$ABB3–$ABB7`: 20 two-bit codes, 0=default, 1=1 HP, 2=2 HP, 3=4 HP. No flags 5–7 use. 0 fixed-image sectors; allow 0–1 window sector | Ordinary frame **+0**; +40…90/wave-arm row for unpack/publish, +10…25/admission plus guard. Load ≤80 CPU cycles, no SIO | Worst content **15 B short** (needs 80, has 65); window 269, M4 core leaves 89. Estimated shortfall, not measured impossibility; re-price after compiled M3 |
 
 A loads the regional source glyphs with the level; Light bitmap installation
@@ -525,46 +531,54 @@ spend paths, Heavy look or boss definitions without an explicit new design.
 
 ### 7.3 Recommendation and roadmap
 
-Recommend **A: regional data packs**, retaining the existing per-wave Light
-selector, with **C-skin as the small durability extension**. Preserve shared
-RGB roles; vary glyph colour patterns and Raider's existing PMG colour for
-regional identity. Do not add B-shot, independent-hue rendering or a second
-HP representation to this recommendation.
+Accepted **A: per-level data policy**, retaining existing per-wave Light
+selection. A level owns its look mix; M7 may provide optional regional
+presets and per-level overrides. Keep current shared RGB roles. B-shot,
+independent hues, Bomber body skins and Bomber shot re-skin are not now.
 
-1. **M3 checkpoint 4 extension, subject to owner approval of §7:** add C-skin's
-   four-byte table and guarded admission selection through P4's successful
-   admission hook, for free waves and Heavy escorts. Budget extra 16 window
-   /48 content B separately. Smoke 1-HP and 4-HP variants against current 1/3-HP
-   defaults, unchanged movement/fire/score, slot reuse, surviving-hit flash
-   and escort/boss guards. This is a separate smokeable commit, with current
-   appearance selection demonstrated; no new skin renderer.
-2. **M4:** campaign loop and one region resolver for the accepted 12 levels,
-   then the same checked 16-sector level loads. No regional SIO skin read,
-   twelfth DFMC record or runtime region-art cache. Keep 16 directory slots.
-3. **M7 data:** four editable named packs compiled into each region's levels,
-   with per-level overrides and source art. Reuse existing `heavyLook`: one
-   regional armoured Raider body/colour per level, preserving dimensions
-   and validated damage-mask compatibility. Assault remains its current art
-   /1 HP; an assault-only cosmetic override independent of armour would be
-   another explicit feature.
+1. **M3 checkpoint4:** C-skin is a separate smokeable commit after compiled
+   M3 bytes are known. Measure helper and guard. Content is allowed only
+   when the resulting free tail is≥64 B; otherwise place admission policy
+   in L2, fighter-only, through its existing guard. The four-byte payload
+   table and existing `light_hp[]` need no new flags. Smoke weak/strong HP,
+   unchanged movement/fire/score, reuse/flash and boss/escort safety. Report
+   actual chosen home, code/veneer bytes and content/window/L2 totals.
+2. **M4:** campaign loop and accepted12-level region resolver for content
+   that uses regions. Per-level skins need no additional region selector,
+   SIO skin read, DFMC record or runtime art cache.
+3. **M7 data:** editable per-level mixes in existing48+18+17 B formats.
+   Regional presets are optional. `heavyLook` remains one alternate armoured
+   Raider look/colour per level, compatible with the damage masks. Assault
+   keeps its current art/1 HP. Bomber skins remain deferred.
 
-Core M3 +recommended durability budget: window **2,542/2,811 B**, growth
-**240 B** (60 below target); content **1,903/1,920 B**, 17 B left; 4 of 5 spare
-payload B used. Window 269 B remains for M4, with 89 B after its provisional
-180-B core. This is an estimate with only 17 B home margin, not a compiled
-fit. If measurements need more, present exact bytes and alternatives before
-moving policy into resident code. One extra window sector is a planning
-allowance, not a compression promise; A itself adds no sector. Eleven new
-level images for a 12-level campaign cost 176 sectors in M4/M7 irrespective
-of skins, whose bytes are included inside those fixed images.
+Illustration at the old full-core budget: content1,855/1,920 leaves65 B;
+adding48 would leave17, so the owner rule selects L2. Estimated L2
+1,290+48=1,338 B leaves198 usable below1,536, with256-B reserve intact;
+content keeps65. With16 veneer B, window2,542/2,811 leaves269 B (89 after
+provisional M4 core180). This is not a compiled C-skin fit or final placement
+choice. Checkpoints1–2 report their measured totals; checkpoint4 decides
+once the remaining M3 and the admission helper have compiled.
 
-**DEFER with reasons:** independent per-wave shot banks/tags (residency/M4
+**DEFER with reasons:** Bomber body skins (not now); independent per-wave shot banks/tags (residency/M4
 trade-off above); independent Light/projectile RGB hues (shared playfield
 registers); BOMBER shot re-skin (second phase needs a larger format); multiple
 Raider bodies or assault-only cosmetics (one current armoured `heavyLook`);
 independent per-wave HP (C-wave content/packed-field trade-off). The requested
 variety has the concrete recommended path above; wider variants are explicit.
 
-**NEXT TASK: owner reviews §7 and its recommendation; STOP.** Q1–Q6A are
-accepted. No implementation, merge, push, tag, release or new gameplay
-acceptance is implied by this planning commit.
+**Implementation scope:** checkpoints1–2 only, verify and commit each,
+then STOP for owner smoke after2. C-skin stays at4. No push, tag, release,
+next checkpoint or gameplay acceptance is authorized by this handoff.
+
+## 8. Implementation measurements
+
+| Checkpoint | Content home | Window | L2 | Delta vs main (content/window/L2) |
+| --- | ---: | ---: | ---: | --- |
+| Main4e84bc4 | 1,123 B | 2,302 B | 1,290 B | — |
+| 1 safe dispatch +straight | 1,491 B | 2,384 B | 1,290 B | +368 /+82 /0 B |
+| Original full M3 budget | 1,855 B | 2,526 B | 1,290 B | +732 /+224 /0 B |
+
+Checkpoint1 normal gates/focused checks and short native routes pass;
+worst31,156. [Audit](../diagnostics/m3/checkpoint-1/report.md). It is a
+candidate, not owner acceptance. C-skin placement waits for checkpoint4
+and the measured64-B floor; no HP/skin feature is implemented here.

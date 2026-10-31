@@ -3,6 +3,14 @@
 
 #include <stdint.h>
 
+/* M3 shared policy boundary. Content bytes are read only behind ASM guards. */
+#define M3_NO_PATH 255u
+void asm_m3_reset(void);
+void asm_m3_wave_arm(void);
+void asm_m3_admit(void);
+void asm_m3_escort(void);
+uint8_t asm_m3_tick(void);
+
 enum SectorLifecycleState {
     SECTOR_CAPITAL_ENGINES = 0,
     SECTOR_CAPITAL_AFT = 1,

@@ -172,6 +172,9 @@ the Heavy formation has cleared.
 **Lights pass through.** A wave flies its path and leaves. Killing it is a
 choice between points and safety.
 
+Some Light waves follow a fixed flight route instead of pursuing you.
+Their weapon, toughness and points still belong to the same enemy type.
+
 One exception: light fighters escorting a heavy stay with it.
 
 ## Upgrades

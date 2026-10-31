@@ -59,3 +59,31 @@ _enemy_c_heavy_tick:
 
 ; H13 tables are transported only in the checked fighter/capital home.
 .include "heavy-damage.inc"
+
+; M3 policy/state is phase-exclusive. These entries remain safe when boss,
+; menu or death owns $1180: guard BEFORE any instruction/table/state read.
+.import _m3_reset, _m3_wave_arm, _m3_admit, _m3_escort, _m3_path_tick
+.import _level_paths
+.assert _level_paths = LEVEL_PAYLOAD_APPEARANCE + $30, lderror, "M3 path payload moved"
+.segment "HYBRID_ASM_HEAVY_WINDOW"
+cc2_void _asm_m3_reset, _m3_reset
+.import _heavy_archetype_offset, _light_wave_archetype
+_asm_m3_wave_arm:
+    ; Replace the old 6-B C publication with a 3-B call, keeping the shared
+    ; 180-B wave-arm entry fixed, including when boss owns the content home.
+    lda _heavy_archetype_offset
+    sta _light_wave_archetype
+    jsr cc2_valid
+    bcc :+
+    jmp _m3_wave_arm
+:   rts
+cc2_void _asm_m3_admit, _m3_admit
+cc2_void _asm_m3_escort, _m3_escort
+_asm_m3_tick:
+    jsr cc2_valid
+    bcc :+
+    jmp _m3_path_tick
+:   lda #$FF
+    ldx #0
+    rts
+.export _asm_m3_reset, _asm_m3_wave_arm, _asm_m3_admit, _asm_m3_escort, _asm_m3_tick

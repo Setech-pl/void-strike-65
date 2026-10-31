@@ -3,6 +3,9 @@
 #include "enemy-archetype.h"
 #include "level-def.h"
 
+extern uint8_t level_paths[96];
+extern uint8_t wave_path[20];
+
 #pragma code-name ("HYBRID_C_EXT")
 #pragma rodata-name ("ENEMY_ARCHETYPE_DATA")
 
@@ -1022,6 +1025,7 @@ static void light_wave_step(void)
         if (light_admit() == 0u) {
             return;                 /* refused: retry next frame */
         }
+        asm_m3_admit();
         --light_wave_remaining;
         light_wave_timer = light_wave_spacing_frames;
         return;
@@ -1201,6 +1205,10 @@ static uint8_t light_tick_body(void)
         light_state[light_slot] = LIGHT_ACTIVE_FREE;
     }
     if (light_state[light_slot] != LIGHT_ACTIVE_ESCORT) {
+        light_fire_work = asm_m3_tick();
+        if (light_fire_work != M3_NO_PATH) {
+            return light_fire_work;
+        }
         /* Free flight. A Wingman that lost its leader drifts straight down at
          * the Heavy descent rate; an Interceptor is born free-flying and flies
          * its standoff (the constants above). PLAYER_X_MIN equals
@@ -1451,7 +1459,9 @@ static void encounter_light_admit(void)
     light_admit_state = light_record == LIGHT_OFFSET_WINGMAN
         ? LIGHT_ACTIVE_ESCORT       /* takes its leader's column and lag */
         : LIGHT_ACTIVE_FREE;        /* no leader, ever: free-flying hunter */
-    light_admit();
+    if (light_admit() != 0u) {
+        asm_m3_escort();
+    }
 }
 
 #pragma code-name (pop)
@@ -1886,4 +1896,96 @@ void enemy_c_heavy_look_colour(void)
     }
 }
 #pragma code-name (pop)
+#pragma code-name (pop)
+
+/* M3 checkpoint 1: phase-exclusive path state and C movement/fire policy.
+ * $FF is resident-archetype fallback, not a kernel action. No C stack args. */
+#pragma data-name (push, "CONTENT_DATA")
+uint8_t m3_path_segment[4] = {255u,255u,255u,255u};
+uint8_t m3_path_timer[4] = {0u,0u,0u,0u};
+uint8_t m3_armed_path = 255u;
+static uint8_t m3_index = 0u;
+static uint8_t m3_flags = 0u;
+static uint8_t m3_dy = 0u;
+#pragma data-name (pop)
+#pragma code-name (push, "CONTENT_CODE")
+void m3_reset(void)
+{
+    m3_index = 4u;
+    do {
+        --m3_index;
+        m3_path_segment[m3_index] = M3_NO_PATH;
+        m3_path_timer[m3_index] = 0u;
+    } while (m3_index != 0u);
+    m3_armed_path = M3_NO_PATH;
+}
+
+void m3_wave_arm(void)
+{
+    /* The Director has not advanced its cursor yet. */
+    m3_index = U8_AT(0x80F7u);
+    m3_armed_path = wave_path[m3_index];
+}
+
+void m3_escort(void)
+{
+    m3_path_segment[light_slot] = M3_NO_PATH;
+    m3_path_timer[light_slot] = 0u;
+}
+
+void m3_admit(void)
+{
+    m3_escort();
+    if (m3_armed_path != M3_NO_PATH) {
+        m3_path_segment[light_slot] = m3_armed_path;
+        m3_index = (uint8_t)(m3_armed_path + 1u);
+        m3_dy = level_paths[m3_index];
+        m3_path_timer[light_slot] = m3_dy;
+    }
+}
+
+uint8_t m3_path_tick(void)
+{
+    m3_index = m3_path_segment[light_slot];
+    if (m3_index == M3_NO_PATH) return M3_NO_PATH;
+    m3_dy = level_paths[m3_index];
+    ++m3_index;
+    ++m3_index;
+    m3_flags = level_paths[m3_index];
+    light_work = (uint8_t)(light_y[light_slot] + m3_dy);
+    light_y[light_slot] = light_work;
+    if (light_work >= LIGHT_RETIRE_Y) {
+        light_state[light_slot] = ENEMY_INACTIVE;
+        m3_escort();
+        return 0u;
+    }
+    m3_dy = m3_path_timer[light_slot];
+    if (m3_dy != 0u) {
+        --m3_dy;
+        m3_path_timer[light_slot] = m3_dy;
+        if (m3_dy == 0u) {
+            if ((m3_flags & 128u) != 0u) {
+                light_state[light_slot] = ENEMY_INACTIVE;
+                m3_escort();
+                return 0u;
+            }
+            ++m3_index; /* next segment's dy; current index names flags */
+            m3_path_segment[light_slot] = m3_index;
+            ++m3_index;
+            m3_dy = level_paths[m3_index];
+            m3_path_timer[light_slot] = m3_dy;
+        }
+    }
+    light_fire_work = light_fire_timer[light_slot];
+    if (light_fire_work != 0u) {
+        --light_fire_work;
+        light_fire_timer[light_slot] = light_fire_work;
+        return 0u;
+    }
+    if ((m3_flags & 16u) == 0u || light_work < LIGHT_FIRE_TOP ||
+        light_work >= LIGHT_FIRE_BOTTOM || (PLAYER_LIFECYCLE & 1u) != 0u) return 0u;
+    if (light_take_token() == 0u) return 0u;
+    light_reload();
+    return LIGHT_FIELD(ENEMY_ARCHETYPE_FIELD_WEAPON);
+}
 #pragma code-name (pop)

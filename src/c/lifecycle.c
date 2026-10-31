@@ -1898,7 +1898,7 @@ void enemy_c_heavy_look_colour(void)
 #pragma code-name (pop)
 #pragma code-name (pop)
 
-/* M3 checkpoint 1: phase-exclusive path state and C movement/fire policy.
+/* M3 checkpoints 1-2: phase-exclusive path state and C movement/fire policy.
  * $FF is resident-archetype fallback, not a kernel action. No C stack args. */
 #pragma data-name (push, "CONTENT_DATA")
 uint8_t m3_path_segment[4] = {255u,255u,255u,255u};
@@ -1907,7 +1907,11 @@ uint8_t m3_armed_path = 255u;
 static uint8_t m3_index = 0u;
 static uint8_t m3_flags = 0u;
 static uint8_t m3_dy = 0u;
+static uint8_t m3_mirror_phase = 0u;
 #pragma data-name (pop)
+#pragma rodata-name (push, "CONTENT_DATA")
+static const uint8_t m3_next_step[4] = {3u,253u,250u,247u};
+#pragma rodata-name (pop)
 #pragma code-name (push, "CONTENT_CODE")
 void m3_reset(void)
 {
@@ -1918,6 +1922,7 @@ void m3_reset(void)
         m3_path_timer[m3_index] = 0u;
     } while (m3_index != 0u);
     m3_armed_path = M3_NO_PATH;
+    m3_mirror_phase = 0u;
 }
 
 void m3_wave_arm(void)
@@ -1925,6 +1930,7 @@ void m3_wave_arm(void)
     /* The Director has not advanced its cursor yet. */
     m3_index = U8_AT(0x80F7u);
     m3_armed_path = wave_path[m3_index];
+    m3_mirror_phase = 0u;
 }
 
 void m3_escort(void)
@@ -1937,7 +1943,10 @@ void m3_admit(void)
 {
     m3_escort();
     if (m3_armed_path != M3_NO_PATH) {
-        m3_path_segment[light_slot] = m3_armed_path;
+        m3_dy = (uint8_t)(m3_armed_path | m3_mirror_phase);
+        m3_path_segment[light_slot] = m3_dy;
+        /* Advance only after a successful wave admission, never by slot ID. */
+        if ((heavy_wave_flags & 4u) != 0u) m3_mirror_phase ^= 128u;
         m3_index = (uint8_t)(m3_armed_path + 1u);
         m3_dy = level_paths[m3_index];
         m3_path_timer[light_slot] = m3_dy;
@@ -1948,16 +1957,43 @@ uint8_t m3_path_tick(void)
 {
     m3_index = m3_path_segment[light_slot];
     if (m3_index == M3_NO_PATH) return M3_NO_PATH;
+    m3_index &= 127u;
     m3_dy = level_paths[m3_index];
     ++m3_index;
     ++m3_index;
     m3_flags = level_paths[m3_index];
+    /* Detect negative wrap before publishing a new Y. Positive dy<=2 cannot
+     * wrap from the live 0..231 range; the ordinary bottom bound handles it. */
+    if (m3_dy >= 128u && light_y[light_slot] < (uint8_t)(0u-m3_dy)) {
+        light_state[light_slot] = ENEMY_INACTIVE;
+        m3_escort();
+        return 0u;
+    }
     light_work = (uint8_t)(light_y[light_slot] + m3_dy);
     light_y[light_slot] = light_work;
     if (light_work >= LIGHT_RETIRE_Y) {
         light_state[light_slot] = ENEMY_INACTIVE;
         m3_escort();
         return 0u;
+    }
+    if ((m3_flags & 12u) != 0u && (FRAME_COUNTER & (m3_flags & 3u)) == 0u) {
+        m3_index = m3_flags & 12u;
+        light_fire_work = light_x[light_slot];
+        if (m3_index == 12u) {
+            light_target_x = (uint8_t)((uint8_t)(PLAYER_X + 6u) & 0xFCu);
+            if (light_target_x > LIGHT_X_LAST) light_target_x = LIGHT_X_LAST;
+            if (light_target_x < LIGHT_X_FIRST) light_target_x = LIGHT_X_FIRST;
+            if (light_fire_work < light_target_x) m3_index = 4u;
+            else if (light_fire_work > light_target_x) m3_index = 8u;
+            else m3_index = 0u;
+        } else if ((m3_path_segment[light_slot] & 128u) != 0u) {
+            m3_index ^= 12u;
+        }
+        if (m3_index == 4u && light_fire_work < LIGHT_X_LAST)
+            light_fire_work = (uint8_t)(light_fire_work + 4u);
+        if (m3_index == 8u && light_fire_work > LIGHT_X_FIRST)
+            light_fire_work = (uint8_t)(light_fire_work - 4u);
+        light_x[light_slot] = light_fire_work;
     }
     m3_dy = m3_path_timer[light_slot];
     if (m3_dy != 0u) {
@@ -1969,8 +2005,11 @@ uint8_t m3_path_tick(void)
                 m3_escort();
                 return 0u;
             }
-            ++m3_index; /* next segment's dy; current index names flags */
-            m3_path_segment[light_slot] = m3_index;
+            m3_index = m3_path_segment[light_slot] & 127u;
+            m3_dy = (uint8_t)((m3_flags >> 5u) & 3u);
+            m3_index = (uint8_t)(m3_index + m3_next_step[m3_dy]);
+            m3_dy = (uint8_t)(m3_index | (m3_path_segment[light_slot] & 128u));
+            m3_path_segment[light_slot] = m3_dy;
             ++m3_index;
             m3_dy = level_paths[m3_index];
             m3_path_timer[light_slot] = m3_dy;

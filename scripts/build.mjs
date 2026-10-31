@@ -507,6 +507,9 @@ const variantDirectoryNameInner = (escortVariantId !== null
                   ? `pickup-colour-${pickupColourSlug.toUpperCase()}`
                   : null);
 const longCapital=process.argv.includes("--l2-long-capital");
+const m3PathReview=process.argv.includes("--m3-path-review");
+if(m3PathReview && (levelDebugId!==2 || levelDebugSector!==0))
+  throw Error("--m3-path-review requires --level=2:sector=0");
 if(longCapital && (levelDebugId!==1 || levelDebugSector!==1 || bossRegionValue!==null)) throw new Error("--l2-long-capital requires --level=1:sector=1");
 const variantDirectoryName = heavyDamageReview?`heavy-damage-review${levelDebugSuffix}`:longCapital?"l2-capital-960":variantDirectoryNameInner;
 const buildDirectory = variantDirectoryName === null
@@ -2243,7 +2246,16 @@ async function build() {
   const pauseFrontendMarkersAddress = 0x3ae5;
   const directorAbiInclude =
     renderDirectorAbiInclude(directorModule.labels, lightKernelAddress, pauseFrontendMarkersAddress);
-  writeFile(path.join(buildDirectory, "director-abi.inc"), directorAbiInclude);
+  // Parallel fixture readers must see a complete ABI, including SCORE_BCD.
+  // Publishing over a truncated file caused intermittent full-suite setup fails.
+  const directorAbiPath = path.join(buildDirectory, "director-abi.inc");
+  const directorAbiStagedPath = `${directorAbiPath}.${process.pid}.pending`;
+  try {
+    writeFile(directorAbiStagedPath, directorAbiInclude);
+    fs.renameSync(directorAbiStagedPath, directorAbiPath);
+  } finally {
+    fs.rmSync(directorAbiStagedPath, { force: true });
+  }
   // Music v2 §1.4: main.s reaches the gameplay music player only through the
   // three frozen vectors at the head of the level image's music block. They
   // are fixed constants of the image layout, so this include is generated
@@ -2670,7 +2682,9 @@ async function build() {
   // asks for something the runtime cannot honour fails the build, not the
   // owner's smoke (plan §5).
   const compiledLevels = new Map(levelRuns.map((run) => {
-    const file = bossVariantLevel(run.id) ?? (longCapital
+    const file = m3PathReview
+      ? path.join(rootDirectory,"assets/levels/diagnostics/m3-path-review.json")
+      : bossVariantLevel(run.id) ?? (longCapital
       ? path.join(rootDirectory,"assets/levels/diagnostics/l2-capital-960.json")
       : levelSourcePath(levelSourceIdForRun(run.id)));
     return [run.id, levelDebugId === 2 && levelDebugSector === 5
@@ -4949,6 +4963,7 @@ async function build() {
             ? "candidate"
             : "release",
     loadAddress,
+    ...(m3PathReview ? { m3PathReview: { source: "assets/levels/diagnostics/m3-path-review.json", diagnosticOnly: true } } : {}),
     startAddress,
     bootInitAddress,
     bootSectors,

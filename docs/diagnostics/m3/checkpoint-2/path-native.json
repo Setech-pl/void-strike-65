@@ -1,0 +1,91 @@
+{
+  "emulator": "Atari800 7.1.2 PAL/XL",
+  "guest_instrumentation_bytes": 0,
+  "diagnostic_allowances": {
+    "release_evidence": false,
+    "reuse_existing_traces": false,
+    "host_lives_top_up": "3",
+    "forced_booster_fixture": null,
+    "l2_exit_fixture": null,
+    "terminal_state_seed": false,
+    "l2_variant_alias": false
+  },
+  "artifact_sha256": {
+    "void-strike-65-boot.bin": {
+      "path": "build/level-2-s0/void-strike-65-boot.bin",
+      "bytes": 27392,
+      "sha256": "73df26e80246152c3685e92bd7debb60c12f0c8f9ba660bda369db358418b0ad"
+    },
+    "void-strike-65.atr": {
+      "path": "build/level-2-s0/void-strike-65.atr",
+      "bytes": 133136,
+      "sha256": "ac80b5e08a87fd6d0d44e41b2b1573a5ad837ce5c30f08c77d781d31a77ae217"
+    },
+    "void-strike-65-manifest.json": {
+      "path": "build/level-2-s0/void-strike-65-manifest.json",
+      "bytes": 81407,
+      "sha256": "1aaca4d1f889e268f02113f87da4bea21e234faa2a03ad1e8c5c26ba5ac35ae6"
+    }
+  },
+  "variant": "level-2-s0",
+  "diagnostic_only": true,
+  "sessions": [
+    {
+      "id": "m3-path-vocabulary",
+      "kind": "observer-smoke",
+      "medium": "ATR",
+      "difficulty": 1,
+      "policy": "l2-matrix",
+      "fire_delay": 0,
+      "measured_frames": 2400,
+      "maximum_wall_cycles": 31663,
+      "deadline_overrun_frames": 0,
+      "missed_frames": 0,
+      "hull_map_draws": 0,
+      "hull_map_stale_draws": 0,
+      "hull_map_dirty_reads": 0,
+      "hull_map_rebuilds_after_boss": 0,
+      "level_summary": {
+        "start_summaries": [
+          {
+            "entry": 659,
+            "display": 661,
+            "loaded": 751,
+            "ready": 862,
+            "accept": 868,
+            "reads": 53,
+            "shown_frames": 207,
+            "best": "BEST                  --"
+          }
+        ]
+      }
+    }
+  ],
+  "acceptance": {
+    "measured_frames": 2400,
+    "maximum_wall_cycles": 31663,
+    "wall_ceiling": 32568,
+    "physical_headroom": 3905,
+    "missed_frames": 0,
+    "extra_vbi_boundaries": 0,
+    "physical_overruns": 0,
+    "deadline_overruns": 0,
+    "dli_ordering_errors": 0,
+    "passed": true
+  },
+  "passed": true,
+  "coverage": {
+    "live_light_frames_by_count": {
+      "1": 516,
+      "2": 639,
+      "0": 839,
+      "3": 406
+    },
+    "director_sectors": {
+      "0": 1608,
+      "1": 792
+    },
+    "successful_admissions": 19,
+    "all_eight_waves_cleared_to_quiet_sector": true
+  }
+}

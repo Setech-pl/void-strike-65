@@ -242,13 +242,13 @@ test("T1: the validator rejects every §5 case and warns on a cap above the subt
     }],
   })), /heavies is 3; it must be an integer in 0\.\.2/);
 
-  // Limit class: paths are step 6, and a level file may not name one yet.
+  // M3 paths are named payload/library records, never raw runtime IDs.
   assert.match(rejection(baseSource({
     sectors: [{
       kind: "space", subtype: "swarm", rows: 512, archetypes: ["interceptor"],
       waves: [{ row: 0, archetype: "interceptor", count: 1, spacing: 16, path: 2 }],
     }],
-  })), /names a path; the path evaluator and its library are plan step 6/);
+  })), /path must name a library or payload.paths entry/);
 
   // WARNS, does not reject: an ELITE sector asking for more Lights than the
   // subtype table admits. The file is legal and the runtime clamps to 1.
@@ -571,7 +571,9 @@ test("T12: level-02.json compiles and differs from level 1 in sector count, wave
   () => {
     const one = compileLevelFile(levelSourcePath(1), { hullAsset });
     const two = compileLevelFile(levelSourcePath(2), { hullAsset });
-    assert.deepEqual(two.warnings, [], "level 2 asks for nothing the runtime clamps");
+    assert.deepEqual(two.warnings, [
+      "level-02.json sector 6 wave 3: path shares the ELITE budget; measure Heavy/path coincidences",
+    ], "level 2 has only the authored M3 coincidence warning, no runtime clamp");
     assert.equal(two.level, 2);
     assert.equal(two.pages.core[1], 2, "level_number in the core page");
 

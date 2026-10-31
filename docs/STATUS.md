@@ -1,6 +1,6 @@
 # VOID STRIKE 65 — CURRENT STATUS
 
-Last update: 2026-10-31 (M3 core plan accepted; regional-skin extension for review)
+Last update: 2026-10-31 (M3 checkpoints1–2 committed candidates; owner smoke pending)
 
 What is true now. Rules: [reguly-projektu.txt](reguly-projektu.txt). Roadmap:
 [plan-realizacji.md](plan-realizacji.md). Source-of-truth order:
@@ -20,29 +20,45 @@ the values below.
 
 ## Checkpoint
 
-### M3 checkpoint1 — OWNER-SMOKE CANDIDATE; checkpoint2 authorized
+### M3 checkpoint2 — OWNER-SMOKE CANDIDATE; STOP for owner smoke
 
-Main4e84bc4 merged into `codex/m3-plan` as `a6f3476`, documentation conflicts
-preserve both sides. Owner accepted per-level Option A (regional presets only
-optional M7), C-skin separately at4 with64-B content free-floor/L2 fallback;
-B-shot, independent hues and Bomber skins/re-skin stay deferred.
-[Decisions](decisions/2026-10-31-m3-waves.md).
+Main `4e84bc4` (test-debt part1) merged into `codex/m3-plan` as `a6f3476`.
+Checkpoint1 `149bb7f`; checkpoint2 is the commit carrying this status.
+Owner decisions: Option A per level (regional presets optional M7), C-skin
+separate at4 with64-B content floor/L2 fallback; B-shot, independent hues,
+Bomber skins and Bomber shot re-skin DEFER. [Decisions](decisions/2026-10-31-m3-waves.md).
 
-Checkpoint1 straight paths +guarded dispatch/state are implemented and verified.
-Content1,491 B (+368), window2,384 B (+82), L2 1,290 (+0); full M3 plan budgets
-were+732/+224/0. No-path Wingman/Interceptor positions/actions/cadence/loops
-match main over380 frames. Focused16/16; normal computed gates PASS. Native
-Spread30,465 /capital-96031,156 /straight600-frame route30,832; zero timing
-anomalies, boss entry325. No-path hook+70–71 CPU/member, whole C path tick
-maximum528 (no render/DMA), report-only. Release evidence remains pending.
-[Checkpoint1 audit](diagnostics/m3/checkpoint-1/report.md).
+Guarded C path policy supports straight/shallow/snake/arc, mirror by successful
+admission, real-column tracking, returns/finite loops and bounded exits.
+Level2 pilot sectors1/4/6 use paths; level1 data, Heavy package/departure and
+existing rendering/PMG stay intact. No chain or column/volley envelope/HP
+variant implemented yet. Content1,800 B (+677 vs main), window2,384 (+82),
+L2 1,290 (+0). After checkpoint1:1,491/2,384/1,290;2 adds309 home B only.
+Full M3 budgets+732/+224/0; content120/window427/L2 246 usable B free,
+plus256 protected L2 B. Later M3 must be re-priced; C-skin placement waits
+for its compiled checkpoint4. [Plan measurements](plans/m3-waves.md#8-implementation-measurements).
 
-**NEXT TASK: implement/verify/commit authorized checkpoint2, then pause for
-owner smoke.** No later checkpoint, push, release or owner acceptance.
+Normal computed gates PASS; final focused62 PASS/1 optional review SKIP.
+One full suite vs main: raw1533/126/5; six self-resolved cases pass focused,
+**audited A120/B0/C0**, full snapshot1539/120/5. Existing release evidence is
+pending; no full-suite-green or release-ready claim. No-path380 linked frames
+match main (+70–71 CPU/member); whole path C tick max760, three-transition
+sum2,083 without driver/render/DMA; guarded arm net+70/event.
 
-### Pre-v0.4.0 test debt triage — uncommitted infrastructure changes
+Native quick Spread30,465/capital-96031,156, boss entry325, no anomalies.
+Vocabulary/edge fixture2,400 frames,19 admissions/all8 waves clear, peak31,663:
+8 frames above31,500 target, none above32,568 hard gate; zero misses/VBI/DLI
+errors. Corrected immutable checkpoint1 straight route peaks31,708; its old
+wrong-sector coverage claim is explicitly corrected in the audit.
 
-Main baseline 6046c0b. Full suite 1512 PASS/137 FAIL/4 SKIP before; raw after 1527/121/4. One generated-ABI fixture race repaired and full affected file rerun; audited 1528/120/4, A120/B0/C17 (line-only assertion shifts audited). 119 unit cases and all 32 native assertions remain unknown; the known preview-tool defect remains. No game source, CPU/RAM layout or canonical runtime evidence changed. Commits blocked by linked-worktree Git metadata permissions. [Per-test classification, audit and remaining work](diagnostics/test-debt/report.md). NEXT TASK: investigate remaining unknowns and refresh milestone release evidence; no release-readiness claim.
+Five ATRs and bilingual smoke instructions are in `build/play/m3/checkpoint-2/`.
+[Audit, checklist, exact test tuples and hashes](diagnostics/m3/checkpoint-2/report.md).
+**NEXT TASK: owner smoke/review of checkpoint2; STOP.** No next checkpoint,
+merge, push, release or owner acceptance is inferred.
+
+### Pre-v0.4.0 test debt triage — baseline merged in main4e84bc4
+
+Main baseline 6046c0b. Full suite 1512 PASS/137 FAIL/4 SKIP before; raw after 1527/121/4. One generated-ABI fixture race repaired and full affected file rerun; audited 1528/120/4, A120/B0/C17 (line-only assertion shifts audited). 119 unit cases and all 32 native assertions remain unknown; the known preview-tool defect remains. No game source, CPU/RAM layout or canonical runtime evidence changed. The triage session reported Git metadata permissions blocking its own commits; the owner subsequently supplied this work in main4e84bc4, merged above. [Per-test classification, audit and remaining work](diagnostics/test-debt/report.md). NEXT TASK: investigate remaining unknowns and refresh milestone release evidence; no release-readiness claim.
 
 ### M3-H session 2 — smoke repair OWNER-SMOKE CANDIDATE
 

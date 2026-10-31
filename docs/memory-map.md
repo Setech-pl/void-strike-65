@@ -1,13 +1,16 @@
 # Current memory map
 
-## M3 checkpoint1 — 2026-10-31
+## M3 checkpoint2 — 2026-10-31
 
-MEASURED: checked content1,491/1,920 B (+368:356 code +12 state),
+MEASURED: checked content1,800/1,920 B (+677:660 code +17 state/table),
 window2,384/2,811 usable B (+82), L2 1,290 B unchanged. Content state is
 cleared on checked gameplay initialization and successful admission/reuse;
 invalid-home guards precede every state/code read. LEVEL_PATHS aliases the
 existing96-B payload block at $AB30, not extra RAM. No new protected range
-is consumed. [Checkpoint audit](diagnostics/m3/checkpoint-1/report.md).
+is consumed. Checkpoint1 was1,491 B; checkpoint2 adds304 code +5 state/table
+B in content, zero window/L2. Content has120 B free; window427 usable;
+L2 246 usable plus256 protected. The later HP helper's placement still waits
+for compiled full M3. [Checkpoint audit](diagnostics/m3/checkpoint-2/report.md).
 
 ## M3-H session 2 finish — 2026-10-31
 
@@ -159,16 +162,16 @@ Ranges are inclusive. Rows overlap where bytes change owner between phases; over
 | `$10EF-$11DA` | 236 B | segment | `BOSS_BANNER_LATE` — boss banner rest of the set-up (feat/boss-banners): the reads copied out, the bar's state, the VOID LANCE's line under INCOMING and its '+' glyph (M6 journal §BI 1), the picture unpacked and mirrored into its lines under the shown screen | `boss-entry` | build/boss.map |
 | `$1180-$18FF` | 1,920 B | slot | checked content module; retained through pause/death, executable only in valid gameplay | `level` | manifest `contentModule` |
 | `$1180` | 1 B | segment | `CONTENT_HEADER` — checked content entry header | `level` | build/encounter-director.map |
-| `$1181-$1729` | 1,449 B | segment | `CONTENT_CODE` — phase-exclusive content C policy | `level` | build/encounter-director.map |
+| `$1181-$1859` | 1,753 B | segment | `CONTENT_CODE` — phase-exclusive content C policy | `level` | build/encounter-director.map |
 | `$11EC-$194F` | 1,892 B | segment | `DEATH_CODE` — boss breakup: C decisions, character copies and PMG/DLI publication | `boss` `death` | build/boss-death.map |
 | `$14FC-$154C` | 81 B | segment | `BOSS_DEATH_PREP` — post-defeat takeover in the former chain/hold tail; no fight work, no new resident bytes | `overlay` | build/boss.map |
 | `$1500-$17FF` | 768 B | transient | boss banner picture's stored half, unpacked (12 B a line), mirrored into the screen | `boss-entry` | manifest `boss.banner` |
 | `$154E-$1557` | 10 B | segment | `BOSS_C_RODATA` — boss slot C: C read-only data | `overlay` | build/boss.map |
 | `$1558-$171C` | 453 B | segment | `BOSS_C_ASM` — boss slot C: the overlay's once-per-entry ASM (boss_prepare) | `overlay` | build/boss.map |
 | `$171D-$17FB` | 223 B | segment | `BOSS_C_BSS` — boss slot C: the controller's state (after its code, never read from disk) | `overlay` | build/boss.map |
-| `$172A-$1752` | 41 B | segment | `CONTENT_DATA` — checked content state, reset on level load | `level` | build/encounter-director.map |
 | `$1800-$18FF` | 256 B | slot | boss scratch page: the column map, the ring, slot A's state; set by the install | `overlay` | manifest `boss.scratch` |
 | `$1800-$1897` | 152 B | segment | `BOSS_SCRATCH` — boss scratch page: the column map, the cell-flash ring, the draw queue, a rebuild's candidates | `overlay` | build/boss.map |
+| `$185A-$1887` | 46 B | segment | `CONTENT_DATA` — checked content state, reset on level load | `level` | build/encounter-director.map |
 | `$1898-$18F4` | 93 B | segment | `BOSS_BSS` — boss scratch page: slot A's band, collision, feedback, queue and nozzle state | `overlay` | build/boss.map |
 | `$18FB-$18FF` | 5 B | segment | `BOSS_HUD_BACKUP` — the HUD's five booster cells across the boss entry (S5-1; five since journal §BL 2), the scratch page's last five bytes | `overlay` | build/boss.map |
 | `$1900-$1FFF` | 1,792 B | slot | boss slot D: the lasers and the boss's shots in the band, run `boss-slot-d` (14 sectors) | `overlay` | manifest `boss.slotD` |
@@ -412,7 +415,7 @@ ld65 does not report overlaps between separate memory areas or separate links. E
 | `$9FFA-$9FFF` | 6 B | `ENTITY_CODE_RAM` `$9000-$9FFF` (atari-boot.cfg) | `DIRECTOR_GUARD` `$9FFA-$9FFF` (encounter-director.cfg) | Director guard |
 | `$A608-$A87F` | 632 B | `LEVEL_BUFFER_RAM` `$A600-$ADFF` (sector-reader.cfg) | `GAMEPLAY_MUSIC_RAM` `$A608-$A87F` (gameplay-music.cfg (rewritten by build.mjs)) | music in the level image |
 | `$AA00-$AAFF` | 256 B | `LEVEL_BUFFER_RAM` `$A600-$ADFF` (sector-reader.cfg) | `LEVEL_CORE_RAM` `$AA00-$AAFF` (encounter-director.cfg) | LevelDef core page |
-| `$AB30-$AB8F` | 96 B | `LEVEL_BUFFER_RAM` `$A600-$ADFF` (sector-reader.cfg) | `LEVEL_PATHS_RAM` `$AB30-$AB8F` (encounter-director.cfg) | **undeclared** |
+| `$AB30-$AB8F` | 96 B | `LEVEL_BUFFER_RAM` `$A600-$ADFF` (sector-reader.cfg) | `LEVEL_PATHS_RAM` `$AB30-$AB8F` (encounter-director.cfg) | M3 paths in the existing level payload |
 | `$AC00-$AC07` | 8 B | `LEVEL_BUFFER_RAM` `$A600-$ADFF` (sector-reader.cfg) | `LEVEL_GEOMETRY_RAM` `$AC00-$AC07` (encounter-director.cfg) | HullGeometry header |
 | `$BC1A-$BC1F` | 6 B | `HYBRID_C_WINDOW_GUARD` `$BC1A-$BC1F` (encounter-director.cfg) | `READER_GUARD` `$BC1A-$BC1F` (sector-reader.cfg) | one window guard |
 
@@ -443,16 +446,16 @@ ld65 does not report overlaps between separate memory areas or separate links. E
 | `$10EF-$11DA` | `boss-entry` | `BOSS_BANNER_LATE` — boss banner rest of the set-up (feat/boss-banners): the reads copied out, the bar's state, the VOID LANCE's line under INCOMING and its '+' glyph (M6 journal §BI 1), the picture unpacked and mirrored into its lines under the shown screen |
 | `$1180-$18FF` | `level` | checked content module; retained through pause/death, executable only in valid gameplay |
 | `$1180` | `level` | `CONTENT_HEADER` — checked content entry header |
-| `$1181-$1729` | `level` | `CONTENT_CODE` — phase-exclusive content C policy |
+| `$1181-$1859` | `level` | `CONTENT_CODE` — phase-exclusive content C policy |
 | `$11EC-$194F` | `boss` `death` | `DEATH_CODE` — boss breakup: C decisions, character copies and PMG/DLI publication |
 | `$14FC-$154C` | `overlay` | `BOSS_DEATH_PREP` — post-defeat takeover in the former chain/hold tail; no fight work, no new resident bytes |
 | `$1500-$17FF` | `boss-entry` | boss banner picture's stored half, unpacked (12 B a line), mirrored into the screen |
 | `$154E-$1557` | `overlay` | `BOSS_C_RODATA` — boss slot C: C read-only data |
 | `$1558-$171C` | `overlay` | `BOSS_C_ASM` — boss slot C: the overlay's once-per-entry ASM (boss_prepare) |
 | `$171D-$17FB` | `overlay` | `BOSS_C_BSS` — boss slot C: the controller's state (after its code, never read from disk) |
-| `$172A-$1752` | `level` | `CONTENT_DATA` — checked content state, reset on level load |
 | `$1800-$18FF` | `overlay` | boss scratch page: the column map, the ring, slot A's state; set by the install |
 | `$1800-$1897` | `overlay` | `BOSS_SCRATCH` — boss scratch page: the column map, the cell-flash ring, the draw queue, a rebuild's candidates |
+| `$185A-$1887` | `level` | `CONTENT_DATA` — checked content state, reset on level load |
 | `$1898-$18F4` | `overlay` | `BOSS_BSS` — boss scratch page: slot A's band, collision, feedback, queue and nozzle state |
 | `$18FB-$18FF` | `overlay` | `BOSS_HUD_BACKUP` — the HUD's five booster cells across the boss entry (S5-1; five since journal §BL 2), the scratch page's last five bytes |
 | `$1900-$1FFF` | `overlay` | boss slot D: the lasers and the boss's shots in the band, run `boss-slot-d` (14 sectors) |
@@ -757,26 +760,25 @@ By topic: unclassified 74%, display, PMG and raster 16%, player, input and weapo
 
 By topic: unclassified 86%, Light enemies 13%, music and audio 1%.
 
-#### `CONTENT_CODE` `$1181-$1729`, 1,449 B (build/encounter-director.map)
+#### `CONTENT_CODE` `$1181-$1859`, 1,753 B (build/encounter-director.map)
 
 | Item | Address | Size | Share | Topic |
 | --- | --- | ---: | ---: | --- |
-| `_cc2_world_row_tick` | `$1367` | 304 B | 21.0% | unclassified |
-| `_m3_path_tick` | `$1636` | 244 B | 16.8% | unclassified |
-| `_enemy_c_heavy_visual_claim` | `$14F8` | 206 B | 14.2% | Heavy, Raider and Interceptor |
-| `heavy_damage_stamp` | `$1181` | 187 B | 12.9% | Heavy, Raider and Interceptor |
-| `_cc2_heavy_tick` | `$1497` | 97 B | 6.7% | Heavy, Raider and Interceptor |
-| `_cc2_enter` | `$1286` | 89 B | 6.1% | unclassified |
-| `_cc2_request` | `$1316` | 81 B | 5.6% | unclassified |
-| `_heavy_entry_ready` | `$1248` | 62 B | 4.3% | Heavy, Raider and Interceptor |
-| `_cc2_advance` | `$12DF` | 55 B | 3.8% | unclassified |
-| `_m3_admit` | `$160A` | 44 B | 3.0% | unclassified |
-| `_m3_reset` | `$15C6` | 35 B | 2.4% | unclassified |
-| `_m3_escort` | `$15F9` | 17 B | 1.2% | unclassified |
-| `_m3_wave_arm` | `$15E9` | 16 B | 1.1% | Director, sectors and waves |
-| 1 smaller item | — | 12 B | 0.8% | — |
+| `_m3_path_tick` | `$1658` | 514 B | 29.3% | unclassified |
+| `_cc2_world_row_tick` | `$1367` | 304 B | 17.3% | unclassified |
+| `_enemy_c_heavy_visual_claim` | `$14F8` | 206 B | 11.8% | Heavy, Raider and Interceptor |
+| `heavy_damage_stamp` | `$1181` | 187 B | 10.7% | Heavy, Raider and Interceptor |
+| `_cc2_heavy_tick` | `$1497` | 97 B | 5.5% | Heavy, Raider and Interceptor |
+| `_cc2_enter` | `$1286` | 89 B | 5.1% | unclassified |
+| `_cc2_request` | `$1316` | 81 B | 4.6% | unclassified |
+| `_m3_admit` | `$1614` | 68 B | 3.9% | unclassified |
+| `_heavy_entry_ready` | `$1248` | 62 B | 3.5% | Heavy, Raider and Interceptor |
+| `_cc2_advance` | `$12DF` | 55 B | 3.1% | unclassified |
+| `_m3_reset` | `$15C6` | 40 B | 2.3% | unclassified |
+| `_m3_wave_arm` | `$15EE` | 21 B | 1.2% | Director, sectors and waves |
+| 2 smaller items | — | 29 B | 1.7% | — |
 
-By topic: unclassified 60%, Heavy, Raider and Interceptor 39%, Director, sectors and waves 1%.
+By topic: unclassified 67%, Heavy, Raider and Interceptor 32%, Director, sectors and waves 1%.
 
 #### `HYBRID_C_ARENA` `$7C72-$7EF5`, 644 B (build/encounter-director.map)
 
@@ -1219,7 +1221,7 @@ By topic: player, input and weapons 25%, debris and effects 20%, capital ship 16
 | `BOSS_D_CODE` | 1,684 B | placement name | — | unclassified (83%) | not judged |
 | `BOSS_CODE` | 1,963 B | placement name | — | unclassified (74%) | not judged |
 | `LANCE_CODE` | 752 B | placement name | — | unclassified (86%) | not judged |
-| `CONTENT_CODE` | 1,449 B | placement name | — | unclassified (60%) | not judged |
+| `CONTENT_CODE` | 1,753 B | placement name | — | unclassified (67%) | not judged |
 | `HYBRID_C_ARENA` | 644 B | placement name | — | Heavy, Raider and Interceptor (89%) | not judged |
 | `HYBRID_C_EXT` | 696 B | placement name | — | Light enemies (57%) | not judged |
 | `HYBRID_C_WINDOW` | 1,575 B | placement name | — | Light enemies (67%) | not judged |

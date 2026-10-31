@@ -15,6 +15,7 @@ for(const file of ['void-strike-65','encounter-director','integration-glue','lig
     if(!labels.has(m[2]))labels.set(m[2],parseInt(m[1],16));
 const L=n=>{assert.ok(labels.has(n),n);return labels.get(n);};
 const pathCosts=[];
+const simultaneousCosts=[];
 function source(pathName='straight') {
   return {level:2,seed:77,hull:{length:1,turrets:3},sectors:[
     {kind:'space',subtype:'swarm',rows:128,archetypes:['wingman','interceptor'],lights:3,
@@ -37,7 +38,7 @@ function run(m,n,{a=0}={}) {
 }
 after(()=>{
   if(process.env.VS65_M3_PATH_COST_REPORT)fs.writeFileSync(process.env.VS65_M3_PATH_COST_REPORT,
-    JSON.stringify({method:'MEASURED whole C tick entry through RTS, no caller JSR/DMA; includes appearance decision, not ASM publication',maximum:Math.max(...pathCosts.map(r=>r.cycles)),rows:pathCosts},null,2)+'\n');
+    JSON.stringify({method:'MEASURED whole C tick entry through RTS, no caller JSR/DMA; includes appearance decision, not ASM publication',maximum:Math.max(...pathCosts.map(r=>r.cycles)),simultaneousThreeLightTicks:simultaneousCosts,rows:pathCosts},null,2)+'\n');
 });
 function image(s=source()) {
   const m=new Uint8Array(65536);installRuntimeSegments(m,root);
@@ -61,11 +62,14 @@ test('M3 compiler packs a named path into the existing payload, deduplicating id
   assert.deepEqual([...l.payload.subarray(PAYLOAD_OFFSET.path,PAYLOAD_OFFSET.path+12)],
     [1,0,16,1,0,16,1,0,16,1,0,16]);
   assert.equal(l.payload.length,256);assert.equal(l.core.length,256);
+  const review=compile(JSON.parse(fs.readFileSync(`${root}/assets/levels/diagnostics/m3-path-review.json`)));
+  assert.equal(review.core[WAVE_ARRAY_OFFSET.path+7],84,'review fills all eight path records');
 });
 test('M3 compiler rejects malformed, Heavy, boss, looping-archetype and nonterminating paths',()=>{
   const bad=source('unknown');assert.throws(()=>compile(bad),/path/);
   for(const edit of [s=>{s.sectors[0].subtype='elite';s.sectors[0].archetypes=['raider'];s.sectors[0].waves[0].archetype='raider';},
     s=>{s.sectors[0].waves[0].archetype='interceptor';s.sectors[0].waves[0].loops=1;},
+    s=>{s.sectors[0].waves[0].entry=50;},
     s=>{s.payload={paths:{bad:[{dy:1,frames:1,flags:16}]}};s.sectors[0].waves[0].path='bad';}]) {
     const s=source();edit(s);assert.throws(()=>compile(s),/path/);
   }
@@ -85,7 +89,10 @@ test('M3 finite segments advance on exact durations and a terminal flag retires 
 });
 test('M3 invalid/disarmed home is never executed and shared wave publication still works',()=>{
   const m=image();m[0x86b3]=0;m.fill(0,0x1180,0x1900);
-  for(const entry of ['_asm_m3_reset','_asm_m3_admit','_asm_m3_escort','_asm_m3_wave_arm'])run(m,entry);
+  for(const entry of ['_asm_m3_reset','_asm_m3_admit','_asm_m3_escort','_asm_m3_wave_arm']) {
+    const r=run(m,entry);
+    assert.ok(r.accesses.every(a=>a<0x1180||a>=0x1900),`${entry}: no stale home read`);
+  }
   const guarded=run(m,'_asm_m3_tick');assert.equal(guarded.a,255);
   assert.ok(guarded.accesses.every(a=>a<0x1180||a>=0x1900),'no stale home read');
   m[0x86b3]=1;m[L('game_state')]=3;assert.equal(run(m,'_asm_m3_tick').a,255);
@@ -130,4 +137,94 @@ test('M3 no-path and orphan escort use resident movement, no inherited segment',
   assert.equal(m[L('_m3_path_segment')],255);
   m[L('_m3_path_segment')]=0;m[L('light_slot')]=0;run(m,'_asm_m3_escort');
   assert.equal(m[L('_m3_path_segment')],255);
+});
+test('M3 boss escort skips poisoned path state and orphan falls back without home reads',()=>{
+  const m=image();m[0x86b3]=0;m[L('game_state')]=3;m.fill(0,0x1180,0x1900);
+  m[L('light_state')]=1;m[L('light_slot')]=0;m[0x5470]=1;
+  m[0x5478]=124;m[0x547a]=80;
+  let r=run(m,'_enemy_c_light_tick');
+  assert.equal(m[L('light_state')],1);assert.equal(m[L('light_x')],128);
+  assert.ok(r.accesses.every(a=>a<0x1180||a>=0x1900));
+  m[0x5470]=0;r=run(m,'_enemy_c_light_tick');
+  assert.equal(m[L('light_state')],2);
+  assert.ok(r.accesses.every(a=>a<0x1180||a>=0x1900));
+});
+
+test('M3 mirror alternates successful admissions, including a recycled slot after refusal',()=>{
+  const s=source('snake');s.sectors[0].waves[0].mirror=true;s.sectors[0].waves[0].count=2;
+  const m=image(s);tick(m);assert.equal(m[L('_m3_path_segment')]&128,0);
+  for(let i=0;i<3;i++)m[L('light_state')+i]=2;
+  m[L('_light_wave_timer')]=0;run(m,'_enemy_c_light_wave');
+  for(let i=0;i<4;i++){m[L('light_state')+i]=0;m[L('light_screen_hi')+i]=0;}
+  tick(m);assert.equal(m[L('_m3_path_segment')]&128,128,'same physical slot is mirrored');
+  assert.equal(m[L('light_x')],120,'mirrored first step goes left');
+});
+test('M3 tracking quantizes and clamps player column without overshoot',()=>{
+  for(const [player,target]of [[180,184],[0,48],[255,48]]) {
+    const s=source('follow');s.payload={paths:{follow:Array.from({length:4},()=>({dy:1,frames:0,flags:29}))}};
+    const m=image(s);m[L('player_x')]=player;
+    for(let f=0;f<80;f++){tick(m);assert.ok(m[L('light_x')]>=48&&m[L('light_x')]<=200);assert.equal(m[L('light_x')]%4,0);}
+    assert.equal(m[L('light_x')],target);
+  }
+});
+test('M3 vocabulary has repeatable shallow, snake and arc landmarks',()=>{
+  for(const [name,landmarks] of [
+    ['shallow-wave',[[24,148],[72,100],[96,124]]],
+    ['snake',[[24,172],[72,76],[96,124]]],
+    ['arc',[[24,172],[48,196],[72,172]]],
+  ]) {
+    const m=image(source(name));let frame=0;
+    for(const [end,x] of landmarks) {
+      while(frame<end){tick(m);frame++;}
+      assert.equal(m[L('light_x')],x,`${name} X at ${end}`);
+      assert.equal(m[L('light_y')],end,`${name} Y at ${end}`);
+    }
+  }
+});
+test('M3 three-Light simultaneous segment transitions stay independent and bounded',()=>{
+  const s=source('four');s.payload={paths:{four:[
+    {dy:1,frames:2,flags:21},{dy:1,frames:3,flags:25},
+    {dy:1,frames:1,flags:16},{dy:1,frames:2,flags:144}]}};
+  const m=image(s);tick(m);
+  for(let i=0;i<3;i++) {
+    m[L('light_state')+i]=2;m[L('_light_archetype')+i]=m[L('_light_archetype')];
+    m[L('light_x')+i]=124;m[L('light_y')+i]=60;
+    m[L('_m3_path_segment')+i]=0;m[L('_m3_path_timer')+i]=1;
+  }
+  const before=pathCosts.length;tick(m);
+  simultaneousCosts.push(pathCosts.slice(before).reduce((sum,r)=>sum+r.cycles,0));
+  for(let i=0;i<3;i++) {
+    assert.equal(m[L('_m3_path_segment')+i],3);
+    assert.equal(m[L('_m3_path_timer')+i],3);
+    assert.equal(m[L('light_x')+i],128);
+    assert.equal(m[L('light_y')+i],61);
+  }
+});
+test('M3 upward return retires before negative wrap; side exit clamps before terminal retirement',()=>{
+  const m=image(source('dive-return'));
+  for(let f=0;f<104;f++){tick(m);assert.equal(m[L('light_state')],2);assert.ok(m[L('light_y')]<232);}
+  assert.equal(m[L('light_y')],0);tick(m);assert.equal(m[L('light_state')],0);assert.equal(m[L('light_y')],0);
+  const s=source('side');s.payload={paths:{side:[{dy:0,frames:48,flags:148},
+    ...Array.from({length:3},()=>({dy:1,frames:0,flags:16}))]}};
+  const side=image(s);for(let f=0;f<48;f++){tick(side);assert.ok(side[L('light_x')]<=200);}
+  assert.equal(side[L('light_x')],200);assert.equal(side[L('light_state')],0);
+});
+test('M3 relative loop stays within its record, progresses vertically and eventually retires',()=>{
+  const m=image(source('finite-loop'));for(let f=0;f<56;f++)tick(m);
+  assert.equal(m[L('light_y')],8);assert.equal(m[L('light_x')],124);assert.equal(m[L('_m3_path_segment')],0);
+  let f=56;while(m[L('light_state')]&&f<1700){tick(m);f++;}
+  assert.ok(f<1700);assert.equal(m[L('light_state')],0);
+});
+test('M3 compiler refuses zero-progress loops, invalid relative ends, cadence2 and ninth distinct path',()=>{
+  for(const path of [
+    Array.from({length:4},(_,i)=>({dy:0,frames:16,flags:i===3?112:16})),
+    [{dy:1,frames:1,flags:48},...Array.from({length:3},()=>({dy:1,frames:0,flags:16}))],
+    Array.from({length:4},()=>({dy:1,frames:0,flags:18})),
+  ]){const s=source('bad');s.payload={paths:{bad:path}};assert.throws(()=>compile(s),/path/);}
+  const s=source('p0');s.payload={paths:{}};s.sectors[0].waves=[];
+  for(let i=0;i<9;i++) {
+    s.payload.paths[`p${i}`]=[{dy:1,frames:i+1,flags:16},...Array.from({length:3},()=>({dy:1,frames:0,flags:16}))];
+    s.sectors[0].waves.push({row:i*8,archetype:'wingman',count:1,spacing:24,entry:124,path:`p${i}`});
+  }
+  assert.throws(()=>compile(s),/eight distinct paths/);
 });

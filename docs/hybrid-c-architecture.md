@@ -481,3 +481,23 @@ read L2 state. Only successful whole-run validation followed by L2 INIT
 re-arms the call. Failure cannot run partial L2. The permanent lifetime check
 distinguishes installed boss/death code at the same addresses from stale L2
 consumers. [Linked proof and measurements](diagnostics/l2-phase-b/recovery/).
+
+## M3 path policy (checkpoints 1–2)
+
+Free Light SPACE waves may replace resident archetype motion with four bounded
+`dy/frames/flags` segments. The compiler packs up to eight deduplicated records
+into the existing96-B `LEVEL_PATHS` payload at `$AB30`; WaveDef's motion byte
+is a byte offset, or `$FF` for the original policy. Heavy holds keep their
+contextual motion encoding. Nonzero Interceptor `loops` with a path is refused.
+
+C in the checked content home owns admission parity, segment/timer state,
+quantized movement/tracking, fire permission and retirement. Eight slot bytes,
+armed offset and scratch/parity/table occupy17 content B. Existing resident
+ASM guards check validity `$86B3` and game state before any home read or entry;
+shared wave arm still publishes the resident archetype even when disarmed.
+No-path returns `$FF` internally to select resident motion; the kernel still
+receives its original exclusive action. Escort admission clears path state;
+failed free admission consumes no parity. Boss/menu/death never read path RAM.
+Hardware publication, erase, shot admission, PMG and collision ownership stay
+with the existing kernel. Checkpoint2 measures content1,800 B/window2,384 B/
+L2 1,290 B; later C-skin placement is not decided until full M3 compiles.

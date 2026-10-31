@@ -37,7 +37,8 @@ Native Atari800 PAL DMA on:
 | --- | ---: | ---: |
 | Spread NORMAL | 1,800 | 30,465 |
 | capital-960 NORMAL | 3,967 | 31,156 |
-| level2 sector4 straight path | 600 | 30,832 |
+| level2 debug index4 (Heavy sector; see correction below) | 600 | 30,832 |
+| corrected straight route, index3, immutable149bb7f (measured during2) | 600 | 31,708 |
 
 All focused reports pass, zero timing/phase/stale-access anomalies. Boss
 entry325≤350. Worst31,156: hard margin1,412. Whole C path tick maximum528
@@ -56,3 +57,16 @@ Checkpoint ATRs (baseline for the next checkpoint, not owner acceptance):
 
 Verification finished before its commit; continue only to authorized2, then
 stop for owner smoke. Final task audit records cleanup and full tests.
+
+**Coverage correction during checkpoint2:** the CLI sector index is zero-based.
+The600-frame route above started at human sector5, not the straight path in
+sector4. Its timing is valid for that Heavy route but does not prove native
+straight-path coverage. Linked straight tests were valid. Checkpoint2 repairs
+the native fixture to start at index0 and explicitly checks live-Light
+coverage; its report supersedes the original straight-route claim. The same
+mistake in the first checkpoint2 diagnostic run was discarded, not counted.
+The corrected600-frame run of immutable149bb7f has1,637 live Light slot-frames,
+no misses/extra VBI/DLI/deadline failures, and31,708 maximum (208 above target,
+860 below hard gate). [Corrected evidence](straight-native-corrected.json).
+This supersedes the earlier31,156 whole-checkpoint worst figure; the two quick
+route maxima themselves are unchanged.

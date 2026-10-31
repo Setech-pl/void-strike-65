@@ -223,16 +223,34 @@ capital ceiling fails at 30,025/29,756; no smoke candidate or native authored
 level-2 PASS is claimed. See the
 [sixth-continuation audit](audits/2026-10-27-m3h-step1.md#sixth-continuation--boss-deltas-fixed-native-capital-ceiling-stop).
 
-M3 checkpoint1 accepts `"path": "straight"` on a free Light SPACE wave.
+M3 checkpoints1–2 accept `path` on a free Light SPACE wave. Library names:
+`straight`, `shallow-wave`, `snake`, `arc`, `dive-return`, `tracking-dive`,
+`finite-loop`. Mirrored waves alternate lateral direction on successful
+admissions, including reused slots; refused admissions do not consume parity.
+Tracking always follows the actual player column, quantized to4 HPOS and
+clamped48..200. Tracking itself is not reversed by mirror.
 It replaces archetype motion, keeps weapon/HP/score and uses the existing
 96-B payload block (up to8 deduplicated12-B records). No-path remains `$FF`.
 Paths on Heavy/boss waves and `path` combined with nonzero `loops` are refused.
 Optional `payload.paths.<name>` is exactly four `{dy, frames, flags}` segments;
-checkpoint1 allows dy1, frames0..255 and flags16 (fire)/128 (retire at end).
-Duration0 runs until bottom retirement, so cannot also retire at segment end.
-The fourth finite segment must retire; no new image or payload allocation.
+`dy` is -2..2 pixels/frame; `frames`0..255. Flags bits0..1 encode lateral
+period masks0/1/3 (every1/2/4 frames); bits2..3 select none/right/left/track;
+bit4 permits the archetype weapon; bits5..6 select a relative jump back0..3
+segments at expiry (0 means next); bit7 retires at expiry. No fire envelope
+mode is implemented before checkpoint3. Duration0 needs nonzero vertical
+motion and no end action. The fourth finite segment must retire or loop;
+cycles require net vertical progress. Upward exit retires before byte wrap,
+bottom exit at232; lateral motion clamps to48..200. Path entry is aligned
+to4 HPOS. ELITE paths warn about Heavy/path CPU coincidences to measure.
+No new image or payload allocation.
 Every no-path Light wave compiles with `wave_path = $FF`,
 "the archetype's own movement".
+
+Review all seven shapes with `node scripts/build.mjs --level=2:sector=0
+--m3-path-review`. This diagnostic uses
+`assets/levels/diagnostics/m3-path-review.json`, starts each wave after the
+preceding one clears and changes no campaign source. Its manifest carries
+`m3PathReview.diagnosticOnly`; normal builds never select it.
 
 ## What the compiler refuses
 
@@ -258,7 +276,9 @@ field:
 * `lights` above 4 or `heavies` above 2 — the packed nibbles hold no more;
 * a wave arming at or past its own sector's end;
 * `loops` above 3, or on a wave whose Light is not an Interceptor;
-* a `path` (step 6), or a turret density other than 3 (step 4);
+* malformed/unknown paths, more than8 distinct records, paths on Heavy/boss
+  waves, nonzero `loops` together with a path, or unbounded zero-progress
+  cycles; a turret density other than3;
 * a sky other than `white`, `steel` or `yellow`, or a nebula (step 5);
 * an `appearance` that names no authored look, or sits on a Heavy wave with
   no escort; more than three looks, two looks with one name, a Light row that

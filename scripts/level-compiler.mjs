@@ -809,6 +809,8 @@ function compileSectors(source, context, warnings) {
         if(waveClass!=="light" || !isSpace)
           fail(context,waveWhere,"a path requires a free Light wave in SPACE");
         if(wave.loops)fail(context,waveWhere,"path and Interceptor loops cannot be combined");
+        if(entry%4)fail(context,waveWhere,"path entry must be a four-HPOS cell");
+        if(subtype===SECTOR_SUBTYPE.elite)warnings.push(`${context.file} ${waveWhere}: path shares the ELITE budget; measure Heavy/path coincidences`);
       }
       // feat/interceptor-standoff (the owner's smoke of 2026-10-11): how many
       // times an Interceptor of this wave climbs to the top-hold row and dives

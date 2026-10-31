@@ -312,11 +312,13 @@ test('H14 queued departure damage never draws a member killed or retired before 
 
 test('H14 recovery stays within the owner window budget and preserves full segment sizes',()=>{
   const manifest=JSON.parse(fs.readFileSync('build/manifest.json'));
-  assert.ok(manifest.residentCapacity.basicWindow.usedBytes-2068<=250,'session window growth exceeds 250 B');
+  // M3 checkpoints1–2 append82 guarded window B and677 content B. Keep
+  // H14's own234/250-B budget and every protected segment/address assertion.
+  assert.ok(manifest.residentCapacity.basicWindow.usedBytes-82-2068<=250,'H14 session window growth exceeds 250 B');
   assert.ok(L('_enemy_c_heavy_departure_notice')>=0xae00&&L('_enemy_c_heavy_departure_notice')<0xae00+manifest.residentCapacity.basicWindow.usedBytes);
   assert.equal(manifest.residentCapacity.arena.usedBytes,830);
   assert.equal(manifest.directorRuntime.bytes,324);assert.equal(manifest.l2.usedBytes,1290);
-  assert.equal(manifest.contentModule.usedBytes,1123,'H12/H13 and the slower departure stay in checked home');
+  assert.equal(manifest.contentModule.usedBytes,1123+677,'H12/H13/departure plus accepted M3 checked-home policy');
   assert.equal(manifest.directorCodeRuntimes.find(r=>r.name==='extension').bytes,875);
   assert.equal(L('_enemy_c_apply_pending_damage'),0x8d67);
   assert.equal(L('_enemy_c_recycle')-L('_enemy_c_apply_pending_damage'),105,'later extension addresses moved');

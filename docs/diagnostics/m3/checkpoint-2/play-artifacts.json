@@ -1,0 +1,22 @@
+{
+  "campaign.atr": {
+    "bytes": 133136,
+    "sha256": "857febc87b42d740d9fd7e1004d26dbd02e6c97e821cfb00d9889a5fad3efa55"
+  },
+  "elite.atr": {
+    "bytes": 133136,
+    "sha256": "73d62f8372df0f73ab2f409b61debe6cbb2b1d8f53510204272f8ff9506a8c0b"
+  },
+  "level-2.atr": {
+    "bytes": 133136,
+    "sha256": "6d0f855c3f12b7a2596382e5422724fbca0fd6fb16abdc76e2b4d301b7b172ec"
+  },
+  "path-review.atr": {
+    "bytes": 133136,
+    "sha256": "ac80b5e08a87fd6d0d44e41b2b1573a5ad837ce5c30f08c77d781d31a77ae217"
+  },
+  "swarm.atr": {
+    "bytes": 133136,
+    "sha256": "a42b758e1bc4a2cf0b87fcf215e4020fca2e3ac522d19def06a4eeef40679099"
+  }
+}

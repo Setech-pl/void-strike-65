@@ -1,7 +1,13 @@
 // Four dy/frames/flags segments in the existing 96-B level payload block.
-// Checkpoint 1 deliberately exposes only straight flight and terminal exit.
+const s=(dy,frames,flags=16)=>({dy,frames,flags});
 export const WAVE_PATH_LIBRARY = Object.freeze({
-  straight: Array.from({length:4},()=>({dy:1,frames:0,flags:16})),
+  straight: [s(1,0),s(1,0),s(1,0),s(1,0)],
+  'shallow-wave': [s(1,24,23),s(1,48,27),s(1,24,23),s(1,0)],
+  snake: [s(1,24,21),s(1,48,25),s(1,24,21),s(1,0)],
+  arc: [s(1,24,21),s(1,24,23),s(1,24,27),s(1,0)],
+  'dive-return': [s(2,40),s(0,24,7),s(-2,0,0),s(1,0)],
+  'tracking-dive': [s(1,32,0),s(1,64,29),s(2,0),s(1,0)],
+  'finite-loop': [s(1,16),s(0,16,21),s(-1,8),s(0,16,121)],
 });
 
 export function encodeWavePath(name, custom = {}) {
@@ -10,14 +16,28 @@ export function encodeWavePath(name, custom = {}) {
     throw Error(`path ${name}: needs four segments or a known library name`);
   const bytes=Buffer.alloc(12);
   for(const [i,s] of segments.entries()) {
-    if(!s || !Number.isInteger(s.dy) || s.dy!==1 ||
+    if(!s || !Number.isInteger(s.dy) || s.dy < -2 || s.dy > 2 ||
        !Number.isInteger(s.frames) || s.frames<0 || s.frames>255 ||
-       !Number.isInteger(s.flags) || (s.flags&~0x90)!==0)
-      throw Error(`path ${name} segment ${i}: checkpoint 1 supports dy=1, frames0..255, fire/retire flags only`);
-    if(s.frames===0 && (s.flags&128))throw Error(`path ${name}: terminal duration0 cannot retire at its end`);
-    if(i===3 && s.frames!==0 && !(s.flags&128))throw Error(`path ${name}: last segment must exit`);
+       !Number.isInteger(s.flags) || s.flags<0 || s.flags>255 || (s.flags&3)===2)
+      throw Error(`path ${name} segment ${i}: dy -2..2, frames0..255, byte flags and periods0/1/3 required`);
+    const back=(s.flags>>5)&3;
+    if(back>i)throw Error(`path ${name}: relative step before the first segment`);
+    if(s.frames===0 && (s.dy===0 || (s.flags&0xe0)))
+      throw Error(`path ${name}: duration0 needs vertical exit and no end action`);
+    if(i===3 && s.frames!==0 && !(s.flags&128) && !back)
+      throw Error(`path ${name}: last segment must exit or loop with progress`);
     bytes.set([s.dy&255,s.frames,s.flags],i*3);
   }
+  // Deterministic control graph. A cycle must have net vertical progress;
+  // clamped lateral/tracking motion alone cannot prove eventual retirement.
+  const seen=new Map();let i=0,y=0;
+  while(!seen.has(i)) {
+    seen.set(i,y);const seg=segments[i];
+    if(seg.frames===0 || (seg.flags&128))return bytes;
+    y+=seg.dy*seg.frames;
+    const back=(seg.flags>>5)&3;i=back?i-back:i+1;
+  }
+  if(y===seen.get(i))throw Error(`path ${name}: nonterminating cycle without vertical progress`);
   return bytes;
 }
 

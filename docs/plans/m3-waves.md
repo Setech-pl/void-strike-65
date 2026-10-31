@@ -576,9 +576,31 @@ next checkpoint or gameplay acceptance is authorized by this handoff.
 | --- | ---: | ---: | ---: | --- |
 | Main4e84bc4 | 1,123 B | 2,302 B | 1,290 B | — |
 | 1 safe dispatch +straight | 1,491 B | 2,384 B | 1,290 B | +368 /+82 /0 B |
+| 2 shapes/mirror/tracking/exits | 1,800 B | 2,384 B | 1,290 B | +677 /+82 /0 B |
 | Original full M3 budget | 1,855 B | 2,526 B | 1,290 B | +732 /+224 /0 B |
 
 Checkpoint1 normal gates/focused checks and short native routes pass;
-worst31,156. [Audit](../diagnostics/m3/checkpoint-1/report.md). It is a
+quick worst31,156; corrected straight fixture31,708 (hard gate passes, target
+exceeded). [Audit](../diagnostics/m3/checkpoint-1/report.md). It is a
 candidate, not owner acceptance. C-skin placement waits for checkpoint4
 and the measured64-B floor; no HP/skin feature is implemented here.
+
+Checkpoint2 leaves120 B content,427 usable window and246 usable L2 B
+(plus256 protected L2 reserve). It adds309 content B after1:304 C code and
+5 state/table. Both checkpoints together use677/732 B of the full content
+budget,82/224 window B and0 L2. Only55 B remain within that content estimate
+for later M3 fire/chain integration;120 B physically remain. Re-price3–5
+before their implementation; this is not a promise that the old full estimate
+will hold. C-skin48 B would leave72 B at checkpoint2 alone, but its placement
+must be decided from the later compiled M3, per the owner's64-B rule.
+
+Checkpoint2 is an **OWNER-SMOKE CANDIDATE**, with all seven shapes in a
+diagnostic review ATR and three production pilot sectors. No chains, column/
+volley envelopes or HP variants have been implemented. [Verification and
+smoke checklist](../diagnostics/m3/checkpoint-2/report.md). STOP for owner smoke.
+
+Checkpoint2 normal gates and focused62 PASS/1 optional SKIP; audited full-suite
+A120/B0/C0 against main after six documented repairs. Quick31,156; vocabulary/
+edge review31,663 (8 target overruns, zero hard overruns or timing anomalies).
+Five review ATRs are delivered under `build/play/m3/checkpoint-2/`; owner smoke
+is pending. No checkpoint3 or C-skin implementation is authorized by this stop.

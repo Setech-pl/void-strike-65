@@ -256,7 +256,8 @@
           "count": 6,
           "spacing": 24,
           "entry": 124,
-          "appearance": "hunter"
+          "appearance": "hunter",
+          "path": "snake"
         }
       ]
     },
@@ -360,7 +361,7 @@
           "spacing": 20,
           "entry": 64,
           "appearance": "hunter",
-          "path": "straight"
+          "path": "shallow-wave"
         },
         {
           "row": 128,
@@ -368,7 +369,9 @@
           "count": 8,
           "spacing": 20,
           "entry": 184,
-          "appearance": "lancer"
+          "appearance": "lancer",
+          "path": "snake",
+          "mirror": true
         },
         {
           "row": 256,
@@ -376,7 +379,8 @@
           "count": 8,
           "spacing": 20,
           "entry": 96,
-          "appearance": "lancer"
+          "appearance": "lancer",
+          "path": "dive-return"
         }
       ]
     },
@@ -484,7 +488,8 @@
           "count": 4,
           "spacing": 24,
           "entry": 124,
-          "appearance": "lancer"
+          "appearance": "lancer",
+          "path": "tracking-dive"
         },
         {
           "row": 480,

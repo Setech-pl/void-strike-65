@@ -678,6 +678,8 @@ export const DECLARED_CFG_OVERLAPS = Object.freeze([
     reason: "the gameplay music player is linked to run inside the level image it travels in" },
   { areas: ["LEVEL_BUFFER_RAM", "LEVEL_CORE_RAM"], name: "LevelDef core page",
     reason: "the Director's LevelDef core arrays are link-time symbols over the level buffer, filled by the sector reader" },
+  { areas: ["LEVEL_BUFFER_RAM", "LEVEL_PATHS_RAM"], name: "M3 paths in the existing level payload",
+    reason: "LEVEL_PATHS aliases the existing 96-byte payload block at $AB30-$AB8F; the sector reader fills it with the level image, without a second allocation" },
   { areas: ["LEVEL_BUFFER_RAM", "LEVEL_GEOMETRY_RAM"], name: "HullGeometry header",
     reason: "the HullGeometry header is a link-time symbol over the level buffer, filled by the sector reader" },
   { areas: ["HYBRID_C_WINDOW_GUARD", "READER_GUARD"], name: "one window guard",

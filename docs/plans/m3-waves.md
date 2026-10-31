@@ -4,8 +4,9 @@
 **§7 policy accepted with owner amendments, 2026-10-31.** Branch
 `codex/m3-plan`, based on task-start main
 `6046c0b6beb25f15c53ca15cda8f39a431983cd3` (includes M3-H session 2).
-Owner authorizes checkpoints1–2, each verified and committed separately,
-then a mandatory pause for owner smoke after2. Planning commits had zero
+Owner smoke of checkpoint2 `742b80e` PASSED. Owner now authorizes3 and4,
+plus C-skin separately, with a pause after4 and a hard byte-overflow STOP
+before relocating3/4 policy. The first3 draft hits that STOP; see§9. Planning commits had zero
 runtime delta; actual implementation sizes are recorded in §8.
 [Owner decisions](../decisions/2026-10-31-m3-waves.md) include Q1–Q6A and the
 §7 amendments. No C-skin implementation before checkpoint4.
@@ -566,9 +567,10 @@ Raider bodies or assault-only cosmetics (one current armoured `heavyLook`);
 independent per-wave HP (C-wave content/packed-field trade-off). The requested
 variety has the concrete recommended path above; wider variants are explicit.
 
-**Implementation scope:** checkpoints1–2 only, verify and commit each,
-then STOP for owner smoke after2. C-skin stays at4. No push, tag, release,
-next checkpoint or gameplay acceptance is authorized by this handoff.
+**Current implementation scope:** owner accepted2 and authorized3–4 plus
+a separate C-skin commit at4. Pause for owner smoke after4. A content overflow
+requires STOP with§3 alternatives before any3/4 policy relocation. No push,
+tag, release or later checkpoint is authorized.
 
 ## 8. Implementation measurements
 
@@ -594,13 +596,33 @@ before their implementation; this is not a promise that the old full estimate
 will hold. C-skin48 B would leave72 B at checkpoint2 alone, but its placement
 must be decided from the later compiled M3, per the owner's64-B rule.
 
-Checkpoint2 is an **OWNER-SMOKE CANDIDATE**, with all seven shapes in a
+Checkpoint2 is **OWNER-ACCEPTED** after owner smoke PASS, with all seven shapes in a
 diagnostic review ATR and three production pilot sectors. No chains, column/
 volley envelopes or HP variants have been implemented. [Verification and
-smoke checklist](../diagnostics/m3/checkpoint-2/report.md). STOP for owner smoke.
+smoke checklist](../diagnostics/m3/checkpoint-2/report.md). Current continuation stop:§9.
 
 Checkpoint2 normal gates and focused62 PASS/1 optional SKIP; audited full-suite
 A120/B0/C0 against main after six documented repairs. Quick31,156; vocabulary/
 edge review31,663 (8 target overruns, zero hard overruns or timing anomalies).
-Five review ATRs are delivered under `build/play/m3/checkpoint-2/`; owner smoke
-is pending. No checkpoint3 or C-skin implementation is authorized by this stop.
+Five review ATRs were delivered under `build/play/m3/checkpoint-2/`; owner
+smoke has now PASSED. Continuation authorization and its byte stop are in§9.
+
+
+## 9. Checkpoint3 compiled byte stop — 2026-10-31
+
+Checkpoint2 is OWNER-ACCEPTED by explicit smoke PASS. Fresh normal build
+reproduces1,800 content/2,384 window/1,290 L2 B. The complete fire draft3
+requires2,124 content B (+318 code,+6 state/table), **204 B over1,920**;
+window/L2 unchanged. The code-only152-B linker warning excludes52 B data.
+The unchanged content fence rejected the build; no implementation was moved
+or retained in production.4 and C-skin were not started; no placement chosen.
+
+[Exact accounting and the three§3 alternatives](../diagnostics/m3/checkpoint-3/report.md):
+(A) same-home C compaction recovering≥204 B, recommended first;
+(B) authorize guarded L2, where213 measured helper-body B would leave33
+usable B before guards and C-skin (48-B C-skin then short15 B);
+(C) explicitly split volley/combined into a follow-up, retaining column and
+segment permission (estimated1,840–1,860 content B). B/C are not authorized
+recovery choices yet; none is a compiled final fit. CPU/quick/3-Light volley
+measurements wait for a legal image. **BLOCKED_CONTENT_BYTES; STOP for owner
+resource/scope choice.**

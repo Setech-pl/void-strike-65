@@ -353,4 +353,20 @@ the 250-B session window ceiling and choice B publication.
 All tuned values are **OWNER-SMOKE CANDIDATE**, not accepted visuals. Deliver
 normal gated builds, focused checks, the two quick routes, updated source
 comparison PNGs and checkpoint6 play ATRs; commit and pause for owner smoke.
+
+## Owner checkpoint6 acceptance and final departure request — 2026-10-31
+
+Owner smoke PASSED on `3468204`, both Heavy-sector and ordinary level2.
+The tuned H10–H14/H16 visuals are owner-accepted. Before task merge, the owner
+requests Bomber departure toward its nearer horizontal screen edge, without
+firing; Raider departure stays unchanged. Policy/execution remain in checked
+content home behind the existing guard. The implementation uses4 HPOS per
+frame (8 raster pixels), at most28 frames from any legal Bomber X, and reuses
+the complete PMG erase plus existing retirement dispatch. No extra state.
+
+The owner also explicitly authorizes merging current main into this branch
+using `git merge`, no rebase. Preserve both sides of documentation conflicts
+with main text unchanged; STOP on any code conflict. Finish normal gates,
+focused checks, two quick routes, one full suite with A/B/C against main,
+EN/PL docs, memory map, STATUS and campaign/level2/Heavy play media.
 **STOP for final owner smoke.**

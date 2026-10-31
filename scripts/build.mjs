@@ -1859,6 +1859,7 @@ function renderDirectorAbiInclude(labelBytes, lightKernelAddress, pauseFrontendM
     ["HEAVY_DAMAGE_MEMBER_STATE", "heavy_damage_member_state"],
     ["HEAVY_DAMAGE_TARGET_SLOT", "heavy_damage_target_slot"],
     ["HEAVY_DAMAGE_DRAW", "heavy_damage_draw"],
+    ["HEAVY_DEPARTURE_ERASE", "heavy_departure_erase"],
     ["HEAVY_VISUAL_RETRY", "heavy_visual_retry"],
     ["HEAVY_BREAKUP_SPAWN", "heavy_breakup_spawn"],
     ["HEAVY_BODY_FLAGS", "heavy_body_flags"],

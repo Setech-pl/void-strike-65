@@ -1793,9 +1793,33 @@ uint8_t enemy_c_heavy_breakup_claim(void)
 }
 
 #pragma code-name (push, "CONTENT_CODE")
+extern void asm_heavy_departure_erase(void);
 uint8_t cc2_heavy_tick(void)
 {
-    if (heavy_departure != 0u) { ++heavy_member_y; return 0u; }
+    if (heavy_departure != 0u) {
+        /* QUAD body is 32 HPOS wide; screen is [32,224). Its centre is
+         * nearer the left edge below X112, right otherwise (ties right).
+         * Four HPOS = eight raster pixels per frame. Monotonic X keeps the
+         * chosen side stable without another per-member state byte. */
+        if (heavy_member_x < 112u) {
+            if (heavy_member_x > 4u) {
+                heavy_member_x -= 4u;
+                return 0u;
+            }
+            heavy_member_x = 0u;
+        } else {
+            if (heavy_member_x < 220u) {
+                heavy_member_x += 4u;
+                return 0u;
+            }
+            heavy_member_x = 224u;
+        }
+        /* Clear the old plane before the existing Y240 retirement dispatch;
+         * its usual one-departing-row erase alone would leave stale bytes. */
+        asm_heavy_departure_erase();
+        heavy_member_y = 240u;
+        return 0u;               /* never emit a departure shot */
+    }
     return enemy_c_heavy_tick_original();
 }
 

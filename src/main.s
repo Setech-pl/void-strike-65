@@ -5104,6 +5104,7 @@ erase_enemy:
 
 .segment "CODE"
 erase_enemy_member:
+    .assert * = HEAVY_DEPARTURE_ERASE, lderror, "Heavy departure erase ABI moved"
     ldx ENEMY_TARGET_SLOT
     jsr enemy_member_screen_y
     lda ENEMY_TARGET_SLOT

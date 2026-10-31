@@ -159,3 +159,15 @@ heavy_damage_stamp:
     bpl @member
 @done:
     rts
+
+; C decides that the Bomber is fully outside the horizontal screen. Reuse
+; MAIN's complete member erase, then hide its hardware player. Only the
+; existing checked-home Heavy tick calls this terminal hardware executor.
+heavy_departure_erase = $2D79
+.export heavy_departure_erase, _asm_heavy_departure_erase
+_asm_heavy_departure_erase:
+    jsr heavy_departure_erase
+    ldx heavy_damage_target_slot
+    lda #0
+    sta $D001,x
+    rts

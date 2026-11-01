@@ -657,3 +657,15 @@ fails. B succeeds:content1,863/window2,421/L2 1,421 B; snapshot131 B and guard
 retained; no C fallback. [Audit](../diagnostics/m3/checkpoint-3/implementation/report.md).
 Continue authorized4, with C-skin separately. Content57 free means C-skin
 requires L2 under its64-B floor; actual implementation price follows4.
+
+
+## 12. Checkpoint4 chains/pilot — 2026-11-01
+
+Host expansion produces ordinary WaveDefs; no runtime bytes. Level2 sector4
+teaches→mirrors→pressures→releases at minimum rows0/8/16/24; original Heavy
+WaveDefs and level1 stay unchanged.20 waves/5 paths. Path lifetimes exact;
+no-fire/instant-kill schedule estimates cover allE/M/H and label Heavy unknown.
+After4 before HP:content1,863/window2,421/L2 1,421. Quick31,156; final no-fire
+chain30,649, all10 admissions/release clear. [Audit](../diagnostics/m3/checkpoint-4/report.md).
+C-skin is next separate commit; content57 free selects guarded L2. Owner smoke
+waits for that final delivery, with no next roadmap item started.

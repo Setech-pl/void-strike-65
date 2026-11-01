@@ -27,6 +27,7 @@ import { hostileWeaponGlyphRows } from "./fighter-weapons.mjs";
 import {compileHeavyDamage} from "./heavy-damage.mjs";
 import { compileHeavyLook, defaultArmouredRaiderLook } from "./enemy-roster.mjs";
 import {packWavePaths} from "./wave-paths.mjs";
+import {expandWaveChains,waveTimeline} from "./wave-chains.mjs";
 
 const scriptDirectory = path.dirname(fileURLToPath(import.meta.url));
 const rootDirectory = path.resolve(scriptDirectory, "..");
@@ -890,6 +891,9 @@ export function compileLevel(source, { hullAsset, file = "level.json" } = {}) {
   if (typeof source !== "object" || source === null || Array.isArray(source)) {
     fail(context, null, "must be a JSON object");
   }
+  let chainExpansions;
+  try { const expanded=expandWaveChains(source);source=expanded.source;chainExpansions=expanded.expansions; }
+  catch(error) { fail(context,null,error.message); }
   const level = requireInteger(context, null, "level", source.level, 1, MAX_LEVEL_NUMBER);
   const seed = requireInteger(context, null, "seed", source.seed ?? 1, 1, 255);
   const stars = source.stars === undefined
@@ -976,8 +980,13 @@ export function compileLevel(source, { hullAsset, file = "level.json" } = {}) {
   paths.copy(payload,PAYLOAD_OFFSET.path);
   compileBossDef(source, context, bossId).copy(payload, PAYLOAD_OFFSET.bossDef);
 
+  const timeline=waveTimeline(sectors,waves,payload.subarray(PAYLOAD_OFFSET.path,PAYLOAD_OFFSET.path+96),hullAsset);
+  for(const expansion of chainExpansions) for(const difficulty of timeline[expansion.sector-1].difficulties)
+    if(difficulty.rows.some(row=>row.mayCutAtSectorEnd))
+      warnings.push(`${file} sector ${expansion.sector} chain ${expansion.name}: ${difficulty.difficulty} no-fire model may cut a wave at the sector end`);
   return {
     level, seed, hull, geometry, sectors, waves, warnings, core, payload,
+    chainExpansions, timeline,
     looks: payloadPage.looks, weaponClasses: payloadPage.weaponClasses,
     pages: { core, payload, geometry: geometryPage, islands: islandPage },
   };

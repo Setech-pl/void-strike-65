@@ -2704,6 +2704,8 @@ async function build() {
     }
     compiled.pages.core[CORE_DEBUG_START_SECTOR_OFFSET] = levelDebugSector;
   }
+  for (const [id,compiled] of compiledLevels) writeFile(path.join(buildDirectory,`level-${id}-timeline.json`),
+    Buffer.from(JSON.stringify({chains:compiled.chainExpansions,timeline:compiled.timeline},null,2)+"\n"));
   for (const compiled of compiledLevels.values()) {
     if (!quiet) for (const warning of compiled.warnings) console.warn(`level warning: ${warning}`);
   }
@@ -4966,7 +4968,7 @@ async function build() {
             ? "candidate"
             : "release",
     loadAddress,
-    ...(m3PathReview ? { m3PathReview: { source: "assets/levels/diagnostics/m3-path-review.json", diagnosticOnly: true } } : {}),
+    ...(m3PathReview ? { m3PathReview: { source: m3VolleyReview ? "assets/levels/diagnostics/m3-volley-review.json" : "assets/levels/diagnostics/m3-path-review.json", diagnosticOnly: true } } : {}),
     startAddress,
     bootInitAddress,
     bootSectors,

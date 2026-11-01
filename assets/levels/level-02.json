@@ -215,7 +215,31 @@
           "00000000"
         ]
       }
-    ]
+    ],
+    "paths": {
+      "quiet-return": [
+        {
+          "dy": 2,
+          "frames": 32,
+          "flags": 0
+        },
+        {
+          "dy": 0,
+          "frames": 16,
+          "flags": 7
+        },
+        {
+          "dy": -2,
+          "frames": 0,
+          "flags": 0
+        },
+        {
+          "dy": 1,
+          "frames": 0,
+          "flags": 0
+        }
+      ]
+    }
   },
   "sectors": [
     {
@@ -239,25 +263,33 @@
         {
           "row": 0,
           "archetype": "interceptor",
-          "count": 6,
+          "count": 3,
           "spacing": 24,
-          "entry": 88
+          "entry": 88,
+          "path": "straight",
+          "mirror": false,
+          "fire": "normal"
         },
         {
           "row": 96,
           "archetype": "wingman",
-          "count": 6,
+          "count": 3,
           "spacing": 24,
-          "entry": 160
+          "entry": 160,
+          "path": "snake",
+          "mirror": false,
+          "fire": "normal"
         },
         {
           "row": 192,
           "archetype": "interceptor",
-          "count": 6,
+          "count": 3,
           "spacing": 24,
           "entry": 124,
           "appearance": "hunter",
-          "path": "snake"
+          "path": "snake",
+          "mirror": true,
+          "fire": "normal"
         }
       ]
     },
@@ -355,32 +387,13 @@
       },
       "waves": [
         {
+          "chain": "teach-mirror-pressure-release",
           "row": 0,
-          "archetype": "interceptor",
-          "count": 8,
-          "spacing": 20,
-          "entry": 64,
-          "appearance": "hunter",
-          "path": "shallow-wave"
-        },
-        {
-          "row": 128,
-          "archetype": "interceptor",
-          "count": 8,
-          "spacing": 20,
-          "entry": 184,
-          "appearance": "lancer",
-          "path": "snake",
-          "mirror": true
-        },
-        {
-          "row": 256,
-          "archetype": "interceptor",
-          "count": 8,
-          "spacing": 20,
-          "entry": 96,
-          "appearance": "lancer",
-          "path": "dive-return"
+          "with": {
+            "archetype": "interceptor",
+            "spacing": 24,
+            "entry": 124
+          }
         }
       ]
     },
@@ -489,7 +502,8 @@
           "spacing": 24,
           "entry": 124,
           "appearance": "lancer",
-          "path": "tracking-dive"
+          "path": "tracking-dive",
+          "fire": "column"
         },
         {
           "row": 480,
@@ -522,5 +536,39 @@
         }
       ]
     }
-  ]
+  ],
+  "chains": {
+    "teach-mirror-pressure-release": [
+      {
+        "row": 0,
+        "count": 2,
+        "path": "shallow-wave",
+        "entry": 80,
+        "appearance": "hunter",
+        "fire": "normal"
+      },
+      {
+        "row": 8,
+        "count": 3,
+        "path": "snake",
+        "mirror": true,
+        "appearance": "hunter",
+        "fire": "column"
+      },
+      {
+        "row": 16,
+        "count": 3,
+        "path": "tracking-dive",
+        "appearance": "lancer",
+        "fire": "volley-column"
+      },
+      {
+        "row": 24,
+        "count": 2,
+        "path": "quiet-return",
+        "appearance": "lancer",
+        "fire": "normal"
+      }
+    ]
+  }
 }

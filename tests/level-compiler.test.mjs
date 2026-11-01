@@ -621,17 +621,15 @@ test("T12: level-02.json compiles and differs from level 1 in sector count, wave
     // the boss sector's Interceptor escort is a fourth.
     assert.equal(one.waves.filter((wave) => wave.class === "light").length, 4);
     assert.notEqual(one.waves[0].class, "light");
-    assert.equal(two.waves.filter((wave) => wave.class === "light").length, 7);
+    assert.equal(two.waves.filter((wave) => wave.class === "light").length, 8);
     assert.equal(two.waves[0].archetype, "interceptor");
-    assert.equal(two.waves.length, 19);
+    assert.equal(two.waves.length, 20);
 
-    // Owner decision, 2026-09-30 (plan §11 item 15): sector 4 is three
-    // Interceptor waves of eight at spacing 20 - NOT four at the 16-frame
-    // class floor, which is kept for later levels so level 2 leaves room to
-    // escalate.
+    // Accepted M3 checkpoint4 replaces the older three-wave recipe with
+    // teach → mirror → pressure → release, retaining room to escalate at M7.
     const sectorFour = two.waves.filter((wave) => wave.sector === 4);
     assert.deepEqual(sectorFour.map((wave) => [wave.archetype, wave.count, wave.spacing]),
-      [["interceptor", 8, 20], ["interceptor", 8, 20], ["interceptor", 8, 20]]);
+      [["interceptor", 2, 24], ["interceptor", 3, 24], ["interceptor", 3, 24], ["interceptor", 2, 24]]);
     // ... and no wave anywhere in level 2 sits on the Light class floor.
     for (const wave of two.waves.filter((candidate) => candidate.class === "light")) {
       assert.ok(wave.spacing > 16, `a level-2 Light wave at spacing ${wave.spacing}`);

@@ -192,7 +192,7 @@ A level holds at most 20 waves in total, across all its sectors.
 | `spacing` | frames, ≥ the class floor | the class floor | frames between members. Light floor 16, Heavy floor 24 |
 | `entry` | 48-200 | 124 | entry column |
 | `mirror` | boolean | false | mirror the entry |
-| `afterCleared` | boolean | false | arm when the previous wave cleared instead of on `row`. **Compiled (flags bit 4) but not read by the Director yet** (fix/smoke-2026-10-07: `src/c/director.c` reads the look and Heavy bits only); what paces waves today is in [level-data-howto.md](level-data-howto.md), "When the next wave can start" |
+| `afterCleared` | boolean | false | arm only when the minimum `row` is reached AND the whole field is clear. A refusal retries on a later row tick; it does not consume the cursor |
 | `appearance` | a look's name, or 0-3 | 0 | 0 = the archetype's own art; otherwise a `payload.appearances` look, by name or slot number. On a Light wave its members wear it; on a Heavy wave its **Light escort** does, and the Heavy pair keeps its PMG art, so a Heavy wave without an escort is refused |
 | `loops` | 0-3 | 0 | an **Interceptor**'s top-hold loops (decision AK points 9-10, flags bits 6-7): after each 64-frame standoff it climbs to its top-hold row (y 32, two rows lower per Light slot), holds, dives back and flies the standoff again, this many times, then climbs out upward. 0 is a single pass. Only a wave whose Light is an Interceptor - its archetype, or a Heavy wave's escort - may carry it. Each loop adds 128 frames to the Interceptor's life (64 + 128 × loops + the climb out; fix/interceptor-speed, decision AS - 100 and 139 before), and a Light wave holds the cursor until its last Light has gone, so loops lengthen the sector. A boss sector's escort keeps 0: its life must stay under the escort clock's 128-frame floor. Level 1's swarm and elite (a) Interceptors carry 2 |
 
@@ -617,3 +617,25 @@ no backlog; late admissions cannot join. Invalid checked L2/content falls
 back to the resident archetype fire policy. No new boss/Heavy fire mode.
 Diagnostic `--m3-volley-review --level=2:sector=0` reviews three-Light groups;
 `VS65_SMOKE_FIRE_DELAY` controls only the observer-smoke input fixture.
+
+
+### Named wave chains (M3 checkpoint4)
+
+`chains` is a top-level map of names to arrays of ordinary wave templates.
+A sector may mix explicit waves with `{ "chain": "lesson", "row": 0,
+"with": { "archetype": "interceptor", "spacing": 24, "entry": 124 } }`.
+Template `row` values are offsets from the invocation row; `with` supplies
+wave defaults, then each step's explicit fields win. No nested chains or
+runtime parameters. Expansion goes through every ordinary WaveDef/path/class/
+row/capacity validator: maximum20 emitted waves,8 distinct paths, existing
+sector/live ceilings. No truncation, runtime interpreter, new queue or state.
+
+`build/level-N-timeline.json` records expansions and per-difficulty schedules.
+Path terminal lifetime is exact; no-fire and immediate-kill schedule models
+exclude reaction/token/restore delays and are labeled estimates. A modeled
+sector-end cut warns. Heavy/no-path lifetimes are marked unknown and need
+native/owner coverage. The level2 sector4 recipe emits teach→mirror→pressure→
+release at minimum rows0/8/16/24: its existing Light lock serializes complete
+waves, and fast kills need no long authored wait. Quiet return ends upward.
+Level1 and all decoded Heavy WaveDefs remain unchanged. Twelve-level campaign
+loading remains M4; later authored variations/regional presets remain M7.

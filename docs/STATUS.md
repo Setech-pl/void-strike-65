@@ -1,6 +1,6 @@
 # VOID STRIKE 65 — CURRENT STATUS
 
-Last update: 2026-11-01 (M3 checkpoint3 guarded L2 volley candidate; checkpoint4 authorized)
+Last update: 2026-11-01 (M3 checkpoint4 chains/pilot candidate; separate C-skin next)
 
 What is true now. Rules: [reguly-projektu.txt](reguly-projektu.txt). Roadmap:
 [plan-realizacji.md](plan-realizacji.md). Source-of-truth order:
@@ -20,28 +20,26 @@ the values below.
 
 ## Checkpoint
 
-### M3 checkpoint3 — OWNER-SMOKE CANDIDATE; option B passed
+### M3 checkpoint4 — OWNER-SMOKE CANDIDATE; C-skin follows separately
 
-Owner approved option B, invalid-L2 normal-fire fallback, and automatic C
-fallback if B fails bytes or the3-Light volley hard gate. B fits and passes;
-all Q5A modes remain, C is unused. Checkpoint2 `742b80e` is OWNER-ACCEPTED.
-131-B snapshot C lives at$1E0A in checked L2; resident shared-valid/gameplay/
-fighter guard precedes every L2/state read. Invalid checked pair uses resident
-normal movement/fire. Guard overhead69 CPU/decision (630 helper,699 guarded).
+Checkpoint3 `b52d7ff` fits approved B and keeps all Q5A modes.4 adds named host
+chain expansion and level2 teach→mirror→pressure→release pilot; no interpreter,
+state or capacity growth. Exactly20 waves,5 paths. Level1 and all12 decoded
+Heavy WaveDefs unchanged. Chain limits reject rather than truncate. Exact path
+lifetimes plus estimated no-fire/instant-kill timelines expose sector cuts and
+unknown Heavy lifetimes. Low minimum rows0/8/16/24 avoid authored fast-kill gaps.
 
-Normal computed gates PASS. Actual content**1,863 B**, window**2,421 B**,
-L2**1,421 B**; additions vs2:+63/+37/+131. Free57/390/115 usable B, plus256
-protected L2 B. Arena830/Director high324/initial content12,865 unchanged.
-Quick Spread30,465/capital-96031,156;3-Light volley case30,207,769 three-Light
-frames and two3-shot rises. Zero timing anomalies, boss entry325. Focused
-policy/compiler/Heavy/map checks pass; task-wide full audit follows4/C-skin.
-Main8da7c66 accepted test-debt part2 expectations/fixtures aligned without
-merging or changing game source. Release wall evidence still pending.
-[Implementation, bytes and native proof](diagnostics/m3/checkpoint-3/implementation/report.md).
+After4 before C-skin: content**1,863**, window**2,421**, L2**1,421 B** (+0 vs3),
+free57/390/115 usable B plus256 protected L2. Normal gates PASS; chain/compiler
+focused15/15. Native no-fire chain1,400 frames:10 admissions, clears to sector5,
+peak30,649, no timing anomaly. Quick Spread30,465/capital-96031,156; boss325.
+Unchanged runtime retains3-Light volley proof30,207 and69 CPU guard overhead;
+final delivery repeats it after C-skin. Full task suite/A-B-C follows that code.
+[Checkpoint4 audit](diagnostics/m3/checkpoint-4/report.md).
 
-**NEXT TASK: authorized4 chains/level2 pilot, then separate C-skin commit;
-pause for owner smoke after4.** Content57 free selects L2 for future C-skin;
-its actual code/guard cost still measured separately. No owner acceptance of3.
+**NEXT: separately compile/verify/commit C-skin, then STOP for owner smoke of4.**
+Content57 free requires L2 under64-B floor. Final placement/bytes/ATRs measured
+in the following commit. Checkpoint2 remains OWNER-ACCEPTED;3/4 are candidates.
 
 ### Pre-v0.4.0 test debt triage — baseline merged in main4e84bc4
 

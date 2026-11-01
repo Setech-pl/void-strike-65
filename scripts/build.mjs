@@ -1,3 +1,4 @@
+import {m3TempoSource} from './m3-tempo.mjs';
 import {compileHeavyDamage,renderHeavyDamageInclude} from "./heavy-damage.mjs";
 import crypto from "node:crypto";
 import {islandRecipeBytes, ISLAND_RECORD_BYTES, ISLAND_DESCRIPTORS_OFFSET,
@@ -506,13 +507,16 @@ const variantDirectoryNameInner = (escortVariantId !== null
                 : pickupColourValue !== null
                   ? `pickup-colour-${pickupColourSlug.toUpperCase()}`
                   : null);
+const m3Tempo=process.argv.find(a=>a.startsWith('--m3-tempo='))?.split('=')[1]??null;
+if(m3Tempo!==null && (!['easy','normal','hard'].includes(m3Tempo)||levelDebugId!==2))
+  throw Error('--m3-tempo=easy|normal|hard requires --level=2[:sector=N]');
 const longCapital=process.argv.includes("--l2-long-capital");
 const m3VolleyReview=process.argv.includes("--m3-volley-review");
 const m3PathReview=process.argv.includes("--m3-path-review") || m3VolleyReview;
 if(m3PathReview && (levelDebugId!==2 || levelDebugSector!==0))
   throw Error("--m3-path-review requires --level=2:sector=0");
 if(longCapital && (levelDebugId!==1 || levelDebugSector!==1 || bossRegionValue!==null)) throw new Error("--l2-long-capital requires --level=1:sector=1");
-const variantDirectoryName = heavyDamageReview?`heavy-damage-review${levelDebugSuffix}`:longCapital?"l2-capital-960":variantDirectoryNameInner;
+const variantDirectoryName = heavyDamageReview?`heavy-damage-review${levelDebugSuffix}`:longCapital?"l2-capital-960":m3Tempo!==null?`m3-tempo-${m3Tempo}-${variantDirectoryNameInner}`:variantDirectoryNameInner;
 const buildDirectory = variantDirectoryName === null
   ? defaultBuildDirectory
   : path.join(defaultBuildDirectory, variantDirectoryName);
@@ -2692,7 +2696,7 @@ async function build() {
     return [run.id, levelDebugId === 2 && levelDebugSector === 5
       ? compileLevel(heavySmokeLevelSource(loadLevelSource(file),levelDebugId,levelDebugSector),
         {file,hullAsset:capitalHullsAsset})
-      : compileLevelFile(file,{hullAsset:capitalHullsAsset})];
+      : compileLevel(m3TempoSource(loadLevelSource(file),m3Tempo??"normal"),{file,hullAsset:capitalHullsAsset})];
   }));
   // ... and stamps the sector to enter into the core page's own byte, which
   // director_c_init reads only under LEVEL_DEBUG_START.
@@ -4943,7 +4947,7 @@ async function build() {
       guard: { address: directorGuardAddress, bytes: 6 },
     },
     lightForcePopulation: forceLightPopulation,
-    buildVariant: longCapital ? variantDirectoryName : playerColourValue !== null || bomberColourValue !== null || laserFixtureTier !== null ||
+    buildVariant: longCapital || m3Tempo!==null ? variantDirectoryName : playerColourValue !== null || bomberColourValue !== null || laserFixtureTier !== null ||
       laserTierValue !== null || bossVariantSlug !== undefined || escortVariantId !== null
       ? variantDirectoryName
       : enemyReviewHarness
@@ -4968,6 +4972,7 @@ async function build() {
             ? "candidate"
             : "release",
     loadAddress,
+    ...(m3Tempo!==null?{m3Tempo}:{}),
     ...(m3PathReview ? { m3PathReview: { source: m3VolleyReview ? "assets/levels/diagnostics/m3-volley-review.json" : "assets/levels/diagnostics/m3-path-review.json", diagnosticOnly: true } } : {}),
     startAddress,
     bootInitAddress,

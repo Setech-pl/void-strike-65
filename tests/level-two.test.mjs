@@ -119,7 +119,7 @@ test("step 3: --level=2 builds level 2 into build/level-2-s0/ and never touches 
   assert.deepEqual(body.subarray(offset, offset + image.length), image);
 });
 
-test("step 3: the Director reads level 2 - six sectors, the capital on row 1,120, " +
+test("step 3: the Director reads level 2 - six sectors, the capital by authored row 1,536, " +
   "four Lights in a swarm sector, complete after sector 6", () => {
   const directory = variantDirectory(0);
   assert.ok(fs.existsSync(path.join(directory, "manifest.json")),
@@ -139,7 +139,7 @@ test("step 3: the Director reads level 2 - six sectors, the capital on row 1,120
     // clear.
     const capital = run.directorSectors[CAPITAL_SECTOR];
     assert.ok(capital.row <= rows[0] + rows[1], `${label}: the capital after its authored row`);
-    assert.equal(rows[0] + rows[1], 1120);
+    assert.equal(rows[0] + rows[1], 1536);
     assert.ok(run.completeFrame !== null, `${label}: the level completes`);
     assert.equal(run.directorSectors.at(-1).sector, LEVEL_TWO_SECTORS - 1);
     assert.ok(run.completeFrame.row > run.directorSectors.at(-1).row);

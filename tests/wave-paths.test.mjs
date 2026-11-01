@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
+import {m3TempoSource} from '../scripts/m3-tempo.mjs';
 import {Nmos6502} from '../scripts/nmos6502.mjs';
 import {installRuntimeSegments} from '../scripts/runtime-image.mjs';
 import {compileLevel,defaultHullAsset,LEVEL_CORE_ADDRESS,LEVEL_PAYLOAD_ADDRESS,
@@ -310,13 +311,13 @@ test('M3 volley guard overhead is measured against its identical direct helper',
 // Owner's final pilot: test actual linked decisions, not just authored row pins.
 test('M3 denser pilot spans both sides and hands off at the next available row tick',()=>{
  const pilot=JSON.parse(fs.readFileSync(`${root}/assets/levels/level-02.json`));
- for(const sectorIndex of [0,3])for(const difficulty of [0,1,2])for(const quickKills of [false,true]) {
-  const sector=structuredClone(pilot.sectors[sectorIndex]);
-  const s={...pilot,sectors:[sector]},m=image(s),c=compile(s);
+ for(const tempo of ['easy','normal','hard'])for(const sectorIndex of [0,3])for(const difficulty of [0,1,2])for(const quickKills of [false,true]) {
+  const sector=structuredClone(m3TempoSource(pilot,tempo).sectors[sectorIndex]);
+  const s={...m3TempoSource(pilot,tempo),sectors:[sector]},m=image(s),c=compile(s);
   m[L('DIFFICULTY_SETTING')]=difficulty;
   const expected=c.waves.reduce((n,w)=>n+w.count,0);let admitted=0,acc=0,previousCursor=1,cleared=null,lastFrame=0;
   const gaps=[],xs=new Set(),columns=new Set(),visibleGaps=[];let lastVisible=null;
-  for(let frame=1;frame<=3000;frame++) {
+  for(let frame=1;frame<=5000;frame++) {
    m[L('frame_counter')]=(m[L('frame_counter')]+1)&255;acc+=8+difficulty;
    if(acc>=20){acc-=20;run(m,'_director_c_world_row_tick');}
    const cursor=m[0x80f7];
@@ -335,9 +336,9 @@ test('M3 denser pilot spans both sides and hands off at the next available row t
    if(!empty||m[L('_light_wave_remaining')]!==0)cleared=null;
    lastFrame=frame;if(admitted===expected&&empty)break;
   }
-  tuningResults.push({sector:sectorIndex+1,difficulty,quickKills,admitted,completionFrame:lastFrame,handoffGaps:gaps,visibleGaps,visibleWidth:xs.size?Math.max(...xs)-Math.min(...xs):0});
+  tuningResults.push({tempo,sector:sectorIndex+1,difficulty,quickKills,admitted,completionFrame:lastFrame,handoffGaps:gaps,visibleGaps,visibleWidth:xs.size?Math.max(...xs)-Math.min(...xs):0});
   assert.equal(admitted,expected,`sector${sectorIndex+1}/${difficulty}/${quickKills}: every group admitted`);
-  assert.ok(lastFrame<3000);assert.equal(gaps.length,c.waves.length-1);
+  assert.ok(lastFrame<5000);assert.equal(gaps.length,c.waves.length-1);
   assert.ok(gaps.every(n=>n>=1&&n<=4),`handoff ${gaps}: only the existing clear/row cadence`);
   if(!quickKills){assert.ok(Math.max(...xs)-Math.min(...xs)>=140);assert.ok(columns.has(0)&&columns.has(1)&&columns.has(2),'left, centre and right used');}
  }
@@ -346,10 +347,10 @@ test('M3 mirrored centre fan descends from opposite sides before crossing',()=>{
  const pilot=JSON.parse(fs.readFileSync(`${root}/assets/levels/level-02.json`));
  const s={...pilot,sectors:[{kind:'space',subtype:'swarm',rows:480,lights:3,archetypes:['interceptor'],waves:[
   {row:0,archetype:'interceptor',count:2,spacing:16,entry:124,path:'wide-cross',mirror:true}]}]},m=image(s),entries=[];
- for(let f=0;f<70;f++){
+ for(let f=0;f<140;f++){
   tick(m);for(let slot=0;slot<2;slot++)if(m[L('light_y')+slot]===visibleTop)entries.push(m[L('light_x')+slot]);
  }
- assert.deepEqual(entries,[184,64],'hidden fan precedes visible opposing-side entries at gameplay top24');
+ assert.deepEqual(entries,[200,48],'hidden fan precedes visible opposing-side entries at gameplay top24 at the slower authored cadence');
  assert.ok(m[L('light_x')]<124&&m[L('light_x')+1]>124,'both members cross the centre');
 });
 

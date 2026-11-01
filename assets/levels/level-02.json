@@ -1,9 +1,9 @@
 {
   "_": [
-    "M3 final pilot tuning, owner2026-11-01: denser back-to-back groups using",
-    "existing WaveDefs/path records only. Left/right/centre entries and wide",
-    "every-frame crossing sweeps; mirrored members fan to opposite sides.",
-    "All wave rows are minimum0, so the existing clear lock is the only chain gate.",
+    "M3 owner smoke speed pass: NORMAL uses half-rate wide sweeps,",
+    "quarter-rate calm tracking and dy1. Segment lengths preserve travel spans.",
+    "Mirrored opposing entries, counts, zero-row chains and four Lights remain.",
+    "EASY/HARD use build-time authored variants; choose matching OPTIONS difficulty.",
     "Heavy WaveDefs/holds/looks, archetype weapons/score and capital lifetime rules",
     "are unchanged. Per-level hunter HP2/lancer HP4. This is authored data,",
     "not a new difficulty multiplier. Final measured timeline is emitted at build."
@@ -126,44 +126,44 @@
     "paths": {
       "wide-west": [
         {
-          "dy": 2,
-          "frames": 12,
+          "dy": 1,
+          "frames": 24,
           "flags": 0
         },
         {
-          "dy": 2,
-          "frames": 32,
-          "flags": 20
+          "dy": 1,
+          "frames": 64,
+          "flags": 21
         },
         {
-          "dy": 2,
-          "frames": 32,
-          "flags": 24
+          "dy": 1,
+          "frames": 64,
+          "flags": 25
         },
         {
-          "dy": 2,
+          "dy": 1,
           "frames": 0,
           "flags": 0
         }
       ],
       "wide-east": [
         {
-          "dy": 2,
-          "frames": 12,
+          "dy": 1,
+          "frames": 24,
           "flags": 0
         },
         {
-          "dy": 2,
-          "frames": 32,
-          "flags": 24
+          "dy": 1,
+          "frames": 64,
+          "flags": 25
         },
         {
-          "dy": 2,
-          "frames": 32,
-          "flags": 20
+          "dy": 1,
+          "frames": 64,
+          "flags": 21
         },
         {
-          "dy": 2,
+          "dy": 1,
           "frames": 0,
           "flags": 0
         }
@@ -171,67 +171,89 @@
       "wide-cross": [
         {
           "dy": 0,
-          "frames": 20,
-          "flags": 4
+          "frames": 40,
+          "flags": 5
         },
         {
-          "dy": 2,
-          "frames": 8,
+          "dy": 1,
+          "frames": 24,
           "flags": 0
         },
         {
-          "dy": 2,
-          "frames": 38,
-          "flags": 24
+          "dy": 1,
+          "frames": 76,
+          "flags": 25
         },
         {
-          "dy": 2,
+          "dy": 1,
           "frames": 0,
           "flags": 0
         }
       ],
       "wide-track": [
         {
-          "dy": 2,
-          "frames": 12,
+          "dy": 1,
+          "frames": 24,
           "flags": 0
         },
         {
           "dy": 1,
-          "frames": 40,
-          "flags": 29
+          "frames": 80,
+          "flags": 31
         },
         {
-          "dy": 2,
+          "dy": 1,
           "frames": 0,
           "flags": 0
         },
         {
-          "dy": 2,
+          "dy": 1,
           "frames": 0,
           "flags": 0
         }
       ],
       "wide-return": [
         {
-          "dy": 2,
-          "frames": 16,
+          "dy": 1,
+          "frames": 32,
           "flags": 0
         },
         {
           "dy": 1,
-          "frames": 32,
-          "flags": 4
+          "frames": 64,
+          "flags": 5
         },
         {
           "dy": -1,
-          "frames": 16,
-          "flags": 8
+          "frames": 32,
+          "flags": 9
         },
         {
-          "dy": -2,
+          "dy": -1,
           "frames": 0,
           "flags": 0
+        }
+      ],
+      "tracking-dive": [
+        {
+          "dy": 1,
+          "frames": 32,
+          "flags": 0
+        },
+        {
+          "dy": 1,
+          "frames": 96,
+          "flags": 31
+        },
+        {
+          "dy": 1,
+          "frames": 0,
+          "flags": 16
+        },
+        {
+          "dy": 1,
+          "frames": 0,
+          "flags": 16
         }
       ]
     },
@@ -244,7 +266,7 @@
     {
       "kind": "space",
       "subtype": "swarm",
-      "rows": 480,
+      "rows": 896,
       "archetypes": [
         "interceptor",
         "wingman"
@@ -371,7 +393,7 @@
     {
       "kind": "space",
       "subtype": "swarm",
-      "rows": 768,
+      "rows": 1280,
       "archetypes": [
         "interceptor"
       ],

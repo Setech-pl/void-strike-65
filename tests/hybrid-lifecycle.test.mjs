@@ -116,7 +116,7 @@ test("C EnemyArchetype is a compact exact Raider record in legal extension place
   // light_admit clears the slot's hit flash, +6 B: 869 -> 875, the record
   // 746 of 747 B.
   assert.deepEqual(manifest.encounterDirector.director.placements.find(
-    ({ name }) => name === "extension"), { name: "extension", runAddress: 0x8c7d, bytes: 875 });
+    ({ name }) => name === "extension"), { name: "extension", runAddress: 0x8c7d, bytes: 878 });
   const window = manifest.residentCapacity.basicWindow;
   // Q-1 (owner, 2026-09-23): the window starts at $AE00, not $B600 - the level
   // buffer gave back 16 sectors and the window took them.
@@ -312,9 +312,11 @@ test("ownership is singular and generated C requires neither software stack nor 
   // enemy_c_spawn_raiders. _light_ceiling is still called, and now tail-jumps
   // into the Director's one ceiling answer rather than choosing between three
   // policy bytes.
-  assert.deepEqual(jsrs, ["_asm_sector_pressure_active","_sector_c_drain_clear","_asm_boss_enter","_l2_c_enter","$A03D","l2_invalidate","_heavy_publish_profile","_light_tick_body","_light_take_deferrable_token","_light_take_deferrable_token","_light_wave_step","_light_ceiling","_light_live_count","_light_free_slot","_light_take_token","_light_pair_for_record","_light_reload","_light_admit","_light_live_count","_light_take_token","_light_reload","_bomber_colour","_bomber_may_fire","_bomber_turn","_bomber_turn","_bomber_turn","_bomber_may_fire","_asm_world_rotate_due","_light_take_deferrable_token","_asm_heavy_departure_erase","_asm_world_rotate_due","_light_take_deferrable_token"]);
-  assert.equal(jsrs.filter((name) => name.startsWith("_light_take_")).length, 6,
-    "exactly the five token claim sites of plan §2.5 with [C3], §4.6 and the Heavy break-up");
+  // Q5A adds guarded path decisions and one shared volley token claim;
+  // C-skin adds its guarded admission. Path/resident fire are exclusive.
+  assert.deepEqual(jsrs, ["_asm_sector_pressure_active","_sector_c_drain_clear","_asm_boss_enter","_l2_c_enter","$A03D","l2_invalidate","_heavy_publish_profile","_light_tick_body","_light_take_deferrable_token","_light_take_deferrable_token","_light_wave_step","_light_ceiling","_light_live_count","_light_free_slot","_light_take_token","_light_pair_for_record","_asm_m3_skin","_light_reload","_light_admit","_asm_m3_admit","_light_live_count","_asm_m3_tick","_light_take_token","_light_reload","_light_admit","_bomber_colour","_bomber_may_fire","_bomber_turn","_bomber_turn","_bomber_turn","_bomber_may_fire","_asm_world_rotate_due","_light_take_deferrable_token","_asm_heavy_departure_erase","_asm_world_rotate_due","_light_take_deferrable_token","_m3_escort","_m3_ready","_light_take_token","_m3_target","_asm_m3_volley","_m3_ready","_light_take_token","_light_reload"]);
+  assert.equal(jsrs.filter((name) => name.startsWith("_light_take_")).length, 8,
+    "six existing claim call-sites plus Q5A path-normal and shared-snapshot sites; resident/path fire are exclusive");
   assert.equal(jsrs.filter((name) => name === "_light_take_deferrable_token").length, 4,
     "exactly the three DEFERRABLE consumers: the install, the Light breakup spawn " +
     "and the Heavy break-up claim");
@@ -355,8 +357,8 @@ test("T5: a SectorDef may ask for more Lights than its subtype admits, and the r
     assert.equal(run(image, "director_light_ceiling").a, 1,
       "min(requested 4, ELITE ceiling 1)");
 
-    // A SWARM sector asking for four gets the swarm ceiling of three - the
-    // physical slot count is four, so the ceiling is doing the work.
+    // Accepted M3 tuning raises SWARM to the existing four physical slots.
+    // ELITE clamping and a lower authored cap remain independent.
     const swarm = memory();
     pokeSyntheticLevel(swarm, [{
       kind: "space", subtype: "swarm", rows: 800,
@@ -364,7 +366,7 @@ test("T5: a SectorDef may ask for more Lights than its subtype admits, and the r
       waves: [{ row: 0, archetype: "interceptor", count: 8, spacing: 16, entry: 124 }],
     }]);
     run(swarm, "director_init", { a: 0 });
-    assert.equal(run(swarm, "director_light_ceiling").a, 3, "min(requested 4, SWARM ceiling 3)");
+    assert.equal(run(swarm, "director_light_ceiling").a, 4, "min(requested 4, SWARM ceiling 4)");
 
     // And a sector that asks for NONE gets none, however high the runtime
     // would have allowed: the clamp is a minimum, not an override.

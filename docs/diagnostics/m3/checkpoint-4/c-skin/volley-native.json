@@ -1,0 +1,93 @@
+{
+  "emulator": "Atari800 7.1.2 PAL/XL",
+  "guest_instrumentation_bytes": 0,
+  "diagnostic_allowances": {
+    "release_evidence": false,
+    "reuse_existing_traces": false,
+    "host_lives_top_up": "3",
+    "forced_booster_fixture": null,
+    "l2_exit_fixture": null,
+    "terminal_state_seed": false,
+    "l2_variant_alias": false
+  },
+  "artifact_sha256": {
+    "void-strike-65-boot.bin": {
+      "path": "build/level-2-s0/void-strike-65-boot.bin",
+      "bytes": 27392,
+      "sha256": "386c26325d10e0f020795b79cf95410672323fa9098b5cf1cd218c772554e742"
+    },
+    "void-strike-65.atr": {
+      "path": "build/level-2-s0/void-strike-65.atr",
+      "bytes": 133136,
+      "sha256": "a23e23723b411d4960d6970967d32882826b310777d738d90a58c63e4cf1238b"
+    },
+    "void-strike-65-manifest.json": {
+      "path": "build/level-2-s0/void-strike-65-manifest.json",
+      "bytes": 81406,
+      "sha256": "4af5462909a4e583df61338259079fefe77cdd0602533af3283def625a989bd8"
+    }
+  },
+  "variant": "level-2-s0",
+  "diagnostic_only": true,
+  "sessions": [
+    {
+      "id": "m3-volley-final",
+      "kind": "observer-smoke",
+      "medium": "ATR",
+      "difficulty": 1,
+      "policy": "park-176",
+      "fire_delay": 10000,
+      "measured_frames": 1800,
+      "maximum_wall_cycles": 30207,
+      "deadline_overrun_frames": 0,
+      "missed_frames": 0,
+      "hull_map_draws": 0,
+      "hull_map_stale_draws": 0,
+      "hull_map_dirty_reads": 0,
+      "hull_map_rebuilds_after_boss": 0,
+      "level_summary": {
+        "start_summaries": [
+          {
+            "entry": 659,
+            "display": 661,
+            "loaded": 751,
+            "ready": 862,
+            "accept": 868,
+            "reads": 53,
+            "shown_frames": 207,
+            "best": "BEST                  --"
+          }
+        ]
+      }
+    }
+  ],
+  "acceptance": {
+    "measured_frames": 1800,
+    "maximum_wall_cycles": 30207,
+    "wall_ceiling": 32568,
+    "physical_headroom": 5361,
+    "missed_frames": 0,
+    "extra_vbi_boundaries": 0,
+    "physical_overruns": 0,
+    "deadline_overruns": 0,
+    "dli_ordering_errors": 0,
+    "passed": true
+  },
+  "passed": true,
+  "coverage": {
+    "threeLightFrames": 769,
+    "threeLightPeak": 30207,
+    "threeShotRises": [
+      {
+        "frame": "128",
+        "delta": 3,
+        "wall": 30019
+      },
+      {
+        "frame": "832",
+        "delta": 3,
+        "wall": 29815
+      }
+    ]
+  }
+}

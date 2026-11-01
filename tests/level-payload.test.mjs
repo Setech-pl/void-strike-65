@@ -433,8 +433,8 @@ test("T13: the byte rules - light_pair_for_record size-neutral, decoded record 5
   const extension = manifest.directorCodeRuntimes.find((runtime) => runtime.name === "extension");
   // Owner-approved M3-H recovery A: resident tail calls retain the 875-B
   // decoded image; changed operands/padding add 4 packed B and one sector.
-  assert.equal(extension.bytes, 875, "resident recovery must not grow the decoded extension");
-  assert.ok(extension.packedBytes <= 750, `record 5 is ${extension.packedBytes} B packed`);
+  assert.equal(extension.bytes, 878, "C-skin adds the approved 3-B guarded call to admission");
+  assert.ok(extension.packedBytes <= 753, `record 5 is ${extension.packedBytes} B packed`);
   assert.equal(extension.externalChunk.sectors, 7);
   assert.ok(manifest.transportCapacity.initialBootContentBytes <= 13652);
   // L1 moves menu sources out of the initial block into a checked disk run.

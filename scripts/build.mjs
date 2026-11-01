@@ -507,6 +507,10 @@ const variantDirectoryNameInner = (escortVariantId !== null
                   ? `pickup-colour-${pickupColourSlug.toUpperCase()}`
                   : null);
 const longCapital=process.argv.includes("--l2-long-capital");
+const m3VolleyReview=process.argv.includes("--m3-volley-review");
+const m3PathReview=process.argv.includes("--m3-path-review") || m3VolleyReview;
+if(m3PathReview && (levelDebugId!==2 || levelDebugSector!==0))
+  throw Error("--m3-path-review requires --level=2:sector=0");
 if(longCapital && (levelDebugId!==1 || levelDebugSector!==1 || bossRegionValue!==null)) throw new Error("--l2-long-capital requires --level=1:sector=1");
 const variantDirectoryName = heavyDamageReview?`heavy-damage-review${levelDebugSuffix}`:longCapital?"l2-capital-960":variantDirectoryNameInner;
 const buildDirectory = variantDirectoryName === null
@@ -1601,7 +1605,7 @@ async function buildHybridDirectorModule(fighterWeaponsInclude, levelDefInclude,
     },
     ["-C", `${base}.cfg`, "-o", `${base}-combined.bin`, "-m", `${base}.map`,
       "-Ln", `${base}.lbl`, `${base}-abi.o`, `${base}-c.o`, `${base}-lifecycle.o`, "/project/life-capsule-c.o"],
-    [`${base}-combined.bin`, `${base}-combined.bin.content`, `${base}.map`, `${base}.lbl`],
+    [`${base}-combined.bin`, `${base}-combined.bin.content`, `${base}-combined.bin.m3l2`, `${base}.map`, `${base}.lbl`],
   );
   const combinedRaw = Buffer.from(linked.outputs[`${base}-combined.bin`]);
   const map = linked.outputs[`${base}.map`];
@@ -1753,6 +1757,7 @@ async function buildHybridDirectorModule(fighterWeaponsInclude, levelDefInclude,
   const codePacked = Buffer.concat(codeSegments.map(({ packed: segmentPacked }) => segmentPacked));
   return {
     contentRaw: Buffer.from(linked.outputs[`${base}-combined.bin.content`]),
+    m3L2Raw: Buffer.from(linked.outputs[`${base}-combined.bin.m3l2`]),
     implementation: "cc65-c",
     raw,
     packed,
@@ -2243,7 +2248,16 @@ async function build() {
   const pauseFrontendMarkersAddress = 0x3ae5;
   const directorAbiInclude =
     renderDirectorAbiInclude(directorModule.labels, lightKernelAddress, pauseFrontendMarkersAddress);
-  writeFile(path.join(buildDirectory, "director-abi.inc"), directorAbiInclude);
+  // Parallel fixture readers must see a complete ABI, including SCORE_BCD.
+  // Publishing over a truncated file caused intermittent full-suite setup fails.
+  const directorAbiPath = path.join(buildDirectory, "director-abi.inc");
+  const directorAbiStagedPath = `${directorAbiPath}.${process.pid}.pending`;
+  try {
+    writeFile(directorAbiStagedPath, directorAbiInclude);
+    fs.renameSync(directorAbiStagedPath, directorAbiPath);
+  } finally {
+    fs.rmSync(directorAbiStagedPath, { force: true });
+  }
   // Music v2 §1.4: main.s reaches the gameplay music player only through the
   // three frozen vectors at the head of the level image's music block. They
   // are fixed constants of the image layout, so this include is generated
@@ -2670,7 +2684,9 @@ async function build() {
   // asks for something the runtime cannot honour fails the build, not the
   // owner's smoke (plan §5).
   const compiledLevels = new Map(levelRuns.map((run) => {
-    const file = bossVariantLevel(run.id) ?? (longCapital
+    const file = m3PathReview
+      ? path.join(rootDirectory,m3VolleyReview?"assets/levels/diagnostics/m3-volley-review.json":"assets/levels/diagnostics/m3-path-review.json")
+      : bossVariantLevel(run.id) ?? (longCapital
       ? path.join(rootDirectory,"assets/levels/diagnostics/l2-capital-960.json")
       : levelSourcePath(levelSourceIdForRun(run.id)));
     return [run.id, levelDebugId === 2 && levelDebugSector === 5
@@ -2688,6 +2704,8 @@ async function build() {
     }
     compiled.pages.core[CORE_DEBUG_START_SECTOR_OFFSET] = levelDebugSector;
   }
+  for (const [id,compiled] of compiledLevels) writeFile(path.join(buildDirectory,`level-${id}-timeline.json`),
+    Buffer.from(JSON.stringify({chains:compiled.chainExpansions,timeline:compiled.timeline},null,2)+"\n"));
   for (const compiled of compiledLevels.values()) {
     if (!quiet) for (const warning of compiled.warnings) console.warn(`level warning: ${warning}`);
   }
@@ -2888,6 +2906,7 @@ async function build() {
     configPath: path.join(rootDirectory, "cfg/l2.cfg"), stem: "l2", includeDirectories:["/cc65/asminc"],
     extraInputs: { "/project/build/l2-abi.inc": fs.readFileSync(path.join(rootDirectory,"src/hybrid/l2-abi.inc")),
       "/project/build/l2-c.inc": Buffer.from(l2Generated),
+      "/project/build/m3-l2.bin": directorModule.m3L2Raw,
       "/project/build/l2-main.inc": Buffer.from(l2MainInclude),
       "/project/build/l2-recipes.inc": Buffer.from(l2RecipesInclude),
       "/cc65/asminc/longbranch.mac": fs.readFileSync(path.join(shareDir,"asminc/longbranch.mac")) },
@@ -4949,6 +4968,7 @@ async function build() {
             ? "candidate"
             : "release",
     loadAddress,
+    ...(m3PathReview ? { m3PathReview: { source: m3VolleyReview ? "assets/levels/diagnostics/m3-volley-review.json" : "assets/levels/diagnostics/m3-path-review.json", diagnosticOnly: true } } : {}),
     startAddress,
     bootInitAddress,
     bootSectors,

@@ -1,0 +1,42 @@
+{
+  "baseline": "6046c0b6beb25f15c53ca15cda8f39a431983cd3",
+  "method": "git diff --exit-code main -- src scripts tests cfg assets levels package.json package-lock.json; SHA256 inventory of current files",
+  "inputCount": 543,
+  "inputSha256": "ed03c790c872622a4fafcb8427dfb629364cb362985f05851538825d1fca13a5",
+  "focused": {
+    "totals": {
+      "tests": 28,
+      "suites": 0,
+      "pass": 27,
+      "fail": 1,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "duration_ms": 3007.643791
+    },
+    "failures": [
+      {
+        "file": "tests/level-payload.test.mjs",
+        "declared_at": "tests/level-payload.test.mjs:410",
+        "test": "T13: only the Director's sector entry writes the star operand",
+        "message": "declared once, called once - from enter_sector",
+        "first_failing_assertion": "tests/level-payload.test.mjs:417"
+      }
+    ],
+    "allMatchPriorMainDebt": true
+  },
+  "emulatorSource": {
+    "url": "https://github.com/atari800/atari800/archive/refs/tags/ATARI800_7_1_2.tar.gz",
+    "tag": {
+      "name": "ATARI800_7_1_2",
+      "zipball_url": "https://api.github.com/repos/atari800/atari800/zipball/refs/tags/ATARI800_7_1_2",
+      "tarball_url": "https://api.github.com/repos/atari800/atari800/tarball/refs/tags/ATARI800_7_1_2",
+      "commit": {
+        "sha": "57d24b1f14b3b7b3b0ed3fdcc694db0fba7f8b46",
+        "url": "https://api.github.com/repos/atari800/atari800/commits/57d24b1f14b3b7b3b0ed3fdcc694db0fba7f8b46"
+      },
+      "node_id": "MDM6UmVmOTkyNTE1MzY6cmVmcy90YWdzL0FUQVJJODAwXzdfMV8y"
+    },
+    "downloadSha256": "248675ef8f2ca3479cf006837ffd9952541f31465e7db0a871cc9b7b30550be7"
+  }
+}

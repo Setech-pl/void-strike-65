@@ -74,7 +74,7 @@ test("Q-1: HYBRID_C_WINDOW is $AE00-$BBFF, 3,584 B, and still stops at the reade
   // left for PICKUP_CODE's tail and the director's live-Light scan became
   // one call to lifecycle's count (-26 B); the tick's top-hold phase and the
   // 4-B pad that keeps the kernel's branches on their pages (+41 B net).
-  assert.equal(window.directorHalfBytes, 2302, "the Light C, the cold Director half, step 5, the boss entry, sector flow, the escort clock");
+  assert.equal(window.directorHalfBytes, 2437, "the Light C, the cold Director half, step 5, the boss entry, sector flow, the escort clock");
   // RE-PINNED 2026-10-03, M5a-S1: the kernel 735 -> 771 B, the 36-B capital
   // vector table appended to its frozen vector block.
   // RE-PINNED 2026-10-07, audit-hardening (owner Q2): the kernel link 771 ->
@@ -112,9 +112,9 @@ test("Q-1: HYBRID_C_WINDOW is $AE00-$BBFF, 3,584 B, and still stops at the reade
   // 957): used 2,638 -> 2,613, the tail 946 -> 971.
   // RE-PINNED feat/boss-banners (the other side of the kernel's 957 -> 946):
   // used 2,613 -> 2,602, the tail 971 -> 982.
-  assert.equal(window.usedBytes, 2302);
-  assert.equal(window.freeBytes, 1282);
-  assert.equal(window.freeBytes, 1282, "L1 frees 1,155 B without changing the C half");
+  assert.equal(window.usedBytes, 2437);
+  assert.equal(window.freeBytes, 1147);
+  assert.equal(window.freeBytes, 1147, "M3 consumes135 B; the Light kernel stays outside the window");
   // Light now closes the MAIN reservation; the C link still closes its window.
   assert.equal(manifest.lightKernel.address, 0x3643);
   assert.equal(manifest.lightKernel.windowLimit, 0x3b00);
@@ -137,7 +137,7 @@ test("Q-1: the window record lands at $AE00 and costs no extra transport", () =>
   // RE-PINNED feat/interceptor-standoff Phase B (owner answer Q2 of
   // 2026-10-12): 1,686 -> 1,656 raw B, still 11 sectors (1,322 packed of
   // 1,387: 65 B to the twelfth).
-  assert.equal(window.transport.rawBytes, 2302, "the window record carries steps 2-5, the boss entry, sector flow and the escort clock");
+  assert.equal(window.transport.rawBytes, 2437, "the window record carries steps 2-5, the boss entry, sector flow and the escort clock");
   // The transport rule of plan §3.3 and owner decision 6: this step may not
   // buy a sector. It SOLD one - the retired schedulers, the retired phase
   // machinery and the 158 B of compiled-in level 1 outweigh the reader that
@@ -158,9 +158,9 @@ test("Q-1: the window record lands at $AE00 and costs no extra transport", () =>
   // RE-PINNED 2026-10-08 (feat/sector-flow, owner-accepted): 212 -> 213, the
   // window record's eleventh sector; no boot sector, the initial block
   // unchanged, the ATR menu frame still the gate.
-  assert.ok(manifest.transportCapacity.totalTransportSectors <= 213,
+  assert.ok(manifest.transportCapacity.totalTransportSectors <= 214,
     `total transport is ${manifest.transportCapacity.totalTransportSectors} sectors; ` +
-    "213 is sector flow's figure");
+    "214 is the approved M3 record total");
 });
 
 test("Q-1: level 1 still loads the same image the same way", () => {

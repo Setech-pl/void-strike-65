@@ -1,0 +1,98 @@
+{
+  "level": 2,
+  "seed": 77,
+  "stars": "white",
+  "hull": {
+    "length": 1,
+    "turrets": 3
+  },
+  "sectors": [
+    {
+      "kind": "space",
+      "subtype": "swarm",
+      "rows": 2000,
+      "archetypes": [
+        "wingman",
+        "interceptor"
+      ],
+      "lights": 4,
+      "waves": [
+        {
+          "row": 0,
+          "archetype": "wingman",
+          "count": 12,
+          "spacing": 16,
+          "entry": 124,
+          "path": "stress-wide",
+          "fire": "volley",
+          "mirror": true
+        },
+        {
+          "row": 8,
+          "archetype": "interceptor",
+          "count": 4,
+          "spacing": 16,
+          "entry": 124,
+          "path": "stress-track",
+          "fire": "volley-column"
+        }
+      ]
+    },
+    {
+      "kind": "space",
+      "subtype": "swarm",
+      "rows": 2040,
+      "archetypes": [],
+      "lights": 0,
+      "waves": []
+    }
+  ],
+  "payload": {
+    "paths": {
+      "stress-wide": [
+        {
+          "dy": 2,
+          "frames": 16,
+          "flags": 0
+        },
+        {
+          "dy": 0,
+          "frames": 64,
+          "flags": 20
+        },
+        {
+          "dy": 0,
+          "frames": 64,
+          "flags": 24
+        },
+        {
+          "dy": 2,
+          "frames": 0,
+          "flags": 0
+        }
+      ],
+      "stress-track": [
+        {
+          "dy": 2,
+          "frames": 16,
+          "flags": 0
+        },
+        {
+          "dy": 0,
+          "frames": 128,
+          "flags": 28
+        },
+        {
+          "dy": 2,
+          "frames": 0,
+          "flags": 0
+        },
+        {
+          "dy": 2,
+          "frames": 0,
+          "flags": 0
+        }
+      ]
+    }
+  }
+}

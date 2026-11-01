@@ -447,6 +447,8 @@ l2_content_fold:
     lda #<CONTENT_EXPECTED_FOLD
     ldy #>CONTENT_EXPECTED_FOLD
     jmp CONTENT_GUARD_COMPARE
+.assert * = $1E0A, lderror, "M3 L2 append pin moved"
+.incbin "m3-l2.bin"
 l2_end:
 .export l2_content_fold
 .export l2_start,l2_end,l2_interval,l2_draw_row,l2_contact,l2_island_contact,l2_commit_row,l2_recipes

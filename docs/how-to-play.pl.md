@@ -159,13 +159,13 @@ Przeżyte trafienie może dodać dziury także podczas odlotu.
 Zielony kadłub Bombera ciemnieje przy 2 HP, a przy 1 HP staje się pomarańczowoczerwony. Rozjaśnia się, gdy Bomber hamuje, by celować, i ciemnieje po powrocie
 do lotu. Po przeżytym trafieniu Bomber przez sześć klatek robi unik w bok,
 bez zmiany wysokości. Trafienie podczas zaplanowanego postoju nie skraca
-tego postoju. Interceptor ginie od trzeciego trafienia: gdy twój strzał go trafi, a
+tego postoju. Zwykły Interceptor ginie od trzeciego trafienia: gdy twój strzał go trafi, a
 on przeżyje, jego czerwone gondole na chwilę błyskają.
 
 Niektóre fale wysyłają Wingmany albo Interceptory z innymi oznaczeniami lub w
-innym kształcie. To wciąż ten sam przeciwnik: lata, strzela i daje punkty
-dokładnie tak jak typ, do którego należy. Kolor gwiazd też zmienia się między
-sektorami; pokazuje tylko, gdzie jesteś.
+innym kształcie. Broń i punkty pozostają te same, ale niektóre warianty
+wytrzymują więcej trafień. W pilocie poziomu 2 hunter ginie od dwóch trafień,
+a lancer od czterech. Kolor gwiazd też zmienia się między sektorami; pokazuje tylko, gdzie jesteś.
 
 **Ciężkie fale wstrzymują przejście do następnego sektora.** Sektor czeka,
 aż jego aktywna ciężka formacja zniknie z pola walki. Raidery i Bombery
@@ -177,6 +177,15 @@ uszkodzić lub zniszczyć; korytarz zaczyna się, gdy ciężka formacja opuści 
 
 **Lekkie przelatują.** Fala leci swoją trasą i odchodzi. Zestrzeliwanie jej to
 wybór między punktami a bezpieczeństwem.
+
+Niektóre lekkie fale lecą ustaloną trasą zamiast ścigać twój myśliwiec.
+Niektóre wstrzymują ogień podczas podejścia, strzelają tylko blisko twojej
+kolumny albo atakują wspólnymi salwami. Broń i punkty pozostają te same.
+
+Pilot poziomu 2 wysyła szybkie grupy maksymalnie czterech lekkich przeciwników,
+które wykorzystują całą szerokość ekranu. Obserwuj obie krawędzie: lustrzane
+pary wlatują z przeciwnych stron i przecinają swoje trasy. Kolejna grupa
+nadchodzi po odejściu poprzedniej, z krótką zapowiedzią zamiast długiej przerwy.
 
 Jeden wyjątek: lekkie myśliwce eskortujące ciężkiego zostają razem z nim.
 

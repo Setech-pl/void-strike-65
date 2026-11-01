@@ -1,0 +1,10 @@
+
+> void-strike-65@0.1.1 build
+> node scripts/build.mjs --quiet
+
+Error: ld65 failed with status 1
+[97m/project/build/encounter-director.cfg:2: [93mWarning:[97m Segment ‘[92mCONTENT_DATA[97m’ overflows memory area ‘[92mCONTENT_RAM[97m’ by 32 bytes[0m
+[97mcontent-module.s:9: [91mError:[97m Assertion failed: Content home overflow[0m
+    at runWasmTool (file:///Users/marcinkrzetowski/Projects/dark-fighter-m3-plan/.cache/m3-final/overlap-export/scripts/build.mjs:941:11)
+    at async buildHybridDirectorModule (file:///Users/marcinkrzetowski/Projects/dark-fighter-m3-plan/.cache/m3-final/overlap-export/scripts/build.mjs:1597:18)
+    at async build (file:///Users/marcinkrzetowski/Projects/dark-fighter-m3-plan/.cache/m3-final/overlap-export/scripts/build.mjs:2219:7)

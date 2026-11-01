@@ -1,0 +1,60 @@
+{
+  "baseline": "6046c0b6beb25f15c53ca15cda8f39a431983cd3",
+  "taskStart": "b161f92",
+  "method": "git diff --exit-code 6046c0b -- src scripts tests cfg assets levels package.json package-lock.json; source identity to main at task start.",
+  "inputCount": 543,
+  "inputSha256": "ed03c790c872622a4fafcb8427dfb629364cb362985f05851538825d1fca13a5",
+  "focused": {
+    "totals": {
+      "tests": 47,
+      "suites": 0,
+      "pass": 45,
+      "fail": 2,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "duration_ms": 2411.39925
+    },
+    "failures": [
+      {
+        "file": "tests/interceptor-armour.test.mjs",
+        "declared_at": "tests/interceptor-armour.test.mjs:222",
+        "test": "H3 from data: the record's hit points, no armour bit in any wave of any level",
+        "message": "no armour field in the level format",
+        "first_failing_assertion": "tests/interceptor-armour.test.mjs:228"
+      },
+      {
+        "file": "tests/level-payload.test.mjs",
+        "declared_at": "tests/level-payload.test.mjs:410",
+        "test": "T13: only the Director's sector entry writes the star operand",
+        "message": "declared once, called once - from enter_sector",
+        "first_failing_assertion": "tests/level-payload.test.mjs:417"
+      }
+    ],
+    "allMatchTaskStartMainDebt": true
+  },
+  "quickNative": {
+    "notRerun": true,
+    "reason": "Planning-only storage inspection; runtime inputs and fresh ATR/boot hashes identical to prior task measured at same runtime baseline.",
+    "reference": "docs/diagnostics/m3-plan/quick-summary.json",
+    "worst": 31153
+  },
+  "artifactIdentity": "Fresh ATR and boot hashes equal prior measured main build.",
+  "mainAdvancedDuringTask": {
+    "currentMain": "4e84bc4e688a968910f8135ddb1ca2ba875ccee0",
+    "mainChangedTests": [
+      "tests/basic-window-capacity.test.mjs",
+      "tests/booster-admission-diagnostic.test.mjs",
+      "tests/boss-polish.test.mjs",
+      "tests/entity-effects.test.mjs",
+      "tests/pickup-pmg-raster-visibility.test.mjs",
+      "tests/release-gate-semantics.test.mjs",
+      "tests/score.test.mjs",
+      "tests/weapon-pickup-rapid-fire.test.mjs",
+      "tests/weapon-pickup-spread-shot.test.mjs"
+    ],
+    "runtimeBuildAssetDelta": 0,
+    "notImported": true,
+    "note": "Test-debt part1 merged during this task. A/B/C is against immutable task-start main, not a fresh comparison with this advanced test suite. No merge/rebase or test-source changes made."
+  }
+}

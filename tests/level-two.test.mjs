@@ -14,7 +14,7 @@
 //     item 17: each run uses its own id);
 //   * what it bakes is level 2's image, and it fits the 16-sector buffer;
 //   * the Director reads that image: six sectors, the capital on the authored
-//     row, three Lights in a swarm sector, the level completing after sector 6;
+//     row, four Lights in a swarm sector, the level completing after sector 6;
 //   * the route enters each of level 2's six sectors;
 //   * dist/ and the default build's own build/ files are not touched.
 //
@@ -120,7 +120,7 @@ test("step 3: --level=2 builds level 2 into build/level-2-s0/ and never touches 
 });
 
 test("step 3: the Director reads level 2 - six sectors, the capital on row 1,120, " +
-  "three Lights in a swarm sector, complete after sector 6", () => {
+  "four Lights in a swarm sector, complete after sector 6", () => {
   const directory = variantDirectory(0);
   assert.ok(fs.existsSync(path.join(directory, "manifest.json")),
     "the --level=2 build of the test above");
@@ -152,11 +152,11 @@ test("step 3: the Director reads level 2 - six sectors, the capital on row 1,120
         `${label}: a Heavy formation in swarm sector ${sectorAt(spawn.frame) + 1}`);
     }
     // Live Lights, counted by the probe every frame from light_state: a swarm
-    // sector reaches its ceiling of three and never passes it, and an elite
+    // sector reaches its ceiling of four and never passes it, and an elite
     // sector never passes its one.
     for (const index of SWARM_SECTORS) {
-      assert.equal(run.peakLiveLights[index], 3,
-        `${label}: sector ${index + 1} reaches its Light ceiling of 3`);
+      assert.equal(run.peakLiveLights[index], 4,
+        `${label}: sector ${index + 1} reaches its Light ceiling of 4`);
     }
     for (const index of [1, 4, 5]) {
       assert.ok(run.peakLiveLights[index] <= 1,

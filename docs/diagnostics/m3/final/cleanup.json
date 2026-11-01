@@ -1,0 +1,17 @@
+{
+  "before": {
+    "taskCache": "367M\t/Users/marcinkrzetowski/Projects/dark-fighter-m3-plan/.cache/m3-final",
+    "worktreeCache": "370M\t/Users/marcinkrzetowski/Projects/dark-fighter-m3-plan/.cache",
+    "build": "88M\t/Users/marcinkrzetowski/Projects/dark-fighter-m3-plan/build"
+  },
+  "scope": "Only this task cache and generated non-play build outputs. Prior play packs/cache and root node_modules untouched.",
+  "evidence": "Committed MD/JSON/log proof plus6 requested final ATRs(798816 B), bilingual README and SHA manifest; total task evidence/delivery under2 MB, below200 MB.",
+  "after": {
+    "taskCache": "4.0K\t/Users/marcinkrzetowski/Projects/dark-fighter-m3-plan/.cache/m3-final",
+    "worktreeCache": "2.3M\t/Users/marcinkrzetowski/Projects/dark-fighter-m3-plan/.cache",
+    "build": "2.5M\t/Users/marcinkrzetowski/Projects/dark-fighter-m3-plan/build",
+    "finalPlayPack": "804K\t/Users/marcinkrzetowski/Projects/dark-fighter-m3-plan/build/play/m3/final"
+  },
+  "disk": "Filesystem      Size    Used   Avail Capacity iused ifree %iused  Mounted on\n/dev/disk3s5   926Gi   500Gi   402Gi    56%    5.4M  4.2G    0%   /System/Volumes/Data",
+  "processes": "All launched test/native/build sessions completed. No background servers or listening ports launched; process enumeration unavailable in sandbox."
+}

@@ -1,0 +1,147 @@
+{
+  "emulator": "Atari800 7.1.2 PAL/XL",
+  "guest_instrumentation_bytes": 0,
+  "diagnostic_allowances": {
+    "release_evidence": false,
+    "reuse_existing_traces": false,
+    "host_lives_top_up": "3",
+    "forced_booster_fixture": null,
+    "l2_exit_fixture": null,
+    "terminal_state_seed": false,
+    "l2_variant_alias": false
+  },
+  "artifact_sha256": {
+    "void-strike-65-boot.bin": {
+      "path": "dist/void-strike-65-boot.bin",
+      "bytes": 27392,
+      "sha256": "37d13b21de68a7af15d138459b2554ee81d20bb58cbe333e3c2f35c9267db5aa"
+    },
+    "void-strike-65.atr": {
+      "path": "dist/void-strike-65.atr",
+      "bytes": 133136,
+      "sha256": "08c6fbdcdf5790f52df90086f8b928b466296cb4f398dcbb1dc8e1d8a47b56da"
+    },
+    "void-strike-65-manifest.json": {
+      "path": "dist/void-strike-65-manifest.json",
+      "bytes": 883559,
+      "sha256": "710e247f5255911fa07c62ce406b5cab4c9866f172d3a05e00cc685fc5355193"
+    }
+  },
+  "sessions": [
+    {
+      "id": "slot-e-reset-2-sweep-fire0",
+      "kind": "slot-e-path",
+      "medium": "ATR",
+      "difficulty": 2,
+      "policy": "sweep",
+      "fire_delay": 0,
+      "measured_frames": 5098,
+      "maximum_wall_cycles": 31327,
+      "deadline_overrun_frames": 0,
+      "missed_frames": 0,
+      "hull_map_draws": 976,
+      "hull_map_stale_draws": 0,
+      "hull_map_dirty_reads": 0,
+      "hull_map_rebuilds_after_boss": 1,
+      "boss_path": "reset",
+      "boss_path_taken_frame": 3076,
+      "boss_frames_before_path": 298,
+      "boss_frames_after_path": 0,
+      "capital_rows_after_rebuild": 488,
+      "reset_transition": {
+        "frame": 3075,
+        "host_frames": 921
+      },
+      "level_summary": {
+        "start_summaries": [
+          {
+            "entry": 716,
+            "display": 718,
+            "loaded": 808,
+            "ready": 919,
+            "accept": 924,
+            "reads": 53,
+            "shown_frames": 206,
+            "best": "BEST                  --"
+          },
+          {
+            "entry": 5035,
+            "display": 5037,
+            "loaded": 5127,
+            "ready": 5238,
+            "accept": 5244,
+            "reads": 53,
+            "shown_frames": 207,
+            "best": "BEST                  --"
+          }
+        ]
+      }
+    }
+  ],
+  "acceptance": {
+    "measured_frames": 5098,
+    "maximum_wall_cycles": 31327,
+    "wall_ceiling": 32568,
+    "physical_headroom": 4241,
+    "missed_frames": 0,
+    "extra_vbi_boundaries": 0,
+    "physical_overruns": 0,
+    "deadline_overruns": 0,
+    "dli_ordering_errors": 0,
+    "passed": true
+  },
+  "passed": true,
+  "lifecycle": {
+    "sectors": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6
+    ],
+    "bossFrames": 300,
+    "bossPathStages": [
+      0,
+      9
+    ],
+    "firstCapital": 547,
+    "beforeCapital": [
+      {
+        "frame": 543,
+        "heavy": 0,
+        "state": 7
+      },
+      {
+        "frame": 544,
+        "heavy": 0,
+        "state": 7
+      },
+      {
+        "frame": 545,
+        "heavy": 0,
+        "state": 7
+      },
+      {
+        "frame": 546,
+        "heavy": 0,
+        "state": 7
+      },
+      {
+        "frame": 547,
+        "heavy": 0,
+        "state": 0
+      }
+    ],
+    "hullMapRebuilds": 1,
+    "hullMapDirtyReads": 0,
+    "bossEntries": [
+      {
+        "frame": 2776,
+        "hostFrames": 325
+      }
+    ],
+    "heavyFrames": 1013
+  }
+}

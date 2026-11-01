@@ -1,0 +1,6 @@
+{
+  "method": "MEASURED linked NMOS entry-through-RTS, no caller JSR/DMA; selected4-HP look",
+  "helper": 55,
+  "guarded": 95,
+  "guardOverhead": 40
+}

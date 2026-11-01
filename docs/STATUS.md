@@ -1,6 +1,6 @@
 # VOID STRIKE 65 — CURRENT STATUS
 
-Last update: 2026-10-31 (M3 checkpoint2 owner smoke PASS; checkpoint3 byte-blocked)
+Last update: 2026-11-01 (M3 same-home fire compaction remains83 B over; checkpoint2 accepted)
 
 What is true now. Rules: [reguly-projektu.txt](reguly-projektu.txt). Roadmap:
 [plan-realizacji.md](plan-realizacji.md). Source-of-truth order:
@@ -20,34 +20,36 @@ the values below.
 
 ## Checkpoint
 
-### M3 checkpoint3 — BLOCKED_CONTENT_BYTES; checkpoint2 OWNER-ACCEPTED
+### M3 checkpoint3 — BLOCKED_CONTENT_BYTES after same-home compaction
 
-Owner smoke of `742b80e` checkpoint2 **PASSED**. The owner authorized3 fire
-modes,4 chains/pilot and C-skin separately, with an explicit STOP if3/4 cannot
-fit content before any relocation. Git writes work; branch remains
-`codex/m3-plan`. [Owner decision](decisions/2026-10-31-m3-waves.md).
+Checkpoint2 `742b80e` remains OWNER-ACCEPTED (owner smoke PASS). The owner
+repeated authorization for3/4 plus separate C-skin, retaining the explicit
+content-overflow STOP before relocation. The agent resumed with same-home C
+compaction; no L2 fire-policy or scope-split decision was inferred. Git writes
+work; branch `codex/m3-plan`, task-start `4452d3c`.
 
-Fresh normal checkpoint2 build PASS: content1,800/1,920 B, window2,384/2,811
-usable B, L2 1,290/1,536 usable B (+256 protected). First complete C draft3
-requires**2,124 B**:1 header+2,071 code+52 data, **204 B over**. Added318 code+
-6 data B; window/L2 unchanged. Link's code-only warning is152 B, excluding
-52 B data. Required end-exclusive would be$19CC beyond$1900. No home enlarged,
-code relocated or accepted mode silently removed. Draft preserved as evidence;
-production sources restored to accepted742b80e.4/C-skin not started or placed.
+Fresh normal accepted-baseline build PASS: content1,800/1,920, window2,384/
+2,811 usable, L2 1,290/1,536 usable (+256 protected), arena830/832 B.
+Compacted3 draft requires**2,003 B:83 B over**, versus first2,124/204 over.
+It saves125 code B but adds4 compiler-reserved bytes:121 B net saved. Complete
+requirement1 header+1,946 code+56 data; end-exclusive$1953. Link's code-only
+27-B warning excludes56 data. All intended M3 code/data are in content;
+window/L2/arena unchanged. The byte gate rejects the draft. No overflow image
+run, home enlarged, fire mode dropped or fire policy relocated. Rejected source
+preserved as evidence then restored.4/C-skin not started or placed.
 
-[Exact bytes, experimental patch and alternatives](diagnostics/m3/checkpoint-3/report.md).
-Recommend same-home C compaction recovering≥204 B; guarded L2 is a new owner
-choice (213-B helper bodies would leave only33 usable L2 B before guard and
-C-skin); splitting volley/combined requires explicit scope review. No further
-implementation after the byte failure. No fresh quick frame,3-Light volley
-measurement, full-suite A/B/C or checkpoint4 ATR is claimed.
+[Exact accounting, patch and updated alternatives](diagnostics/m3/checkpoint-3/compact/report.md).
+A: recover≥83 more content B. B: authorize guarded L2 for the measured131-B
+volley snapshot helper; body-only arithmetic leaves content48 B/L2 115 usable B
+before guards and C-skin (67 after estimated48-B C-skin). Recommend B as next
+scoped experiment; it is not a compiled relocation fit. C: explicitly split
+volley/combined into a follow-up; no silent deferral. Owner decision needed.
 
-Accepted2 historical evidence: normal gates PASS, focused62 PASS/1 optional
-SKIP, audited A120/B0/C0 vs main. Quick Spread30,465/capital-96031,156; path
-review31,663 (8 target overruns, zero hard/timing failures). These are previous
-measurements, not regenerated3/4 evidence. Existing2 play ATRs and instructions
-remain in `build/play/m3/checkpoint-2/`.
-**NEXT TASK: owner resource/scope choice from plan§3 alternatives; STOP.**
+No full suite, quick native/3-Light volley measurement or checkpoint4 ATR
+follows the hard byte stop. No new CPU/frame claim. Accepted2 historical quick
+worst31,156/path review31,663 and audited A120/B0/C0 remain reference evidence
+only. Existing2 ATRs/instructions stay in `build/play/m3/checkpoint-2/`.
+**NEXT TASK: owner resource/scope decision A/B/C; STOP.**
 
 ### Pre-v0.4.0 test debt triage — baseline merged in main4e84bc4
 

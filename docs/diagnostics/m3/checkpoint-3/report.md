@@ -1,5 +1,8 @@
 # M3 checkpoint3 — BLOCKED_CONTENT_BYTES
 
+Historical first draft (2026-10-31). The2026-11-01 same-home compaction
+reduces the blocker to83 B; [current report](compact/report.md).
+
 Owner smoke of checkpoint2 `742b80e` **PASSED**. This is now the accepted
 baseline. The owner authorized3 (fire envelopes),4 (chains/pilot) and C-skin
 as its own commit, with an explicit STOP if3/4 overflow content before any

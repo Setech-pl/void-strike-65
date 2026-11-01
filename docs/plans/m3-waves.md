@@ -6,7 +6,7 @@
 `6046c0b6beb25f15c53ca15cda8f39a431983cd3` (includes M3-H session 2).
 Owner smoke of checkpoint2 `742b80e` PASSED. Owner now authorizes3 and4,
 plus C-skin separately, with a pause after4 and a hard byte-overflow STOP
-before relocating3/4 policy. The first3 draft hits that STOP; see§9. Planning commits had zero
+before relocating3/4 policy. The compacted3 draft remains83 B over; current STOP and alternatives are in§10. Planning commits had zero
 runtime delta; actual implementation sizes are recorded in §8.
 [Owner decisions](../decisions/2026-10-31-m3-waves.md) include Q1–Q6A and the
 §7 amendments. No C-skin implementation before checkpoint4.
@@ -626,3 +626,23 @@ segment permission (estimated1,840–1,860 content B). B/C are not authorized
 recovery choices yet; none is a compiled final fit. CPU/quick/3-Light volley
 measurements wait for a legal image. **BLOCKED_CONTENT_BYTES; STOP for owner
 resource/scope choice.**
+
+
+## 10. Same-home compaction remains byte-blocked — 2026-11-01
+
+On renewed continuation authorization, the agent tried same-home C compaction,
+retaining all Q5A modes and existing placements. Fresh baseline normal build
+PASS. Compacted3 requires**2,003/1,920 B**,83 over:1 header+1,946 code+56 data.
+Compared with first2,124,125 code B saved and4 compiler-reserved data B added,
+**121 B net saved**. Window2,384/L2 1,290/arena830 B remain unchanged. The
+normal byte gate rejects the draft. No executable overflow image, relocation,
+mode deferral or4/C-skin work. Production source restored to accepted baseline.
+
+[Current proof and updated§3 alternatives](../diagnostics/m3/checkpoint-3/compact/report.md):
+A recover≥83 B more within content; B authorize existing-guard L2 placement of
+131-B volley preparation (body arithmetic content1,872/L2 1,421, before guard/
+ABI;48-B C-skin would leave67 usable L2 B); C explicitly split volley/combined
+into a follow-up. Recommend B as the next scoped experiment, with compiled fit
+and CPU proof still required. No new owner relocation/split choice is inferred.
+No fresh quick/3-Light volley measurement and no checkpoint4 play ATR.
+**BLOCKED_CONTENT_BYTES; STOP for owner resource/scope decision.**

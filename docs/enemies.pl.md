@@ -160,6 +160,10 @@ fali. Podane wcześniej liczby trafień dotyczą standardowego wyglądu. W piloc
 poziomu 2 hunter wytrzymuje dwa trafienia, a lancer cztery; pozostałe wyglądy
 zachowują standardową wytrzymałość.
 
+Pilot poziomu 2 wykorzystuje szerokie, przecinające się trasy i szybkie grupy
+maksymalnie czterech lekkich przeciwników. Inne oznaczenia nadal zachowują
+broń i punktację archetypu.
+
 ### Wingman: flight-lead
 
 <img src="media/enemies/wingman-flight-lead.png" width="360" alt="Wingman flight-lead: czerwone V z białymi końcami skrzydeł i białym nosem">

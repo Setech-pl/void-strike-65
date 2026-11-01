@@ -357,8 +357,8 @@ test("T5: a SectorDef may ask for more Lights than its subtype admits, and the r
     assert.equal(run(image, "director_light_ceiling").a, 1,
       "min(requested 4, ELITE ceiling 1)");
 
-    // A SWARM sector asking for four gets the swarm ceiling of three - the
-    // physical slot count is four, so the ceiling is doing the work.
+    // Accepted M3 tuning raises SWARM to the existing four physical slots.
+    // ELITE clamping and a lower authored cap remain independent.
     const swarm = memory();
     pokeSyntheticLevel(swarm, [{
       kind: "space", subtype: "swarm", rows: 800,
@@ -366,7 +366,7 @@ test("T5: a SectorDef may ask for more Lights than its subtype admits, and the r
       waves: [{ row: 0, archetype: "interceptor", count: 8, spacing: 16, entry: 124 }],
     }]);
     run(swarm, "director_init", { a: 0 });
-    assert.equal(run(swarm, "director_light_ceiling").a, 3, "min(requested 4, SWARM ceiling 3)");
+    assert.equal(run(swarm, "director_light_ceiling").a, 4, "min(requested 4, SWARM ceiling 4)");
 
     // And a sector that asks for NONE gets none, however high the runtime
     // would have allowed: the clamp is a minimum, not an override.

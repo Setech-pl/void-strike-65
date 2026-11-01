@@ -98,20 +98,21 @@ implemented as a smaller PMG Raider.
 
 ```text
 LIGHT_SLOT_COUNT = 4        ; the declared FORMAT: four SoA slots
-LIGHT_CEILING_SWARM = 3     ; how many a SPACE/SWARM sector may fill
+LIGHT_CEILING_SWARM = 4     ; how many a SPACE/SWARM sector may fill
 LIGHT_CEILING_ELITE = 1     ; with a Heavy formation on screen: its escort
 LIGHT_CEILING_CAPITAL = 0   ; CAPITAL is fighter-only
 ```
 
-Format and ceiling are separate on purpose (roadmap 4.6, owner decision 23
-§10.7). The four slots are a fixed 48-byte structure of arrays at
-`$7FC4-$7FF3`; the ceilings are **policy bytes** that `lifecycle_c_init`
-restores, so a harness test can raise one without a build flag and 4.6's
-WaveDef can lower one per sector. The shipped SWARM ceiling of 3 is
-MEASURED-safe: see `docs/diagnostics/light-population-m1-2026-09-21.md`.
-
-A Light-class enemy is still never a smaller PMG Raider, and a fourth live
-slot is not shipped — the format allows it, no ceiling grants it.
+Format and ceiling are separate on purpose (roadmap4.6, owner decision23).
+The current runtime uses C's `subtype_ceiling_light={4,1,0,1}` and takes the
+minimum of the subtype and each authored sector's cap. M3 final tuning raises
+only SWARM3→4; level1 still authors3. The existing59-B HYBRID_LIGHT_SLOTS at
+$7FC5-$7FFF, state/cache arrays and four-slot ASM loops are unchanged. Three
+appearance pairs are shared by matching look keys; a fourth distinct live
+look is not promised, and admission still refuses unsafe pair replacement.
+Four path Lights with volley are native PAL measured at32224 cycles worst
+across E/M/H (target31500, hard32568). No PMG player, slot/state byte or new
+frame scan is allocated. [Combined handoff](diagnostics/m3/final/report.md).
 
 #### Superseded: capacity before roadmap 4.6
 
@@ -469,8 +470,8 @@ roadmap step 4.4.
 
 The separately linked `$1900-$1FFF` image is checked at every level start,
 including resident-level hits. C owns phase/entry/brake/warning decisions; ASM
-owns shared row publication and bounded interval contact. No interrupt, audio,
-Light or shared-spawn callback depends on L2. The hull renderer is not copied.
+owns shared row publication and bounded interval contact. Interrupt and audio callbacks stay resident. M3 uses explicitly guarded fighter-only
+volley preparation and HP admission below. The hull renderer is not copied.
 
 Boss install returns to the shared main loop. Before its first disk read, cold
 resident `l2_disarm` blanks interrupts, redirects the brake call to resident

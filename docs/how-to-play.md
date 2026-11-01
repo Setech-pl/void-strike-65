@@ -176,6 +176,11 @@ Some Light waves follow a fixed flight route instead of pursuing you.
 Some hold fire during approach, fire only near your column, or attack on
 shared volley beats. Their weapon and points stay the same.
 
+The level 2 pilot sends quick groups of up to four Lights across the full
+width. Watch both edges: mirrored fighters enter from opposite sides and
+cross. The next group follows as the previous one clears, with a brief entry
+cue rather than a long rest.
+
 One exception: light fighters escorting a heavy stay with it.
 
 ## Upgrades

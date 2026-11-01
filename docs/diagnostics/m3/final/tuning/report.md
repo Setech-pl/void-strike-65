@@ -24,7 +24,7 @@ Focused compiler/chain15 PASS; path24 PASS/1 optional SKIP. Owner mechanics OK
 is recorded without promoting this new tuning to owner acceptance.
 
 Stage b next measures4 free Lights as a separate bounded commit. Stage c:
-with only existing clear/row-cadence gaps, overlap is not yet needed; final
+with only existing clear/row-cadence state gaps, overlap is not yet needed; final
 report must confirm that result and price its alternative. No overlap code
 or new frame scan is introduced here.
 
@@ -53,9 +53,10 @@ report-only target overrun, not an excuse to suppress volley or retain3.
 ## Stage c — bounded overlap priced, not implemented
 
 Clear-field state gaps are2–3 frames, but next-wave entry still has a visible
-cue: linked visible intervals are up to30 frames at the hidden mirrored fan
-and9–10 on ordinary entry. This is measured separately from arm latency in
-[b-linked-timeline.json](b-linked-timeline.json), not described as zero pause.
+cue: stage-b body-Y16 proxy intervals are up to30 frames at the hidden fan
+and9–10 on ordinary entry. Checkpoint5 corrects this measurement to the real
+renderer Y24 top: up to34 and13–14 frames, respectively; see the final
+[linked results](../linked-timelines.json). Neither is zero visible pause.
 
 A throwaway no-new-scan C sizing probe reuses each existing path tick to
 aggregate terminal eligibility, rather than adding another four-slot walk.
@@ -77,7 +78,7 @@ Options/prices (additional glue/CPU are ESTIMATE, helper size MEASURED):
   snapshots. Approximately180–320 instruction cycles/frame for four live
   paths, plus80–160 per handoff. Does not fit content or L2 as one helper;
   splitting/compaction would require a separate placement/timing iteration
-  against only384 cycles of measured hard-gate headroom. Not implemented.
+  against only344 cycles of final E/M/H hard-gate headroom. Not implemented.
 - Inspect four slots when spent:estimated70–110 policy B +16–24 guard/caller B,
   250–500 cycles on waiting frames. Adds a per-frame scan, explicitly excluded
   by the owner. Not implemented.

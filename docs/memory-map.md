@@ -1,14 +1,16 @@
 # Current memory map
 
-## M3 checkpoint4 +C-skin — 2026-11-01
+## M3 final combined handoff — 2026-11-01
 
-MEASURED content1,863 B (57 free), window2,437/2,811 usable (374 free),
-L2 1,457/1,536 usable (79 free,+256 protected). M3_L2 at$1E0A now holds131-B
-volley preparation +36-B HP policy. The16-B resident HP guard and3-B shared
-extension admission call add no content bytes; extension878 leaves21 B.
-LIGHT appearance HP table$ABB3-$ABB6 reuses4 of5 hull-parameter spare bytes,
-leaving$ABB7 alone before summary$ABB8. No new level allocation; C-skin buys no transport sector.
-[Final admission/placement audit](diagnostics/m3/checkpoint-4/c-skin/report.md).
+MEASURED content1863/1920 (57 free), window2437/2811 usable (374 free;
+3584 physical capacity,1147 physical free), L2 1457/1536 usable (79 free,
+plus256 protected), arena830/832, Director high324, extension878/tail21.
+Initial content12865,11 records/214 total transport sectors. Tuning/ceiling4
+adds0 code/state/allocation bytes; all slot/render/glyph-pair storage existed.
+M3 window growth135 B remains≤300. M3_L2 at$1E0A holds131-B volley prep and
+36-B HP policy, ends$1EB1. Appearance HP$ABB3-$ABB6 leaves$ABB7 before summary.
+No new reserve/segment/address. CPU worst32224, hard margin344; target exceeded
+724. [Final resources, tests and play handoff](diagnostics/m3/final/report.md).
 
 ## M3 checkpoint3 — 2026-11-01
 

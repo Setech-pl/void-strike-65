@@ -81,7 +81,7 @@ numbers; world rows, not eighths.
 | `seed` | 1-255 | 1 | the Director RNG's initial value |
 | `stars` | `white`, `steel`, `yellow` | `white` | the level's default sky: the near-star pixel value - white `COLPF0`, the allied steel `COLPF1`, yellow `COLPF2` (budget-1.0 M2 variant S2). A sector without `look.stars` takes it. `0` is accepted and means `white` |
 | `nebula` | 0 | 0 | the nebula (variant S3) is not built; any other value is refused |
-| `payload.appearances` | 0-3 looks | `[]` | Light looks for appearance slots 1-3, in order. Each is `{ "name", "rows" }`: a lower-case name a wave can use, and eight rows of eight pixels, left cell then right cell, each pixel `.` black, `W` white, `S` steel or `R` hostile red (a Light's code carries the hostile bit, so `%11` is `COLPF3`). A look is a re-skin (decision AD): the Light keeps its archetype's motion, HP, fire and score |
+| `payload.appearances` | 0-3 looks | `[]` | Light looks for appearance slots 1-3, in order. Each is `{ "name", "rows" }`: a lower-case name a wave can use, and eight rows of eight pixels, left cell then right cell, each pixel `.` black, `W` white, `S` steel or `R` hostile red (a Light's code carries the hostile bit, so `%11` is `COLPF3`). A look reuses its archetype (decision AD); `appearanceHp` may override HP at admission, while weapon and score remain unchanged |
 | `payload.weapons` | 0-2 looks | `[]` | hostile weapon looks laid over the defaults at level start. Each is `{ "class": "pulse" \| "laser", "rows" }`, `rows` the eight 8-bit masks of `assets/graphics/fighter-weapons.json` with its rules: pixels 0-1 only (the right phase is the glyph shifted two pixels) and never `%11`, so hostile fire stays white and steel. One look per class. `bomber` is refused: its second animation phase does not fit the 9-B record |
 | `payload.heavyLook` | one armoured Raider look | `enemy-roster.json`'s `heavyLooks.armouredRaider` | `{ "rows", "colour" }`: exactly 14 strings of eight binary PMG pixels; row 13 must be clear and the body nonempty. Colour `$44`, `$46` or `$48` (or its integer value). Stored at `$ABA2`: 14 rows, 2 zero storage rows, colour; 17 of the 22 hullParams bytes, leaving 5. Override pixels must contain every `heavyDamage.armouredRaider` clear-mask bit and preserve the authored hole rows. Read in place at Heavy admission; no new archetype, collision box or PMG slot. Applies only to the wave's `kind: "armoured"`; assault and Bomber art stay unchanged |
 | `boss` | 0-255 | 0 | BossDef index; 0 = none. Non-zero needs a `boss` sector and a `bossDef` ("The boss" below) |
@@ -287,7 +287,7 @@ field:
   `%11` (step 5).
 
 It **warns**, and the file stays legal, when a requested cap exceeds what the
-subtype admits — swarm 3 Light / 0 Heavy, elite 1 Light / 2 Heavy, capital
+subtype admits — swarm 4 Light / 0 Heavy, elite 1 Light / 2 Heavy, capital
 0 / 0. The byte keeps what the author asked for; the runtime clamps to
 `min(requested, subtype ceiling)` at admission.
 
@@ -535,16 +535,21 @@ and the overlay's once-per-entry ASM) are shared, at 528-583.
 
 ## Level 2
 
-`assets/levels/level-02.json` (roadmap 4.6 step 3; owner-approved 2026-09-30,
-plan §11 item 15) is the first level that is not a reproduction. It has six
-sectors against level 1's four, opening on a **swarm** sector with three live
-Lights and no Heavy. Sector 2 is Bombers only. The capital is on authored row
-**1,120** (level 1: 272). Sector 4 is three Interceptor waves of eight at
-spacing 20, and sectors 5 and 6 alternate Raider and Bomber by wave, with
-sector 6 also carrying every archetype. The Light class floor of 16 frames is
-deliberately **not** used, so later levels have room to escalate. Every sector's
-sizing figures, MEASURED with the timeline probe, are in the file's own notes.
-Play it with `npm run level:play -- --level=2`.
+`assets/levels/level-02.json` is the M3 pilot (owner mechanics OK; final tuning
+awaits play). Six sectors: opening SWARM, Bomber ELITE, CAPITAL, four-step
+SWARM chain, then two ELITE sectors. The opening is three groups of8; the
+teach→mirror→pressure→release chain has four groups of8. Both swarms request4
+Lights, every pilot step uses minimum row0 and16-frame spacing. The existing
+clear lock/next row tick arms the next step in2–3 frames; no chain overlap.
+Left52/right200/centre124 entries, long every-frame lateral sweeps and hidden
+mirrored fans replace the former single-file routes. Tracking keeps a slower
+readable period; approach/return exits are quiet. Six distinct records fit the
+existing96-B path block. Every Heavy WaveDef and level1 are unchanged.
+Native E/M/H pilot routes admit all32 chain members and complete release;
+exact linked lifetimes, fast-kill/no-fire timelines and resource/timing audit
+are in [the combined handoff](diagnostics/m3/final/report.md). The authored
+capital row remains1120. Swarm early-end/drain rules still apply; row lengths
+are cut bounds, not mandatory waits. Play: `npm run level:play -- --level=2`.
 
 Since step 5 it carries the full payload (plan §8.3): three Light looks -
 `hunter` (the Interceptor recoloured: red arms, white pods, steel hub),
@@ -615,7 +620,7 @@ members at global64-frame opportunities, claims one existing event token,
 and uses the normal shot actions/pool. Denial waits for another opening with
 no backlog; late admissions cannot join. Invalid checked L2/content falls
 back to the resident archetype fire policy. No new boss/Heavy fire mode.
-Diagnostic `--m3-volley-review --level=2:sector=0` reviews three-Light groups;
+Diagnostic `--m3-volley-review --level=2:sector=0` reviews four-Light wide-hold/volley and tracking/combined groups;
 `VS65_SMOKE_FIRE_DELAY` controls only the observer-smoke input fixture.
 
 
@@ -653,3 +658,20 @@ its `escort` look remains inherited. Boss escorts retain archetype HP because
 the admission override requires the valid checked pair and fighter phase.
 The36-B policy lives in L2 under the accepted64-B content-floor decision;
 this adds0 content bytes/level sectors/reads and no per-frame/row work.
+
+
+### Final M3 density and regional recipes
+
+[The regional recipe sheet](plans/m3-regional-recipes.md) updates the accepted
+12-level progression proposal with full-width entries, crossing/mirrored pairs,
+2–3 back-to-back groups, quiet exits and at most4 simultaneous free Lights.
+It is an M7 authoring sheet, not automatic runtime escalation. Current hull
+styles still map the engine's16 supported level IDs in quarters; M3 does not
+change that directory/style rule or implement later levels. Independent
+per-level look mixes remain allowed; regional packs are optional convenience.
+
+A hidden mirrored fan is an intentional short entry cue. The renderer begins
+at gameplay Y24; actual linked visible gaps can reach34 frames, while state
+clear/arm gaps are2–3. Do not substitute one measure for the other. Bounded
+terminal overlap was priced and deferred: its straightforward scan-free helper
+alone adds89 content B (32 over the available home), before integration.

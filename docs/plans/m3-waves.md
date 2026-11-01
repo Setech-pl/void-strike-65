@@ -4,13 +4,14 @@
 **§7 policy accepted with owner amendments, 2026-10-31.** Branch
 `codex/m3-plan`, based on task-start main
 `6046c0b6beb25f15c53ca15cda8f39a431983cd3` (includes M3-H session 2).
-Owner smoke of checkpoint2 `742b80e` PASSED. Owner now authorizes3 and4,
-plus C-skin separately, with a pause after4 and a hard byte-overflow STOP
-before relocating3/4 policy. Owner selected B and authorized automatic C fallback. B now fits and passes;
-final measurements are in§13. Planning commits had zero
-runtime delta; actual implementation sizes are recorded in §8.
-[Owner decisions](../decisions/2026-10-31-m3-waves.md) include Q1–Q6A and the
-§7 amendments. C-skin is implemented in its own commit after checkpoint4; owner smoke is pending.
+Owner smoke of checkpoint2 `742b80e` PASSED; checkpoint4 mechanics were OK,
+then the owner requested wider/denser tuning and authorized checkpoint5.
+Approved B fits and retains every Q5A mode; C-skin is a separate completed
+commit. Final tuning and four-Light capacity remain OWNER-SMOKE CANDIDATE.
+Current authorization, combined measurements, overlap pricing and handoff are
+in§14. Planning commits had zero runtime delta; implementation measurements
+start in§8. [Owner decisions](../decisions/2026-10-31-m3-waves.md) preserve
+Q1–Q6A, per-level skin amendments and the final tuning authorization.
 
 This rebases the **M3/P1–P8** portion of
 [the original plan](m3-waves-heavy.md#2-m3--wave-paths-v1-lights-only).
@@ -361,7 +362,7 @@ format, eight-path limit and Heavy ownership are not reopened.
 | Q2. Paths per region | **A:** 3–4 signature templates/region, 2–4 distinct records used per level; **B:** 6–8 different records in every level; **C:** 2 shared records throughout campaign | **A**. Reuse shared templates with authored durations/entry/spacing; later levels may use up to 6 records, hard maximum 8. All options retain 96 payload B; B costs authoring/testing time and recognition |
 | Q3. Chain escalation over 12 levels | **A:** three-step regional ladder, below; **B:** increase counts/speed every level with little new composition; **C:** long fixed set pieces at region ends, otherwise single waves | **A**, combining familiar paths before adding density. Keep existing caps/spacing floors; no difficulty-specific runtime multiplier or automatic capacity increase |
 | Q4. Fire bits vs Interceptor loops | **A:** contextual bits 6/7 for path-wave fire modes, reject `path`+nonzero `loops`; **B:** one extra per-path metadata byte in a newly found payload home; **C:** only segment fire permission in first implementation, defer volley/column to a separately approved format task | **A**. Zero payload growth, uses existing copied flags, explicitly preserves all no-path/escort loops. B needs at least 8 payload B (only 5 hull-reserve B free); C is a scope reduction and requires explicit approval |
-| Q5. Fire pressure | **A:** segment fire +column ±1 cell; volley on shared 64-frame opportunities, ready members only; allow combined mode; **B:** exact-column only, 96-frame opportunities, no combined mode; **C:** ±2 cells, 48-frame opportunities, combined mode | **A** as a smoke starting point, not final balance. Fire/reload permission gates still apply; denied token retries once per following frame without queued pulses. B is gentler; C increases pressure and emission coincidence risk. No new projectile type in any option |
+| Q5. Fire pressure | **A:** segment fire +column ±1 cell; volley on shared 64-frame opportunities, ready members only; allow combined mode; **B:** exact-column only, 96-frame opportunities, no combined mode; **C:** ±2 cells, 48-frame opportunities, combined mode | **A** as a smoke starting point, not final balance. Fire/reload permission gates still apply; a denied volley waits for the next64-frame opportunity without queued pulses. B is gentler; C increases pressure and emission coincidence risk. No new projectile type in any option |
 | Q6. M3 content extent | **A:** playable level 2 pilot +review fixtures and a 12-level recipe sheet; later campaign files in M7 after M4; **B:** author all 12 level files as a separate M3 content session before M4 | **A**, matching current two authored levels and one-level campaign. B is valid but adds a large explicit authoring/smoke task; no claim that current main can advance through 12 levels |
 
 Accepted Q3A ladder (SPACE waves only; Heavy armour/hold schedules remain
@@ -389,7 +390,7 @@ changes and final balance belong to M8, with measurements if paths get faster.
 | Old P8 `$8133–$813A` state and old 524-B all-window placement | **DEFER obsolete homes**: occupied state and insufficient 509-B usable window; content placement replaces both |
 | Paths for Heavy, Heavy escorts, boss escorts or capital combat | **DEFER scope**: shared renderer/phase/Heavy-departure contracts differ; M3 remains free Light SPACE waves. No P1/P2 reassignment or new boss home reads |
 | Exact sine curves, sub-cell X, new sprites/projectiles/AI or renderer architecture | **DEFER**: unnecessary for readable four-segment envelopes; fixed renderer/archetype ownership remains |
-| Runtime chain interpreter, overlapping waves, dynamic random branching, extra path slots or extra population | **DEFER**: existing Director lock/capacity and expanded WaveDefs cover V1 without new per-frame work or state |
+| Runtime chain interpreter, overlapping waves, dynamic random branching or extra path slots | **DEFER**: expanded WaveDefs cover V1. Terminal overlap was priced at final tuning: helper alone89 content B (32 over), before glue; no new frame scan. Owner-authorized free-Light ceiling4 is now implemented within existing slots (§14), rather than silently retained as a deferred population increase |
 | Unbounded path loops and indefinitely held fire/flight recipes | **Excluded V1**, compiler rejects: could block wave/capital/boss drain. Finite loops with proven terminal exits retained |
 | All 12 authored levels and campaign advancement | **DEFER to M7/M4 under Q6A**; twelve-level escalation is explicitly planned above, not implemented or forgotten |
 | M4 grade/progression/loader options, attract, additional boosters and final balance | **DEFER their roadmap tasks**; preserve the measured remainder and known reader/summary constraints in§3 |
@@ -568,7 +569,7 @@ Raider bodies or assault-only cosmetics (one current armoured `heavyLook`);
 independent per-wave HP (C-wave content/packed-field trade-off). The requested
 variety has the concrete recommended path above; wider variants are explicit.
 
-**Current implementation scope:** owner accepted2 and authorized3–4 plus
+**Scope at checkpoint4 (superseded by§14):** owner accepted2 and authorized3–4 plus
 a separate C-skin commit at4. Pause for owner smoke after4. A content overflow
 requires STOP with§3 alternatives before any3/4 policy relocation. No push,
 tag, release or later checkpoint is authorized.
@@ -725,3 +726,60 @@ under§6/§7, with no additional scope accepted.
 [Final resources, CPU, tests, hashes and smoke handoff](../diagnostics/m3/checkpoint-4/c-skin/report.md).
 Play ATRs/checklist are under `build/play/m3/checkpoint-4/`; owner acceptance of
 checkpoint2 does not promote3/4/C-skin. **No M4 implementation before review.**
+
+
+## 14. Owner tuning and checkpoint5 combined handoff — 2026-11-01
+
+Owner review: checkpoint4 mechanics OK, density/width too easy. Owner then
+authorized ordered data tuning, a measured4-Light trial as a separate commit,
+bounded overlap only without a new frame scan and with a fit, then checkpoint5
+including a current-main merge. This supersedes the earlier stop after4.
+New tuning remains an owner-smoke candidate, not a new acceptance.
+
+- **a,9f3735d:** data only, left52/right200/centre124 entries;128–152-HPOS
+  every-frame sweeps, hidden mirrored fans entering opposite sides and crossing,
+  quiet readable exits, all pilot minima row0/spacing16. Opening18/pilot24
+  admissions at the old ceiling3; no byte growth. Native no-fire30630 peak,
+  every pilot group/release completes,2–3-frame clear/arm gaps.
+- **b,1f299a5:** existing four slots/backings/renderer already suffice. Raise
+  only SWARM ceiling3→4, host clamp/timeline agree; authored level1 remains3.
+  Opening24/pilot32 admissions; no new code/state bytes. Four instances share
+  appearance pairs; three distinct pair keys remain the existing limit.
+  Native stress across E/M/H peaks32224,724 over31500 target,344 below32568.
+  Four-shot pulses are observed. No capacity rollback needed.
+- **c:** retain clear lock. A separate scan-free helper sizing probe alone
+  adds88 code +1 state B: content1952/1920 (32 over); helper88 also exceeds79
+  usable L2 by9 before glue/filter/aggregation. A new per-frame scan is excluded;
+  resident fighter policy relocation/split and new mixed-wave semantics are
+  not introduced. Pricing/CPU estimates and alternatives are preserved in the
+  [tuning audit](../diagnostics/m3/final/tuning/report.md). Renderer Y24 means
+  visible entry cues reach34 frames, ordinary entries13–14, despite2–3-frame
+  clear/arm gaps. Older Y16 proxy counts in the stage-b record are superseded
+  by [actual-top linked results](../diagnostics/m3/final/linked-timelines.json).
+
+**Checkpoint5:** main8da7c66 merged as `a0fb7d5`; accepted upstream test-debt
+fixes retained, resource conflicts resolved to M3's measured pins. Game sources
+from main add no new runtime change. Final content1863/free57, window2437/2811
+usable/free374, L2 1457/1536 usable/free79 (+256 protected), arena830/832,
+Director high324, extension878/tail21, initial content12865 unchanged. Window
+M3 growth135≤300. Eleven records/214 total transport sectors; no new allocation
+or reserve spend from a–c. C-skin remains36 guarded fighter-only L2 B,16 window
+and3 extension call bytes; its4 payload bytes leave1 byte. M4 remainder is the
+same as§13, including the10-B reader shortfall and full summary reservation.
+
+Native E/M/H pilot shooting/no-fire routes all admit32 and clear release:
+32079/31239/32095 peaks. Bomber approach enters capital at1426 with Heavy clear
+for at least2 prior frames; peak32089. Registered boss pause/reset routes pass,
+325-host-frame entry, zero stale hull reads; reset rebuilds once and the next
+game draws capital again. Focused linked lifetime tests cover invalid homes,
+boss/death/respawn and actual START GAME checked reload. Quick Spread30465 and
+capital-96031156 are unchanged vs checkpoint2. Every measured frame≤32568;
+target overruns are reported, not suppressed. No full native/release matrix.
+
+The [regional recipe sheet](m3-regional-recipes.md) now uses denser, wider
+2–3-group compositions, proposed12-level bands and4-Light maximum; it does not
+remap the current16-ID hull-style rule or implement later campaign files.
+EN/PL player docs, authoring, architecture, STATUS and memory map reflect the
+combined result. [Final audit/tests/resources/hashes](../diagnostics/m3/final/report.md).
+Play ATRs/checklists: `build/play/m3/final/`. M4/M7 work and all existing DEFERs
+remain out of scope. **STOP: owner smoke/merge review; no push or release.**

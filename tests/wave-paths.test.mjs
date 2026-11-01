@@ -17,6 +17,7 @@ const L=n=>{assert.ok(labels.has(n),n);return labels.get(n);};
 const pathCosts=[];
 const simultaneousCosts=[];
 const tuningResults=[];
+const visibleTop=Number(/ENTITY_GAMEPLAY_TOP = (\d+)/.exec(fs.readFileSync(`${root}/build/entity-effects.inc`,'utf8'))[1]);
 function source(pathName='straight') {
   return {level:2,seed:77,hull:{length:1,turrets:3},sectors:[
     {kind:'space',subtype:'swarm',rows:128,archetypes:['wingman','interceptor'],lights:3,
@@ -324,10 +325,10 @@ test('M3 denser pilot spans both sides and hands off at the next available row t
    if(m[L('_light_wave_remaining')]+1===remaining)admitted++;
    for(let slot=0;slot<4;slot++)if(m[L('light_state')+slot]) {
     m[L('light_slot')]=slot;run(m,'_enemy_c_light_tick');
-    if(m[L('light_y')+slot]>=16&&m[L('light_state')+slot]){xs.add(m[L('light_x')+slot]);columns.add(Math.floor((m[L('light_x')+slot]-48)/52));}
+    if(m[L('light_y')+slot]>=visibleTop&&m[L('light_state')+slot]){xs.add(m[L('light_x')+slot]);columns.add(Math.floor((m[L('light_x')+slot]-48)/52));}
     if(quickKills){m[L('light_state')+slot]=0;m[L('light_screen_hi')+slot]=0;}
    }
-   const visible=Array.from({length:4},(_,i)=>m[L('light_state')+i]===2&&m[L('light_y')+i]>=16&&m[L('light_y')+i]<232).some(Boolean);
+   const visible=Array.from({length:4},(_,i)=>m[L('light_state')+i]===2&&m[L('light_y')+i]>=visibleTop&&m[L('light_y')+i]<232).some(Boolean);
    if(visible){if(lastVisible!==null&&frame-lastVisible>1)visibleGaps.push(frame-lastVisible-1);lastVisible=frame;}
    const empty=!m.slice(L('light_state'),L('light_state')+4).some(Boolean);
    if(empty&&m[L('_light_wave_remaining')]===0&&cleared===null)cleared=frame;
@@ -346,9 +347,9 @@ test('M3 mirrored centre fan descends from opposite sides before crossing',()=>{
  const s={...pilot,sectors:[{kind:'space',subtype:'swarm',rows:480,lights:3,archetypes:['interceptor'],waves:[
   {row:0,archetype:'interceptor',count:2,spacing:16,entry:124,path:'wide-cross',mirror:true}]}]},m=image(s),entries=[];
  for(let f=0;f<70;f++){
-  tick(m);for(let slot=0;slot<2;slot++)if(m[L('light_y')+slot]===16)entries.push(m[L('light_x')+slot]);
+  tick(m);for(let slot=0;slot<2;slot++)if(m[L('light_y')+slot]===visibleTop)entries.push(m[L('light_x')+slot]);
  }
- assert.deepEqual(entries,[200,48],'hidden fan precedes visible opposing entries');
+ assert.deepEqual(entries,[184,64],'hidden fan precedes visible opposing-side entries at gameplay top24');
  assert.ok(m[L('light_x')]<124&&m[L('light_x')+1]>124,'both members cross the centre');
 });
 

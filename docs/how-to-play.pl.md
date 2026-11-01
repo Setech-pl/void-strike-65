@@ -182,6 +182,11 @@ Niektóre lekkie fale lecą ustaloną trasą zamiast ścigać twój myśliwiec.
 Niektóre wstrzymują ogień podczas podejścia, strzelają tylko blisko twojej
 kolumny albo atakują wspólnymi salwami. Broń i punkty pozostają te same.
 
+Pilot poziomu 2 wysyła szybkie grupy maksymalnie czterech lekkich przeciwników,
+które wykorzystują całą szerokość ekranu. Obserwuj obie krawędzie: lustrzane
+pary wlatują z przeciwnych stron i przecinają swoje trasy. Kolejna grupa
+nadchodzi po odejściu poprzedniej, z krótką zapowiedzią zamiast długiej przerwy.
+
 Jeden wyjątek: lekkie myśliwce eskortujące ciężkiego zostają razem z nim.
 
 ## Ulepszenia

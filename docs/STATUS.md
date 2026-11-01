@@ -1,6 +1,6 @@
 # VOID STRIKE 65 — CURRENT STATUS
 
-Last update: 2026-11-01 (M3 checkpoints3/4 + C-skin, awaiting owner smoke)
+Last update: 2026-11-01 (M3 final tuning + checkpoint5, merge-ready candidate)
 
 What is true now. Rules: [reguly-projektu.txt](reguly-projektu.txt). Roadmap:
 [plan-realizacji.md](plan-realizacji.md). Source-of-truth order:
@@ -20,48 +20,54 @@ the values below.
 
 ## Checkpoint
 
-### M3 checkpoints3/4 + C-skin — OWNER-SMOKE CANDIDATE
+### M3 final +checkpoint5 — merge-ready OWNER-SMOKE CANDIDATE
 
-Checkpoint3 `b52d7ff` implements all Q5A fire modes through approved B:
-131-B snapshot in guarded fighter-only L2, invalid pair/phase falls back to
-ordinary fire without reading either checked home. Guard overhead69 cycles
-per snapshot decision. Fallback C was not needed. Checkpoint4 `6cb44bc` adds
-host-only chain expansion and level2 teach→mirror→pressure→release pilot;
-20 waves/5 paths, low minimum rows0/8/16/24, existing Light lock. Level1 and
-all12 decoded Heavy WaveDefs remain unchanged.
+Owner checkpoint4 mechanics OK; sparse/narrow tuning rejected. Data tuning
+9f3735d widens entries/sweeps/crossings, removes authored row waits and raises
+counts. Separate1f299a5 grants4 free Lights through existing storage/renderer;
+opening24 and pilot32 admissions. Level1/all12 Heavy WaveDefs unchanged.
+Current main8da7c66 merged at a0fb7d5; conflicts preserve accepted test-debt
+fixes and M3's resource pins. No new owner acceptance of the tuning is inferred.
 
-Separate C-skin commit uses **36 B L2**, **16 B window**, **3 B extension**;
-content57 free selects L2 under the accepted64-B floor. Four existing payload
-bytes `$ABB3-$ABB6` give selected-look HP,0 inherits archetype. Level2 hunter2,
-lancer4; default/escort look inherits. Boss/invalid phase keeps archetype HP.
-No enemy AI, weapon, points, slot capacity or extra HP state. Admission policy
-cost95 instruction cycles including40 guard overhead (+6 outer JSR); no
-ordinary-frame or row-tick cost except when admitting.
+All Q5A modes retained through guarded131-B L2 volley prep. C-skin stays36 B
+L2 +16 window +3 extension, selected because content free57<64. Invalid
+pair/phase uses normal fire/base HP before any home read. Hunter2/lancer4,
+other looks inherit. Wave chains remain host-expanded; no guest queue/overlap.
 
-| Home | After3 | After4 | After C-skin | Usable free now |
-| --- | ---: | ---: | ---: | ---: |
-| Content /1,920 | 1,863 | 1,863 | **1,863** | 57 |
-| Window /2,811 usable | 2,421 | 2,421 | **2,437** | 374 |
-| L2 /1,536 usable | 1,421 | 1,421 | **1,457** | 79 (+256 protected) |
+| Home | Final used /usable ceiling B | Free B | Tuning delta |
+| --- | ---: | ---: | ---: |
+| Content | 1863 /1920 | 57 | 0 |
+| Window | 2437 /2811 | 374 | 0 |
+| L2 | 1457 /1536 | 79 (+256 protected) | 0 |
 
-M3 window growth135 B meets≤300. Extension878/tail21; arena830, Director high324,
-initial content12,865 unchanged. Normal gates PASS; release evidence remains
-pending. Native PAL quick Spread30,465/capital-96031,156 (zero delta vs2), boss
-entry325. Repeated3-Light volley30,207 with769 three-Light frames and observed
-three-shot pulses. HP pilot sweep31,052; pre-HP no-fire chain30,649,10 admissions
-and completed release. No missed frames, extra VBI, DLI or deadline anomalies.
+Arena830/832, Director high324, extension878/tail21, initial12865 unchanged;
+11 records/214 transport sectors. Total M3 window growth135≤300. Overlap's
+scan-free decision probe alone88+1 B would make content1952/1920 (32 over),
+also larger than L2's usable tail before glue. No new scan/relocation/reserve
+spend. Arm gaps2–3 frames; actual renderer Y24 entry cues up to34, explicitly
+retained. [Pricing and alternatives](diagnostics/m3/final/tuning/report.md).
 
-One frozen full suite each: current main8da7c66 1632 PASS/11 FAIL/4 SKIP;
-raw task1649/25/5. Fourteen stale accepted placement/data expectations repaired
-and full affected files rerun; audited **A11/B0/C0**, matched by name + first
-assertion/message. Main's11 failures stay recorded; canonical release trace
-was not refreshed. Focused policy/guard/chain/compiler/HP and placement checks
-pass (one optional review skip). [Final audit and hashes](diagnostics/m3/checkpoint-4/c-skin/report.md).
+Native PAL worst32224 (target+724, hard margin344), four-shot pulses/864
+four-Light frames per difficulty; no timing anomaly. E/N/H authored pilot
+32079/31239/32095, all32 admissions and quiet release complete. Quick Spread
+30465/capital-96031156 unchanged; boss entry325. Bomber approach/capital32089,
+Heavy cleared beforehand; registered boss pause and RESET31327 both pass,
+next-game hull rebuild once and no stale reads. Linked guards/lifetime,
+departure, rendering, compiler/chains/HP and no-path/main comparisons pass.
 
-**NEXT: owner smoke; STOP.** Play ATRs and bilingual checklist:
-`build/play/m3/checkpoint-4/`. Checkpoint2 stays OWNER-ACCEPTED;3/4/C-skin await
-owner acceptance. M4 owns progression/summary; M7 owns campaign/regional data.
-B-shot, independent hues, Bomber skins/shot re-skin remain DEFER.
+Normal computed gates PASS, release evidence pending. Fresh full main
+1632 PASS/11 FAIL/4 SKIP; task raw1664/13/5. Two stale3-Light expectations
+corrected; complete affected files pass. Audited **A11/B0/C0**, exact first
+assertion/message match; existing11 unit and32 milestone-trace debts retained.
+[One combined report, resources, logs and hashes](diagnostics/m3/final/report.md).
+
+Final play ATRs/checklists: `build/play/m3/final/` (campaign, level2, pilot,
+volley, approach, boss). EN/PL player docs and the
+[denser regional recipe sheet](plans/m3-regional-recipes.md) are current.
+M4 inherits57/374/79 usable home B, reader24 (old estimate10 short), full1792-B
+summary and1 payload-tail byte. B-shot, hues, Bomber skins/shot re-skin,
+terminal overlap and later levels remain DEFER. **NEXT: owner smoke/merge;
+STOP. No M4 implementation, push, tag or release.**
 
 ### Pre-v0.4.0 test debt triage — baseline merged in main4e84bc4
 

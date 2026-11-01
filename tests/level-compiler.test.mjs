@@ -629,10 +629,10 @@ test("T12: level-02.json compiles and differs from level 1 in sector count, wave
     // teach → mirror → pressure → release, retaining room to escalate at M7.
     const sectorFour = two.waves.filter((wave) => wave.sector === 4);
     assert.deepEqual(sectorFour.map((wave) => [wave.archetype, wave.count, wave.spacing]),
-      [["interceptor", 2, 24], ["interceptor", 3, 24], ["interceptor", 3, 24], ["interceptor", 2, 24]]);
-    // ... and no wave anywhere in level 2 sits on the Light class floor.
+      Array.from({length:4},()=>["interceptor",6,16]));
+    // Owner tuning uses the16-frame Light floor for back-to-back pilot groups.
     for (const wave of two.waves.filter((candidate) => candidate.class === "light")) {
-      assert.ok(wave.spacing > 16, `a level-2 Light wave at spacing ${wave.spacing}`);
+      assert.ok(wave.spacing >= 16, `a level-2 Light wave at spacing ${wave.spacing}`);
     }
 
     // Owner decision, 2026-09-30: debris 1 wherever the draft said 2. The

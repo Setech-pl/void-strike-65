@@ -16,6 +16,7 @@ for(const file of ['void-strike-65','encounter-director','integration-glue','lig
 const L=n=>{assert.ok(labels.has(n),n);return labels.get(n);};
 const pathCosts=[];
 const simultaneousCosts=[];
+const tuningResults=[];
 function source(pathName='straight') {
   return {level:2,seed:77,hull:{length:1,turrets:3},sectors:[
     {kind:'space',subtype:'swarm',rows:128,archetypes:['wingman','interceptor'],lights:3,
@@ -37,6 +38,7 @@ function run(m,n,{a=0}={}) {
   return {a:cpu.a,cycles:cpu.cycles,accesses};
 }
 after(()=>{
+  if(process.env.VS65_M3_TUNING_REPORT)fs.writeFileSync(process.env.VS65_M3_TUNING_REPORT,JSON.stringify(tuningResults,null,2)+'\n');
   if(process.env.VS65_M3_PATH_COST_REPORT)fs.writeFileSync(process.env.VS65_M3_PATH_COST_REPORT,
     JSON.stringify({method:'MEASURED whole C tick entry through RTS, no caller JSR/DMA; includes appearance decision, not ASM publication',maximum:Math.max(...pathCosts.map(r=>r.cycles)),simultaneousThreeLightTicks:simultaneousCosts,rows:pathCosts},null,2)+'\n');
 });
@@ -302,4 +304,48 @@ test('M3 volley guard overhead is measured against its identical direct helper',
   assert.equal(guarded.a,1);
   if(process.env.VS65_M3_GUARD_COST_REPORT)fs.writeFileSync(process.env.VS65_M3_GUARD_COST_REPORT,
     JSON.stringify({method:'MEASURED NMOS entry-through-RTS, no caller JSR/DMA; identical three-ready-member state',helper:direct.cycles,guarded:guarded.cycles,guardOverhead:guarded.cycles-direct.cycles},null,2)+'\n');
+});
+
+// Owner's final pilot: test actual linked decisions, not just authored row pins.
+test('M3 denser pilot spans both sides and hands off at the next available row tick',()=>{
+ const pilot=JSON.parse(fs.readFileSync(`${root}/assets/levels/level-02.json`));
+ for(const sectorIndex of [0,3])for(const difficulty of [0,1,2])for(const quickKills of [false,true]) {
+  const sector=structuredClone(pilot.sectors[sectorIndex]);
+  const s={...pilot,sectors:[sector]},m=image(s),c=compile(s);
+  m[L('DIFFICULTY_SETTING')]=difficulty;
+  const expected=c.waves.reduce((n,w)=>n+w.count,0);let admitted=0,acc=0,previousCursor=1,cleared=null,lastFrame=0;
+  const gaps=[],xs=new Set(),columns=new Set();
+  for(let frame=1;frame<=3000;frame++) {
+   m[L('frame_counter')]=(m[L('frame_counter')]+1)&255;acc+=8+difficulty;
+   if(acc>=20){acc-=20;run(m,'_director_c_world_row_tick');}
+   const cursor=m[0x80f7];
+   if(cursor>previousCursor){assert.notEqual(cleared,null,'next wave requires a clear field');gaps.push(frame-cleared);previousCursor=cursor;}
+   const remaining=m[L('_light_wave_remaining')];run(m,'_enemy_c_light_wave');
+   if(m[L('_light_wave_remaining')]+1===remaining)admitted++;
+   for(let slot=0;slot<4;slot++)if(m[L('light_state')+slot]) {
+    m[L('light_slot')]=slot;run(m,'_enemy_c_light_tick');
+    if(m[L('light_y')+slot]>=16&&m[L('light_state')+slot]){xs.add(m[L('light_x')+slot]);columns.add(Math.floor((m[L('light_x')+slot]-48)/52));}
+    if(quickKills){m[L('light_state')+slot]=0;m[L('light_screen_hi')+slot]=0;}
+   }
+   const empty=!m.slice(L('light_state'),L('light_state')+4).some(Boolean);
+   if(empty&&m[L('_light_wave_remaining')]===0&&cleared===null)cleared=frame;
+   if(!empty||m[L('_light_wave_remaining')]!==0)cleared=null;
+   lastFrame=frame;if(admitted===expected&&empty)break;
+  }
+  tuningResults.push({sector:sectorIndex+1,difficulty,quickKills,admitted,completionFrame:lastFrame,handoffGaps:gaps,visibleWidth:xs.size?Math.max(...xs)-Math.min(...xs):0});
+  assert.equal(admitted,expected,`sector${sectorIndex+1}/${difficulty}/${quickKills}: every group admitted`);
+  assert.ok(lastFrame<3000);assert.equal(gaps.length,c.waves.length-1);
+  assert.ok(gaps.every(n=>n>=1&&n<=4),`handoff ${gaps}: only the existing clear/row cadence`);
+  if(!quickKills){assert.ok(Math.max(...xs)-Math.min(...xs)>=140);assert.ok(columns.has(0)&&columns.has(1)&&columns.has(2),'left, centre and right used');}
+ }
+});
+test('M3 mirrored centre fan descends from opposite sides before crossing',()=>{
+ const pilot=JSON.parse(fs.readFileSync(`${root}/assets/levels/level-02.json`));
+ const s={...pilot,sectors:[{kind:'space',subtype:'swarm',rows:480,lights:3,archetypes:['interceptor'],waves:[
+  {row:0,archetype:'interceptor',count:2,spacing:16,entry:124,path:'wide-cross',mirror:true}]}]},m=image(s),entries=[];
+ for(let f=0;f<70;f++){
+  tick(m);for(let slot=0;slot<2;slot++)if(m[L('light_y')+slot]===16)entries.push(m[L('light_x')+slot]);
+ }
+ assert.deepEqual(entries,[200,48],'hidden fan precedes visible opposing entries');
+ assert.ok(m[L('light_x')]<124&&m[L('light_x')+1]>124,'both members cross the centre');
 });

@@ -1,0 +1,23 @@
+✔ M3-H encodes Raider kind in bit 5 and holds in existing motion bytes, without changing level-1 flags (4.081292ms)
+✔ M3-H validator rejects incompatible kinds and invalid or unrepresentable holds (2.21575ms)
+✔ T1: the validator rejects every §5 case and warns on a cap above the subtype table (2.22625ms)
+✔ the authored level 1 compiles clean and reads back as the level it says (0.614ms)
+✔ T2: build/level-1.bin is 16 sectors with the LevelDef and island pages where the plan puts them (0.4725ms)
+✔ T2: the geometry page uses a 960-row coordinate and carries today's two module sequences (0.332333ms)
+✔ the pages the plan marks unchanged are byte-identical to the image that shipped before (0.612292ms)
+✔ levels:check runs the validator alone and the build compiles the authored file (0.488583ms)
+✔ step 2: the Director's schedule is the level image, and the geometry page still waits (0.8995ms)
+✔ T12: level-02.json compiles and differs from level 1 in sector count, waves and masks (19.473166ms)
+✔ M3 chains compile byte-identically to explicit waves without mutating source (2689.054333ms)
+✔ M3 chain expansion never truncates limit overflow and rejects nested/unknown/malformed recipes (0.973667ms)
+✔ M3 timeline exposes late no-fire completion and distinguishes unmodeled Heavy lifetime (1.611792ms)
+✔ M3 path lifetimes include upward exit, terminal and progressing loops (0.132625ms)
+✔ M3 pilot preserves every decoded Heavy WaveDef from accepted checkpoint3 (3.140666ms)
+ℹ tests 15
+ℹ suites 0
+ℹ pass 15
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 2783.927334

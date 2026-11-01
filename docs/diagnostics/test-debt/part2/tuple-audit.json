@@ -1,0 +1,40 @@
+{
+  "matched": 9,
+  "moved": [
+    {
+      "before": {
+        "file": "tests/broadside-fire.test.mjs",
+        "declared_at": "tests/broadside-fire.test.mjs:435",
+        "test": "capital/player collision agrees with independently reconstructed final raster Y",
+        "message": "top edge: independent raster premise; PMG 118..132, screen $8320 glyph 105..110",
+        "first_failing_assertion": "tests/broadside-fire.test.mjs:453"
+      },
+      "after": {
+        "file": "tests/broadside-fire.test.mjs",
+        "declared_at": "tests/broadside-fire.test.mjs:443",
+        "test": "capital/player collision agrees with independently reconstructed final raster Y",
+        "message": "owner 0, slot 0, ring 0: lower third; PMG 93..107, screen $8320 glyph 105..110, cache 113",
+        "first_failing_assertion": "tests/broadside-fire.test.mjs:468"
+      }
+    },
+    {
+      "before": {
+        "file": "tests/gameplay-music-placement.test.mjs",
+        "declared_at": "tests/gameplay-music-placement.test.mjs:165",
+        "test": "the ATR START GAME read grows by the planned five plus three plus five sectors and no more",
+        "message": "Expected values to be strictly equal:",
+        "first_failing_assertion": "tests/gameplay-music-placement.test.mjs:174"
+      },
+      "after": {
+        "file": "tests/gameplay-music-placement.test.mjs",
+        "declared_at": "tests/gameplay-music-placement.test.mjs:165",
+        "test": "the ATR START GAME read grows by the planned five plus three plus five sectors and no more",
+        "message": "Expected values to be strictly equal:",
+        "first_failing_assertion": "tests/gameplay-music-placement.test.mjs:184"
+      }
+    }
+  ],
+  "cleared": 109,
+  "new": [],
+  "explanation": "Two test-only predicate moves are exposed baseline debt: the corrected raster premise reveals an NMOS collision mismatch (binary-reproduced on main); corrected level-size expectations reach stale boot evidence. No production source changed and the ATR hash is unchanged."
+}

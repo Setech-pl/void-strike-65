@@ -1,6 +1,6 @@
 # VOID STRIKE 65 — CURRENT STATUS
 
-Last update: 2026-11-01 (M3 final tuning + checkpoint5, merge-ready candidate)
+Last update: 2026-11-01 (M3 post-smoke difficulty tuning candidate)
 
 What is true now. Rules: [reguly-projektu.txt](reguly-projektu.txt). Roadmap:
 [plan-realizacji.md](plan-realizacji.md). Source-of-truth order:
@@ -20,54 +20,40 @@ the values below.
 
 ## Checkpoint
 
-### M3 final +checkpoint5 — merge-ready OWNER-SMOKE CANDIDATE
+### M3 difficulty tuning — OWNER-SMOKE CANDIDATE
 
-Owner checkpoint4 mechanics OK; sparse/narrow tuning rejected. Data tuning
-9f3735d widens entries/sweeps/crossings, removes authored row waits and raises
-counts. Separate1f299a5 grants4 free Lights through existing storage/renderer;
-opening24 and pilot32 admissions. Level1/all12 Heavy WaveDefs unchanged.
-Current main8da7c66 merged at a0fb7d5; conflicts preserve accepted test-debt
-fixes and M3's resource pins. No new owner acceptance of the tuning is inferred.
+Branch `codex/m3-tune`, baseline main `eaae85a` (includes M3). Owner reports
+M3 Lights too fast and hard to hit. NORMAL now authors every-second-frame
+wide sweeps, every-fourth-frame calm tracking and dy1; EASY uses quarter-rate
+sweeps/calm holds; HARD preserves preceding motion. All six level2 paths are
+covered. The shared96-B payload has no runtime difficulty multiplier, so
+EASY/HARD use explicit authored build variants: choose matching OPTIONS
+settings. No new runtime code/state. Level1, Heavy WaveDefs, HP, shots,
+counts24/32, mirrored arrivals and four-Light ceiling stay intact. Only the
+opening/pilot sector rows grow with slower lifetimes so no final groups are cut.
 
-All Q5A modes retained through guarded131-B L2 volley prep. C-skin stays36 B
-L2 +16 window +3 extension, selected because content free57<64. Invalid
-pair/phase uses normal fire/base HP before any home read. Hunter2/lancer4,
-other looks inherit. Wave chains remain host-expanded; no guest queue/overlap.
+Separate optional correction extends player-shot vertical Light hit area by
+one raster line at each edge. Two immediate operands only:0 resident/state B,
+0 added instructions/cycles. Kernel1196/1213 B unchanged, packed+4 B;
+transport214 sectors, content1863/1920 B, window2437 B, L2 1457 B unchanged.
+No reserved address, segment or residency change.
 
-| Home | Final used /usable ceiling B | Free B | Tuning delta |
-| --- | ---: | ---: | ---: |
-| Content | 1863 /1920 | 57 | 0 |
-| Window | 2437 /2811 | 374 | 0 |
-| L2 | 1457 /1536 | 79 (+256 protected) | 0 |
+Normal build/byte gates pass; release runtime evidence remains pending.
+Quick Spread NORMAL30465 and capital-960 NORMAL31156 both have0-cycle delta
+against fresh main. Four-Light path/volley E/N/H32224/32184/32033; worst is
+724 above31500 target,344 below32568 hard gate. Pilot E/N/H31951/31281/31132.
+No timing anomalies; each stress has864 four-Light frames and observed
+four-shot pulses. Linked no-fire/instant-kill checks preserve152-HPOS spans,
+all opening24/pilot32 admissions and next-legal-row handoffs.
 
-Arena830/832, Director high324, extension878/tail21, initial12865 unchanged;
-11 records/214 transport sectors. Total M3 window growth135≤300. Overlap's
-scan-free decision probe alone88+1 B would make content1952/1920 (32 over),
-also larger than L2's usable tail before glue. No new scan/relocation/reserve
-spend. Arm gaps2–3 frames; actual renderer Y24 entry cues up to34, explicitly
-retained. [Pricing and alternatives](diagnostics/m3/final/tuning/report.md).
-
-Native PAL worst32224 (target+724, hard margin344), four-shot pulses/864
-four-Light frames per difficulty; no timing anomaly. E/N/H authored pilot
-32079/31239/32095, all32 admissions and quiet release complete. Quick Spread
-30465/capital-96031156 unchanged; boss entry325. Bomber approach/capital32089,
-Heavy cleared beforehand; registered boss pause and RESET31327 both pass,
-next-game hull rebuild once and no stale reads. Linked guards/lifetime,
-departure, rendering, compiler/chains/HP and no-path/main comparisons pass.
-
-Normal computed gates PASS, release evidence pending. Fresh full main
-1632 PASS/11 FAIL/4 SKIP; task raw1664/13/5. Two stale3-Light expectations
-corrected; complete affected files pass. Audited **A11/B0/C0**, exact first
-assertion/message match; existing11 unit and32 milestone-trace debts retained.
-[One combined report, resources, logs and hashes](diagnostics/m3/final/report.md).
-
-Final play ATRs/checklists: `build/play/m3/final/` (campaign, level2, pilot,
-volley, approach, boss). EN/PL player docs and the
-[denser regional recipe sheet](plans/m3-regional-recipes.md) are current.
-M4 inherits57/374/79 usable home B, reader24 (old estimate10 short), full1792-B
-summary and1 payload-tail byte. B-shot, hues, Bomber skins/shot re-skin,
-terminal overlap and later levels remain DEFER. **NEXT: owner smoke/merge;
-STOP. No M4 implementation, push, tag or release.**
+Full suites raw main1662/15/5, task1665/15/5; audited **A11/B0/C1** after
+three baseline setup corrections and four stale expectations, with complete
+affected-file reruns. Existing11 unit and32 milestone debts remain. Details
+and exact first assertions: [task report](diagnostics/m3-tune/report.md).
+Only the owner records smoke acceptance. Seven play ATRs and bilingual launch
+checklists: `build/play/m3-tune/`. Rebuild with
+`node scripts/build-m3-tune-play.mjs`. **NEXT TASK: owner smoke; STOP.**
+No merge, push, release, tag or M4 work.
 
 ### Pre-v0.4.0 test debt triage — baseline merged in main4e84bc4
 

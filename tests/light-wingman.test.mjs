@@ -823,3 +823,16 @@ test("sideways Bomber escort stays inside the two-cell screen bounds for every l
     assert.deepEqual(image.slice(L("PLAYFIELD_ROW_LO"),L("PLAYFIELD_ROW_HI")+27),rows,"Light cannot write the row table");
   }
 });
+
+// Owner M3 tuning: visuals and player-contact geometry stay at 8x8.
+test('M3 player shots include one raster line above and below the swept Light area',()=>{
+ for(const [dx,dy,hit] of [[-1,4,false],[0,4,true],[7,4,true],[8,4,false],
+  [2,-9,false],[2,-8,true],[2,-7,true],[2,7,true],[2,8,true],[2,9,false]]) {
+  const image=game();run(image,'enemy_spawn_raiders');
+  image[L('light_x')]=100;image[L('light_y')]=99;
+  image[L('FIGHTER_PROJECTILE_ACTIVE')]=1;
+  image[L('FIGHTER_PROJECTILE_X')]=100+dx;image[L('FIGHTER_PROJECTILE_Y')]=96+dy;
+  run(image,'light_shot',{x:0});
+  assert.equal(image[L('FIGHTER_PROJECTILE_ACTIVE')],hit?0:1,`offset ${dx}/${dy}`);
+ }
+});

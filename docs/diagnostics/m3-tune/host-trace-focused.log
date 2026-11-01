@@ -1,0 +1,19 @@
+✔ natural entry routes remain in the standard native suite and registered test gate (1.122583ms)
+✔ natural entry gate requires entry, exit and boss subject and accepts parser-set-aside boss entry (0.937667ms)
+✔ natural entry gate rejects a target excess below the hard gate and the measured missed-fence pattern (0.227042ms)
+✔ frame-peak snapshots stay worktree-local and must match their exact source variant (0.574583ms)
+✔ the native gate cannot drop old routes or accept stale L2 and mismatched world/hull clocks (0.207792ms)
+✔ Spread capital failing inputs are permanent and retain the hard gate with an explicit soft target (3.187125ms)
+✔ a default run reads dist/ and build/ and writes build/runtime-wall-trace/ (0.766667ms)
+✔ --artifacts accepts a debug-route build and keeps every path inside it (0.248583ms)
+✔ --artifacts refuses anything that is not build/level-N-sM (0.786875ms)
+✔ a debug-route run is focused, writes no docs/, and matches its manifest (0.251416ms)
+﹣ a debug-route replay leaves the default evidence byte-identical (0.033542ms) # the trace emulator is not prepared in build/atari800-trace
+ℹ tests 11
+ℹ suites 0
+ℹ pass 10
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 1
+ℹ todo 0
+ℹ duration_ms 64.659458

@@ -675,3 +675,16 @@ at gameplay Y24; actual linked visible gaps can reach34 frames, while state
 clear/arm gaps are2–3. Do not substitute one measure for the other. Bounded
 terminal overlap was priced and deferred: its straightforward scan-free helper
 alone adds89 content B (32 over the available home), before integration.
+
+### M3 owner-smoke tempo variants (2026-11-01 candidate)
+
+Level2's source now authors NORMAL half-rate wide sweeps, quarter-rate calm
+tracking and single-line vertical motion. `assets/levels/m3-tempo.json` owns
+EASY/HARD overrides; `--level=2[:sector=N] --m3-tempo=easy|normal|hard` selects
+one at build time without adding guest code or state. Each variant owns its
+`build/m3-tempo-<tempo>-level-2-sN/` directory. Choose the matching difficulty
+in OPTIONS: the shared96-B payload is not switched by the menu.
+`node scripts/build-m3-tune-play.mjs` rebuilds the owner-smoke set. Slower
+opening/pilot variants lengthen only those Light sectors to keep all groups
+before expiry. Counts, mirrored entries and clear-lock chains remain intact.
+See [speed measurements and limitations](diagnostics/m3-tune/report.md).

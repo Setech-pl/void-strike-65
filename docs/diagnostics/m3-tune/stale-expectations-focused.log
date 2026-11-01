@@ -1,0 +1,22 @@
+✔ M3-H encodes Raider kind in bit 5 and holds in existing motion bytes, without changing level-1 flags (2.689459ms)
+✔ M3-H validator rejects incompatible kinds and invalid or unrepresentable holds (1.339ms)
+✔ T1: the validator rejects every §5 case and warns on a cap above the subtype table (1.739875ms)
+✔ the authored level 1 compiles clean and reads back as the level it says (0.369333ms)
+✔ T2: build/level-1.bin is 16 sectors with the LevelDef and island pages where the plan puts them (0.327208ms)
+✔ T2: the geometry page uses a 960-row coordinate and carries today's two module sequences (0.252375ms)
+✔ the pages the plan marks unchanged are byte-identical to the image that shipped before (0.446125ms)
+✔ levels:check runs the validator alone and the build compiles the authored file (0.278042ms)
+✔ step 2: the Director's schedule is the level image, and the geometry page still waits (0.618792ms)
+✔ T12: level-02.json compiles and differs from level 1 in sector count, waves and masks (14.741667ms)
+✔ step 3: --level=2 builds level 2 into build/level-2-s0/ and never touches dist/ (2719.773417ms)
+✔ step 3: the Director reads level 2 - six sectors, the capital by authored row 1,536, four Lights in a swarm sector, complete after sector 6 (822.775291ms)
+✔ step 3: --level=2:sector=M enters each of level 2's six sectors (16262.292333ms)
+✔ step 3: plan §7's npm script level:play is the debug route (0.151292ms)
+ℹ tests 14
+ℹ suites 0
+ℹ pass 14
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 22053.894875

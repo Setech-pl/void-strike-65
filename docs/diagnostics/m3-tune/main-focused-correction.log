@@ -1,0 +1,39 @@
+✔ M3 chains compile byte-identically to explicit waves without mutating source (4309.043042ms)
+✔ M3 chain expansion never truncates limit overflow and rejects nested/unknown/malformed recipes (0.834625ms)
+✔ M3 timeline exposes late no-fire completion and distinguishes unmodeled Heavy lifetime (8.234292ms)
+✔ M3 path lifetimes include upward exit, terminal and progressing loops (0.1575ms)
+✔ M3 pilot preserves every decoded Heavy WaveDef from accepted checkpoint3 (3.005834ms)
+✔ M3 compiler packs a named path into the existing payload, deduplicating identical records (4359.559959ms)
+✔ M3 compiler rejects malformed, Heavy, boss, looping-archetype and nonterminating paths (1.355ms)
+✔ M3 straight policy descends once per tick and retires without kill credit or fragments (43.667375ms)
+✔ M3 finite segments advance on exact durations and a terminal flag retires immediately (23.970167ms)
+✔ M3 invalid/disarmed home is never executed and shared wave publication still works (27.549ms)
+﹣ M3 no-path Wingman and Interceptor retain main positions, cadence and loop decisions (0.06725ms) # SKIP
+✔ M3 no-path and orphan escort use resident movement, no inherited segment (17.298667ms)
+✔ M3 boss escort skips poisoned path state and orphan falls back without home reads (15.014875ms)
+✔ M3 mirror alternates successful admissions, including a recycled slot after refusal (27.480459ms)
+✔ M3 tracking quantizes and clamps player column without overshoot (51.477542ms)
+✔ M3 vocabulary has repeatable shallow, snake and arc landmarks (106.246208ms)
+✔ M3 three-Light simultaneous segment transitions stay independent and bounded (23.577167ms)
+✔ M3 upward return retires before negative wrap; side exit clamps before terminal retirement (84.100916ms)
+✔ M3 relative loop stays within its record, progresses vertically and eventually retires (37.46125ms)
+✔ M3 compiler refuses zero-progress loops, invalid relative ends, cadence2 and ninth distinct path (0.992209ms)
+✔ M3 contextual fire bits preserve no-path and escort loops and reject invalid modes (0.8275ms)
+✔ M3 one volley opportunity emits only ready members using one token, without backlog (33.354958ms)
+✔ M3 token-denied volley does not retry until the next opening or advance reloads (17.305792ms)
+✔ M3 column is inclusive one cell and combined volley filters its snapshot (88.980084ms)
+✔ M3 segment hold-fire and late/reused admissions cannot join a prepared volley (36.293792ms)
+✔ M3 invalid L2/phase returns ordinary fallback without reading poisoned L2 or content (54.970375ms)
+✔ M3 invalid checked pair falls back to ordinary per-member token/fire policy (21.899834ms)
+✔ M3 volley guard overhead is measured against its identical direct helper (22.949541ms)
+✔ M3 denser pilot spans both sides and hands off at the next available row tick (510.755833ms)
+✔ M3 mirrored centre fan descends from opposite sides before crossing (18.21625ms)
+✔ M3 four admitted path Lights share one glyph pair and one volley token (24.884541ms)
+ℹ tests 31
+ℹ suites 0
+ℹ pass 30
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 1
+ℹ todo 0
+ℹ duration_ms 5756.96225

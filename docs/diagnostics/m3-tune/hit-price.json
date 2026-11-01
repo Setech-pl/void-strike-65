@@ -1,0 +1,23 @@
+{
+  "method": "MEASURED linked Light kernel byte diff; same instruction opcodes/addresses, two immediate operands only",
+  "beforeBytes": 1196,
+  "afterBytes": 1196,
+  "residentDelta": 0,
+  "stateDelta": 0,
+  "additionalInstructionCyclesPerCandidate": 0,
+  "changes": [
+    {
+      "offset": 100,
+      "address": "36a7",
+      "before": 8,
+      "after": 9
+    },
+    {
+      "offset": 104,
+      "address": "36ab",
+      "before": 249,
+      "after": 248
+    }
+  ],
+  "rejectedHorizontal": "+3 bytes / +4 instruction cycles per horizontally checked live slot (up to 80 cycles for 5 player projectiles x 4 Lights), link fails LIFE tail does not start at its MAIN pin. Final choice: vertical +1 raster line at both edges only."
+}

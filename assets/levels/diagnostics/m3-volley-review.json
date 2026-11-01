@@ -1,0 +1,49 @@
+{
+  "level": 2,
+  "seed": 77,
+  "stars": "white",
+  "hull": {
+    "length": 1,
+    "turrets": 3
+  },
+  "sectors": [
+    {
+      "kind": "space",
+      "subtype": "swarm",
+      "rows": 2000,
+      "archetypes": [
+        "wingman",
+        "interceptor"
+      ],
+      "lights": 3,
+      "waves": [
+        {
+          "row": 0,
+          "archetype": "wingman",
+          "count": 9,
+          "spacing": 16,
+          "entry": 80,
+          "path": "snake",
+          "fire": "volley"
+        },
+        {
+          "row": 8,
+          "archetype": "interceptor",
+          "count": 3,
+          "spacing": 16,
+          "entry": 124,
+          "path": "tracking-dive",
+          "fire": "volley-column"
+        }
+      ]
+    },
+    {
+      "kind": "space",
+      "subtype": "swarm",
+      "rows": 2040,
+      "archetypes": [],
+      "lights": 0,
+      "waves": []
+    }
+  ]
+}

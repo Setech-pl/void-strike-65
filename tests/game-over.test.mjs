@@ -150,7 +150,7 @@ test("GAME OVER leaves the gameplay loop before control, combat, spawn, and scor
   assert.match(block("enter_game_over", "enter_frontend_state"),
     /lda #STATE_GAME_OVER\s+bne enter_frontend_state/);
   assert.match(block("enter_frontend_state", "enter_exited_state"),
-    /lda #\$00[\s\S]+sta DMACTL[\s\S]+sta GRACTL[\s\S]+jsr clear_pmg_graphics_latches[\s\S]+sta frontend_input_armed/);
+    /lda #\$00[\s\S]+sta DMACTL[\s\S]+sta GRACTL[\s\S]+jsr L2_DISARM[\s\S]+sta frontend_input_armed/);
 });
 
 test("GAME OVER renders final SCORE and TOP from packed BCD without changing them", () => {

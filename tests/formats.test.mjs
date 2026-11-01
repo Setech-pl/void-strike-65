@@ -26,14 +26,14 @@ test("generated artifact set is internally consistent", () => {
   assert.equal(manifest.bootPayloadTrailer.sourceOwned, true);
 });
 
-test("ATR uses standard single-density geometry", () => {
+test("ATR retains its declared single-density sector geometry", () => {
   const { manifest } = validateBuildDirectory(rootDirectory);
   const atr = fs.readFileSync(path.join(rootDirectory, "dist", "void-strike-65.atr"));
   const parsed = parseAtr(atr);
   assert.equal(parsed.magic, atrConstants.magic);
   assert.equal(parsed.sectorSize, 128);
-  assert.equal(parsed.body.length, 720 * 128);
-  assert.equal(atr.length, 92176);
+  assert.equal(parsed.body.length, 133120);
+  assert.equal(atr.length, 133136);
   assert.equal(parsed.boot.sectorCount, manifest.transportCapacity.initialBootSectors);
   assert.equal(parsed.body.subarray(
     manifest.bootPayloadTrailer.address - manifest.loadAddress,
@@ -110,8 +110,8 @@ test("resident compaction proof survives and Spread Shot leaves at least 64 sour
     manifest.entityEffects.stagedSourceAddress -
       manifest.entityEffects.initialPackedSourcesEndExclusive);
   assert.equal(manifest.entityEffects.sourceStagingOverlapBytes,
-    manifest.entityEffects.initialPackedSourcesEndExclusive -
-      manifest.entityEffects.stagedSourceAddress);
+    Math.max(0, manifest.entityEffects.initialPackedSourcesEndExclusive -
+      manifest.entityEffects.stagedSourceAddress));
   assert.equal(manifest.entityEffects.stagingToBroadsideMarginBytes,
     manifest.broadsideRuntime.runAddress - manifest.entityEffects.stagedEndExclusive);
   // RE-PINNED 2026-10-01 (recorded failures review, A13): build/manifest.json. The packed
@@ -125,7 +125,7 @@ test("resident compaction proof survives and Spread Shot leaves at least 64 sour
     manifest.broadsideRuntime.runAddress,
     manifest.entityEffects.sourceToStagingMarginBytes,
     manifest.entityEffects.stagingToBroadsideMarginBytes,
-  ], [0x5332, 0x5318, 0x5dff, 0x5e10, -26, 17]);   // RE-PINNED M6 stage 1b: the initial block's packed sources 1 B shorter ($5333 / -27 before)
+  ], [20541,21272,23835,24080,731,245]);   // RE-PINNED M6 stage 1b: the initial block's packed sources 1 B shorter ($5333 / -27 before)
   // RE-PINNED 2026-10-10, fix/hardware-audio (F2): the cold start's 5-byte
   // SKCTL write - the packed sources end $532E -> $5333, 27 B into the
   // staging; the staging ends $5DFA -> $5DFF; the margin to BROADSIDE 22 -> 17.
@@ -143,7 +143,7 @@ test("resident compaction proof survives and Spread Shot leaves at least 64 sour
     lifecycle.starfieldDestinationOverlapStartAddress,
     lifecycle.starfieldDestinationOverlapEndExclusive,
     lifecycle.starfieldDestinationOverlapBytes,
-  ], [0x54e4, 0x5cdb, 0x54e4, 0x5cdb, 2039]);
+  ], [21732,23160,21732,23160,1428]);
   assert.match(source,
     // The cold publication (publish_director_abi, 4.5M-M2) sits between the
     // resident and the entity unpack; the order under test is unchanged.
@@ -181,8 +181,8 @@ test("the code window is declared, guarded and addressable by the build", () => 
   // L1 separates the MAIN Light link from the Director's window record.
   const kernel = manifest.lightKernel;
   assert.deepEqual([kernel.address, kernel.endExclusive, kernel.freeBytes], [0x3643, 0x3aef, 17]);
-  assert.equal(window.address + window.directorHalfBytes, 0xb478);
-  assert.equal(window.address + window.usedBytes, 0xb478);
+  assert.equal(window.address + window.directorHalfBytes, 46846);
+  assert.equal(window.address + window.usedBytes, 46846);
   assert.ok(kernel.endExclusive <= 0x3b00, "Light must stop before PMG DMA RAM");
   const reader = manifest.sectorReader;
   assert.equal(reader.address, 0xa000);

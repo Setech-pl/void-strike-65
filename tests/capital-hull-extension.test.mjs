@@ -1,3 +1,4 @@
+import {compileLevel, GEOMETRY_OFFSET} from "../scripts/level-compiler.mjs";
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
@@ -142,8 +143,9 @@ test("the final ATR publishes the exact seeded hull layout bytes", () => {
   const atr = fs.readFileSync(path.join(root, "dist", "void-strike-65.atr"));
   const image = atr.subarray(16 + (run.startSector - 1) * 128);
   const page = image.subarray(manifest.levelDef.geometry.imageOffset);
-  for (const [side, offset] of [["allied", 8], ["enemy", 68]]) {
-    const expected = asset.sector.moduleSequences.get(side);
+  for (const [side, offset] of [["allied", GEOMETRY_OFFSET.alliedSequence], ["enemy", GEOMETRY_OFFSET.enemySequence]]) {
+    const compiled = compileLevel(JSON.parse(fs.readFileSync(path.join(root, "assets/levels/level-01.json"))), {hullAsset: asset});
+    const expected = compiled.pages.geometry.subarray(offset, offset + 120);
     assert.deepEqual([...page.subarray(offset, offset + expected.length)], [...expected],
       `atr/${side} layout bytes differ from the source generator`);
   }
@@ -154,9 +156,10 @@ test("the final ATR publishes the exact seeded hull layout bytes", () => {
   // ends; the pin's label and its 120-B length are unchanged.
   const reserve = labels.get("hull_sequence_reserve");
   const code = labels.get("world_rotate_due_end") - reserve;
+  const usedEnd = labels.get("raider_gate_end"); // d7b764c spends the former zero pin.
   assert.equal(labels.get("world_rotate_due"), reserve);
   assert.ok(code > 0 && code <= 17, `world_rotate_due is ${code} B`);
-  assert.deepEqual([...memory.subarray(reserve + code, reserve + 120)], new Array(120 - code).fill(0),
+  assert.deepEqual([...memory.subarray(usedEnd, reserve + 120)], new Array(reserve + 120 - usedEnd).fill(0),
     "the rest of the retired resident sequences is a zero pin");
 });
 

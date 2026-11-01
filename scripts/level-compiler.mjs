@@ -805,6 +805,11 @@ function compileSectors(source, context, warnings) {
       const mirror = requireBoolean(context, waveWhere, "mirror", wave.mirror, false);
       const onCleared = requireBoolean(context, waveWhere, "afterCleared",
         wave.afterCleared, false);
+      const fireMode = wave.fire ?? "normal";
+      const fireBits = new Map([["normal",0],["volley",0x40],["column",0x80],["volley-column",0xc0]]).get(fireMode);
+      if (fireBits === undefined) fail(context,waveWhere,"fire must be normal, volley, column or volley-column");
+      if (wave.fire !== undefined && wave.path === undefined)
+        fail(context,waveWhere,"fire envelopes require a free Light path wave");
       if (wave.path !== undefined) {
         if(waveClass!=="light" || !isSpace)
           fail(context,waveWhere,"a path requires a free Light wave in SPACE");
@@ -852,10 +857,10 @@ function compileSectors(source, context, warnings) {
       }
       // wave_flags: bits 0-1 appearance slot, bit 2 mirror, bit 3 Heavy class,
       // bit 4 after-cleared, bit 5 armoured Raider,
-      // bits 6-7 the Interceptor's loops.
+      // bits6-7: path-Light fire modes, otherwise Interceptor loops (Q4A).
       const flags = appearance | (mirror ? 0x04 : 0) |
         (waveClass === "heavy" ? 0x08 : 0) | (onCleared ? 0x10 : 0) |
-        (heavyKind === "armoured" ? 0x20 : 0) | loops << 6;
+        (heavyKind === "armoured" ? 0x20 : 0) | (wave.path !== undefined ? fireBits : loops << 6);
       waves.push({
         sector: index + 1, row, flags, count, spacing, entry, appearance, mirror,
         onCleared, loops, archetype, escort, class: waveClass, kind: heavyKind, motion, path:wave.path, hold: wave.hold ?? null,

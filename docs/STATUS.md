@@ -1,6 +1,6 @@
 # VOID STRIKE 65 — CURRENT STATUS
 
-Last update: 2026-11-01 (M3 same-home fire compaction remains83 B over; checkpoint2 accepted)
+Last update: 2026-11-01 (M3 checkpoint3 guarded L2 volley candidate; checkpoint4 authorized)
 
 What is true now. Rules: [reguly-projektu.txt](reguly-projektu.txt). Roadmap:
 [plan-realizacji.md](plan-realizacji.md). Source-of-truth order:
@@ -20,36 +20,28 @@ the values below.
 
 ## Checkpoint
 
-### M3 checkpoint3 — BLOCKED_CONTENT_BYTES after same-home compaction
+### M3 checkpoint3 — OWNER-SMOKE CANDIDATE; option B passed
 
-Checkpoint2 `742b80e` remains OWNER-ACCEPTED (owner smoke PASS). The owner
-repeated authorization for3/4 plus separate C-skin, retaining the explicit
-content-overflow STOP before relocation. The agent resumed with same-home C
-compaction; no L2 fire-policy or scope-split decision was inferred. Git writes
-work; branch `codex/m3-plan`, task-start `4452d3c`.
+Owner approved option B, invalid-L2 normal-fire fallback, and automatic C
+fallback if B fails bytes or the3-Light volley hard gate. B fits and passes;
+all Q5A modes remain, C is unused. Checkpoint2 `742b80e` is OWNER-ACCEPTED.
+131-B snapshot C lives at$1E0A in checked L2; resident shared-valid/gameplay/
+fighter guard precedes every L2/state read. Invalid checked pair uses resident
+normal movement/fire. Guard overhead69 CPU/decision (630 helper,699 guarded).
 
-Fresh normal accepted-baseline build PASS: content1,800/1,920, window2,384/
-2,811 usable, L2 1,290/1,536 usable (+256 protected), arena830/832 B.
-Compacted3 draft requires**2,003 B:83 B over**, versus first2,124/204 over.
-It saves125 code B but adds4 compiler-reserved bytes:121 B net saved. Complete
-requirement1 header+1,946 code+56 data; end-exclusive$1953. Link's code-only
-27-B warning excludes56 data. All intended M3 code/data are in content;
-window/L2/arena unchanged. The byte gate rejects the draft. No overflow image
-run, home enlarged, fire mode dropped or fire policy relocated. Rejected source
-preserved as evidence then restored.4/C-skin not started or placed.
+Normal computed gates PASS. Actual content**1,863 B**, window**2,421 B**,
+L2**1,421 B**; additions vs2:+63/+37/+131. Free57/390/115 usable B, plus256
+protected L2 B. Arena830/Director high324/initial content12,865 unchanged.
+Quick Spread30,465/capital-96031,156;3-Light volley case30,207,769 three-Light
+frames and two3-shot rises. Zero timing anomalies, boss entry325. Focused
+policy/compiler/Heavy/map checks pass; task-wide full audit follows4/C-skin.
+Main8da7c66 accepted test-debt part2 expectations/fixtures aligned without
+merging or changing game source. Release wall evidence still pending.
+[Implementation, bytes and native proof](diagnostics/m3/checkpoint-3/implementation/report.md).
 
-[Exact accounting, patch and updated alternatives](diagnostics/m3/checkpoint-3/compact/report.md).
-A: recover≥83 more content B. B: authorize guarded L2 for the measured131-B
-volley snapshot helper; body-only arithmetic leaves content48 B/L2 115 usable B
-before guards and C-skin (67 after estimated48-B C-skin). Recommend B as next
-scoped experiment; it is not a compiled relocation fit. C: explicitly split
-volley/combined into a follow-up; no silent deferral. Owner decision needed.
-
-No full suite, quick native/3-Light volley measurement or checkpoint4 ATR
-follows the hard byte stop. No new CPU/frame claim. Accepted2 historical quick
-worst31,156/path review31,663 and audited A120/B0/C0 remain reference evidence
-only. Existing2 ATRs/instructions stay in `build/play/m3/checkpoint-2/`.
-**NEXT TASK: owner resource/scope decision A/B/C; STOP.**
+**NEXT TASK: authorized4 chains/level2 pilot, then separate C-skin commit;
+pause for owner smoke after4.** Content57 free selects L2 for future C-skin;
+its actual code/guard cost still measured separately. No owner acceptance of3.
 
 ### Pre-v0.4.0 test debt triage — baseline merged in main4e84bc4
 

@@ -10,6 +10,7 @@ void asm_m3_wave_arm(void);
 void asm_m3_admit(void);
 void asm_m3_escort(void);
 uint8_t asm_m3_tick(void);
+uint8_t asm_m3_volley(void);
 
 enum SectorLifecycleState {
     SECTOR_CAPITAL_ENGINES = 0,

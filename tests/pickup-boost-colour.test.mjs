@@ -124,13 +124,13 @@ test("COLPM3 follows the sector state, once per frame, off the latch that exists
     /lda FIGHTER_PROJECTILE_PUBLICATION_FRAME\s*\n\s*beq @fighter_window[\s\S]*?lda #PLAYER_NORMAL_ENGINE_COLOR\s*\n\s*sta COLPM3/,
     "a capital frame gives COLPM3 back to the broadside M3 and the explosion");
   assert.match(publisher,
-    /@fighter_window:\s*\n\s*lda #PICKUP_BOOST_COLOUR\s*\n\s*sta COLPM3/,
+    /@fighter_window:\s*\n\s*jsr SECTOR_READER_STATS_FIGHTER/,
     "an OPEN frame gives COLPM3 to the capsule");
   // The register and the P3 image are published in the same window, so they can
   // never disagree for a frame across a sector transition.
   assert.match(publisher, /sta COLPM3[\s\S]*?ldx #\$77\s*\n\s*jsr wait_frame_at_line/);
-  assert.equal([...source.matchAll(/^\s*sta COLPM3$/gm)].length, 3,
-    "three COLPM3 writers: the two per-frame state writes and the cold frontend init");
+  assert.equal([...source.matchAll(/^\s*sta COLPM3$/gm)].length, 2,
+    "M6 LIFE publishes OPEN colour in its checked continuation; capital and frontend stay here");
 });
 
 test("P3 carries the capsule's one-clock size, and the explosion's double width only", () => {

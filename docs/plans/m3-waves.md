@@ -6,7 +6,8 @@
 `6046c0b6beb25f15c53ca15cda8f39a431983cd3` (includes M3-H session 2).
 Owner smoke of checkpoint2 `742b80e` PASSED. Owner now authorizes3 and4,
 plus C-skin separately, with a pause after4 and a hard byte-overflow STOP
-before relocating3/4 policy. The compacted3 draft remains83 B over; current STOP and alternatives are in§10. Planning commits had zero
+before relocating3/4 policy. Owner selected B and authorized automatic C fallback. B now fits and passes;
+current measurements are in§11. Planning commits had zero
 runtime delta; actual implementation sizes are recorded in §8.
 [Owner decisions](../decisions/2026-10-31-m3-waves.md) include Q1–Q6A and the
 §7 amendments. No C-skin implementation before checkpoint4.
@@ -646,3 +647,13 @@ into a follow-up. Recommend B as the next scoped experiment, with compiled fit
 and CPU proof still required. No new owner relocation/split choice is inferred.
 No fresh quick/3-Light volley measurement and no checkpoint4 play ATR.
 **BLOCKED_CONTENT_BYTES; STOP for owner resource/scope decision.**
+
+
+## 11. Checkpoint3 implementation — 2026-11-01
+
+Owner selects guarded L2 B; auto-C fallback authorized if bytes or volley frame
+fails. B succeeds:content1,863/window2,421/L2 1,421 B; snapshot131 B and guard
+69 CPU/decision. Quick31,156;3-Light volley30,207, no timing anomalies. All modes
+retained; no C fallback. [Audit](../diagnostics/m3/checkpoint-3/implementation/report.md).
+Continue authorized4, with C-skin separately. Content57 free means C-skin
+requires L2 under its64-B floor; actual implementation price follows4.

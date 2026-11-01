@@ -10,7 +10,7 @@ import {compileLevel,defaultHullAsset,LEVEL_CORE_ADDRESS,LEVEL_PAYLOAD_ADDRESS,
 
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 const labels=new Map();
-for(const file of ['void-strike-65','encounter-director','integration-glue','light-kernel'])
+for(const file of ['void-strike-65','encounter-director','integration-glue','light-kernel','l2'])
   for(const m of fs.readFileSync(`${root}/build/${file}.lbl`,'utf8').matchAll(/^al\s+([\da-f]+)\s+\.?(\S+)$/gim))
     if(!labels.has(m[2]))labels.set(m[2],parseInt(m[1],16));
 const L=n=>{assert.ok(labels.has(n),n);return labels.get(n);};
@@ -43,6 +43,7 @@ after(()=>{
 function image(s=source()) {
   const m=new Uint8Array(65536);installRuntimeSegments(m,root);
   m.set(fs.readFileSync(`${root}/build/content-module.bin`),0x1180);
+  m.set(fs.readFileSync(`${root}/build/l2.bin`),0x1900);
   m[0x86b3]=1;m[L('game_state')]=6;m[L('DIFFICULTY_SETTING')]=1;
   const level=compile(s);m.set(level.pages.core,LEVEL_CORE_ADDRESS);
   m.set(level.pages.payload,LEVEL_PAYLOAD_ADDRESS);m.set(level.pages.geometry,LEVEL_GEOMETRY_ADDRESS);
@@ -227,4 +228,78 @@ test('M3 compiler refuses zero-progress loops, invalid relative ends, cadence2 a
     s.sectors[0].waves.push({row:i*8,archetype:'wingman',count:1,spacing:24,entry:124,path:`p${i}`});
   }
   assert.throws(()=>compile(s),/eight distinct paths/);
+});
+
+function readyMembers(fire='volley') {
+  const s=source();Object.assign(s.sectors[0].waves[0],{fire,count:3,spacing:16});
+  const m=image(s);for(let f=0;f<36;f++)tick(m);
+  for(let i=0;i<3;i++) {
+    assert.equal(m[L('light_state')+i],2);
+    m[L('light_y')+i]=64;m[L('light_x')+i]=124;m[L('_light_fire_timer')+i]=0;
+  }
+  m[L('frame_counter')]=64;
+  return m;
+}
+function memberActions(m) {
+  return Array.from({length:3},(_,i)=>{m[L('light_slot')]=i;return run(m,'_enemy_c_light_tick').a;});
+}
+test('M3 contextual fire bits preserve no-path and escort loops and reject invalid modes',()=>{
+  for(const [fire,bits] of [['normal',0],['volley',64],['column',128],['volley-column',192]]) {
+    const s=source();s.sectors[0].waves[0].fire=fire;
+    assert.equal(compile(s).core[WAVE_ARRAY_OFFSET.flags]&192,bits);
+  }
+  for(const mode of ['constructor','bad',1]) {const s=source();s.sectors[0].waves[0].fire=mode;assert.throws(()=>compile(s),/fire/);}
+  const s=source();delete s.sectors[0].waves[0].path;s.sectors[0].waves[0].fire='volley';assert.throws(()=>compile(s),/fire/);
+});
+test('M3 one volley opportunity emits only ready members using one token, without backlog',()=>{
+  const m=readyMembers();m[L('_light_token_budget')]=1;
+  assert.deepEqual(memberActions(m),[1,1,1]);
+  assert.equal(m[L('_light_token')],0);
+  assert.deepEqual(memberActions(m),[0,0,0],'no duplicate same-frame action');
+  for(let i=0;i<3;i++)m[L('_light_fire_timer')+i]=0;
+  m[L('frame_counter')]=65;assert.deepEqual(memberActions(m),[0,0,0]);
+  m[L('frame_counter')]=128;assert.deepEqual(memberActions(m),[1,1,1]);
+});
+test('M3 token-denied volley does not retry until the next opening or advance reloads',()=>{
+  const m=readyMembers();m[L('_light_token_frame')]=64;m[L('_light_token')]=0;
+  assert.deepEqual(memberActions(m),[0,0,0]);
+  assert.equal(m[L('_light_fire_timer')],0);
+  m[L('_light_token')]=1;assert.deepEqual(memberActions(m),[0,0,0]);
+  m[L('frame_counter')]=65;assert.deepEqual(memberActions(m),[0,0,0]);
+  m[L('frame_counter')]=128;assert.deepEqual(memberActions(m),[1,1,1]);
+});
+test('M3 column is inclusive one cell and combined volley filters its snapshot',()=>{
+  const m=readyMembers('volley-column');m[L('player_x')]=118;
+  m[L('light_x')]=120;m[L('light_x')+1]=128;m[L('light_x')+2]=132;
+  assert.deepEqual(memberActions(m),[1,1,0]);
+  for(const [x,expected] of [[120,1],[128,1],[116,0],[132,0]]) {
+    const c=readyMembers('column');c[L('player_x')]=118;c[L('light_x')]=x;
+    c[L('light_slot')]=0;assert.equal(run(c,'_enemy_c_light_tick').a,expected);
+  }
+});
+test('M3 segment hold-fire and late/reused admissions cannot join a prepared volley',()=>{
+  const m=readyMembers();m[L('light_slot')]=0;assert.equal(run(m,'_enemy_c_light_tick').a,1);
+  m[L('light_slot')]=1;run(m,'_asm_m3_admit');m[L('_light_fire_timer')+1]=0;m[L('light_y')+1]=64;
+  assert.equal(run(m,'_enemy_c_light_tick').a,0);
+  const q=readyMembers();q[LEVEL_PAYLOAD_ADDRESS+PAYLOAD_OFFSET.path+2]=0;
+  assert.deepEqual(memberActions(q),[0,0,0]);
+});
+test('M3 invalid L2/phase returns ordinary fallback without reading poisoned L2 or content',()=>{
+  for(const [valid,phase,state] of [[0,6,7],[1,3,7],[1,6,2]]) {
+    const m=readyMembers();m[0x86b3]=valid;m[L('game_state')]=phase;m[0x4ea5]=state;
+    m.fill(0,0x1900,0x2000);
+    const r=run(m,'_asm_m3_volley');assert.equal(r.a,0);
+    assert.ok(r.accesses.every(a=>a<0x1180||a>=0x2000),'guard precedes both checked homes');
+  }
+});
+test('M3 invalid checked pair falls back to ordinary per-member token/fire policy',()=>{
+  const m=readyMembers();m[0x86b3]=0;m.fill(0,0x1180,0x2000);
+  m[L('_light_token_budget')]=1;m[L('_light_token_frame')]=63;
+  assert.deepEqual(memberActions(m),[1,0,0],'normal fire claims a token per member, never a volley');
+});
+test('M3 volley guard overhead is measured against its identical direct helper',()=>{
+  const m=readyMembers(),direct=run(m.slice(),'_m3_prepare_volley'),guarded=run(m.slice(),'_asm_m3_volley');
+  assert.equal(guarded.a,1);
+  if(process.env.VS65_M3_GUARD_COST_REPORT)fs.writeFileSync(process.env.VS65_M3_GUARD_COST_REPORT,
+    JSON.stringify({method:'MEASURED NMOS entry-through-RTS, no caller JSR/DMA; identical three-ready-member state',helper:direct.cycles,guarded:guarded.cycles,guardOverhead:guarded.cycles-direct.cycles},null,2)+'\n');
 });

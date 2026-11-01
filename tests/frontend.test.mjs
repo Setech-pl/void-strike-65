@@ -14,6 +14,12 @@ import {
 const testDirectory = path.dirname(fileURLToPath(import.meta.url));
 const rootDirectory = path.resolve(testDirectory, "..");
 const source = fs.readFileSync(path.join(rootDirectory, "src", "main.s"), "utf8");
+// c77ebba: frontend clearing runs through L2_DISARM -> sector_reader_blank.
+const l2Lifetime = fs.readFileSync(path.join(rootDirectory, "src/hybrid/l2-lifetime.s"), "utf8");
+const readerSource = fs.readFileSync(path.join(rootDirectory, "src/hybrid/sector-reader.s"), "utf8");
+assert.match(l2Lifetime, /l2_disarm:\s*jsr \$A03D/);
+assert.match(readerSource, /sector_reader_blank:[\s\S]*?sta DMACTL[\s\S]*?sta GRACTL[\s\S]*?jsr clear_pmg_graphics_latches/);
+
 const residentSource = source.slice(0, source.indexOf('.segment "BOOT_STAGE2"'));
 const map = fs.readFileSync(path.join(rootDirectory, "build", "void-strike-65.map"), "utf8");
 const manifest = JSON.parse(fs.readFileSync(path.join(rootDirectory, "build", "manifest.json"), "utf8"));
@@ -557,7 +563,7 @@ test("menu PlayerFighter is charset-only, frontend PMG stays disabled, and gamep
 
   const frontendEntry = routine("enter_frontend_state");
   assert.match(frontendEntry,
-    /sta GRACTL[\s\S]+jsr clear_pmg_graphics_latches[\s\S]+jsr select_frontend_display/);
+    /sta GRACTL[\s\S]+jsr (?:L2_DISARM|clear_pmg_graphics_latches)[\s\S]+jsr select_frontend_display/);
   assert.doesNotMatch(frontendEntry, /lda #\$02[\s\S]+sta GRACTL/);
   assert.match(frontendEntry, /cpx #STATE_OPTIONS[\s\S]+cpx #STATE_MAIN_MENU[\s\S]+lda #\$80[\s\S]+sta NMIEN/);
   assert.equal(hardwareState.get("SIZEP0"), 1);
@@ -591,11 +597,11 @@ test("frontend entry clears stale player and missile graphics latches before DMA
   const clear = routine("clear_pmg_graphics_latches");
   assert.match(source, /GRAFP0\s*=\s*\$D00D/);
   assert.match(entry,
-    /sta DMACTL\s+sta GRACTL\s+jsr clear_pmg_graphics_latches[\s\S]+jsr select_frontend_display/,
+    /sta DMACTL\s+sta GRACTL\s+jsr (?:L2_DISARM|clear_pmg_graphics_latches)[\s\S]+jsr select_frontend_display/,
     "main frontend entry must clear PMG graphics latches while display DMA is blanked",
   );
   assert.match(pauseEntry,
-    /sta DMACTL\s+sta GRACTL\s+jsr clear_pmg_graphics_latches\s+jsr pause_silence_audio/,
+    /sta DMACTL\s+sta GRACTL\s+jsr (?:L2_DISARM|clear_pmg_graphics_latches)\s+jsr pause_silence_audio/,
     "pause frontend entry must clear PMG graphics latches while display DMA is blanked",
   );
   assert.match(clear,

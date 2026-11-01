@@ -507,7 +507,8 @@ const variantDirectoryNameInner = (escortVariantId !== null
                   ? `pickup-colour-${pickupColourSlug.toUpperCase()}`
                   : null);
 const longCapital=process.argv.includes("--l2-long-capital");
-const m3PathReview=process.argv.includes("--m3-path-review");
+const m3VolleyReview=process.argv.includes("--m3-volley-review");
+const m3PathReview=process.argv.includes("--m3-path-review") || m3VolleyReview;
 if(m3PathReview && (levelDebugId!==2 || levelDebugSector!==0))
   throw Error("--m3-path-review requires --level=2:sector=0");
 if(longCapital && (levelDebugId!==1 || levelDebugSector!==1 || bossRegionValue!==null)) throw new Error("--l2-long-capital requires --level=1:sector=1");
@@ -1604,7 +1605,7 @@ async function buildHybridDirectorModule(fighterWeaponsInclude, levelDefInclude,
     },
     ["-C", `${base}.cfg`, "-o", `${base}-combined.bin`, "-m", `${base}.map`,
       "-Ln", `${base}.lbl`, `${base}-abi.o`, `${base}-c.o`, `${base}-lifecycle.o`, "/project/life-capsule-c.o"],
-    [`${base}-combined.bin`, `${base}-combined.bin.content`, `${base}.map`, `${base}.lbl`],
+    [`${base}-combined.bin`, `${base}-combined.bin.content`, `${base}-combined.bin.m3l2`, `${base}.map`, `${base}.lbl`],
   );
   const combinedRaw = Buffer.from(linked.outputs[`${base}-combined.bin`]);
   const map = linked.outputs[`${base}.map`];
@@ -1756,6 +1757,7 @@ async function buildHybridDirectorModule(fighterWeaponsInclude, levelDefInclude,
   const codePacked = Buffer.concat(codeSegments.map(({ packed: segmentPacked }) => segmentPacked));
   return {
     contentRaw: Buffer.from(linked.outputs[`${base}-combined.bin.content`]),
+    m3L2Raw: Buffer.from(linked.outputs[`${base}-combined.bin.m3l2`]),
     implementation: "cc65-c",
     raw,
     packed,
@@ -2683,7 +2685,7 @@ async function build() {
   // owner's smoke (plan §5).
   const compiledLevels = new Map(levelRuns.map((run) => {
     const file = m3PathReview
-      ? path.join(rootDirectory,"assets/levels/diagnostics/m3-path-review.json")
+      ? path.join(rootDirectory,m3VolleyReview?"assets/levels/diagnostics/m3-volley-review.json":"assets/levels/diagnostics/m3-path-review.json")
       : bossVariantLevel(run.id) ?? (longCapital
       ? path.join(rootDirectory,"assets/levels/diagnostics/l2-capital-960.json")
       : levelSourcePath(levelSourceIdForRun(run.id)));
@@ -2902,6 +2904,7 @@ async function build() {
     configPath: path.join(rootDirectory, "cfg/l2.cfg"), stem: "l2", includeDirectories:["/cc65/asminc"],
     extraInputs: { "/project/build/l2-abi.inc": fs.readFileSync(path.join(rootDirectory,"src/hybrid/l2-abi.inc")),
       "/project/build/l2-c.inc": Buffer.from(l2Generated),
+      "/project/build/m3-l2.bin": directorModule.m3L2Raw,
       "/project/build/l2-main.inc": Buffer.from(l2MainInclude),
       "/project/build/l2-recipes.inc": Buffer.from(l2RecipesInclude),
       "/cc65/asminc/longbranch.mac": fs.readFileSync(path.join(shareDir,"asminc/longbranch.mac")) },

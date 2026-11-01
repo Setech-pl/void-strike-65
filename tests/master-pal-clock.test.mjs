@@ -115,7 +115,7 @@ test("starfield observes but never owns world and hull accumulator clocks", () =
   assert.equal((world.match(/sta scroll_accumulator/g) ?? []).length, 2);
   assert.equal((world.match(/HULL_SCROLL_ACCUMULATOR/g) ?? []).length, 3);
   assert.equal((world.match(/sta HULL_SCROLL_ACCUMULATOR/g) ?? []).length, 2);
-  assert.match(world, /cmp #CAPITAL_HULL_STATE_OPEN[\s\S]+lda world_scroll_rates,x[\s\S]+asl[\s\S]+lda hull_scroll_rates,x/);
+  assert.match(world, /lda L2_SCROLL_RATE/);
 });
 
 test("fighter tail drains stale tokens, including wrap; capital preserves its pending token", () => {

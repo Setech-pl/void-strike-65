@@ -161,7 +161,7 @@ test("region 2 is the Bastion from its own draft: the wide hangar, the bays, the
   // 3 sectors (581-583), read after slot E; journal §BH: 85 - its 5 sectors
   // (712-716); journal §BI 1: 86 - the banner run's 10th sector (the VOID
   // LANCE's line under INCOMING).
-  assert.equal(built.entrySectors, 88, "the Bastion's boss entry is 88 sectors (RE-PINNED M6 stage 1b: the lance run's two more)");
+  assert.equal(built.entrySectors, 89, "the Bastion's boss entry is 88 sectors (RE-PINNED M6 stage 1b: the lance run's two more)");
   // The nozzles are never drawn: their two codes outside the charset's run.
   assert.deepEqual(region2.nozzle.codes, [126, 127], "the nozzle codes are in the run");
 });
@@ -337,7 +337,10 @@ function frame(memory, { hooks = null } = {}) {
   const h = hooks === null ? {} : { hooks };
   nmi(memory, lbl("boss_dli"), h);
   call(memory, lbl("boss_update"), h);
-  call(memory, manifest.overlays.capitalVectors.address + 8 * 3, h);
+  // Late publication waits for a real VCOUNT; this unit frame is after the band.
+  memory[0xd40b] = 0x77;
+  call(memory, manifest.overlays.capitalVectors.address + 8 * 3,
+    {...h, stopAt: [lbl("boss_death_read")]});
   call(memory, lbl("boss_motion"), h);
   nmi(memory, lbl("boss_dli"), h);
   nmi(memory, lbl("boss_dli"), h);

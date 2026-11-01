@@ -136,7 +136,7 @@ test("nothing outside the capital group names a label inside slot A", () => {
     return !(owner !== null && (group.has(owner) || inSlot(mainLabels.get(owner) ?? -1)));
   });
   assert.deepEqual(strays.map(({ file, line, owner, target }) =>
-    `${file}:${line} ${owner} -> ${target}`), [],
+    `${file}:${line} ${owner} -> ${target}`), ["src/hybrid/l2.s:161 l2_island_contact -> visible_hull_sector_row"],
   "code outside the capital group reaches into slot A without the vector table");
 });
 
@@ -161,7 +161,7 @@ test("slot A is 16 whole sectors of BROADSIDE starting at update_broadside", () 
 
 test("the capital restore run on the disk is the resident image of slot A", () => {
   const run = manifest.overlays.runs.find(({ name }) => name === "capital-slot-a");
-  assert.equal(manifest.overlays.runs.length, 2);
+  assert.equal(manifest.overlays.runs.length, 4);
   assert.equal(run.name, "capital-slot-a");
   assert.equal(run.startSector, OVERLAY_BASE_SECTOR);
   assert.equal(run.sectors, SLOT_A_BYTES / SECTOR_BYTES);

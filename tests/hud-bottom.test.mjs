@@ -144,7 +144,10 @@ test("§BL 3: a lance ready keeps the four cells full - through the charge, a mi
       assert.ok(METER_CELLS.every((c) => !writes.has(SCREEN + c)), `frame ${f}: a meter cell written while ready`);
     }
   }
-  assert.ok(fired, "the torpedo fired");
+  // §BO (02a7555): this fixture has no exposed lock; charge waits without firing.
+  assert.equal(fired, false);
+  assert.equal(memory[lbl("_lance_charge")], manifest.boss.lance.chargeFrames);
+  assert.equal(meterShown(memory), 4);
   hold(memory, false);
   if (memory[lbl("lance_ready")] === 0) {
     for (let f = 0; f < 6; f += 1) tick(memory);

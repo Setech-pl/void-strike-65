@@ -605,3 +605,15 @@ sprites are stored. Rebuild preview with
 C chooses stage1 at 2 HP and stage2 at 1 HP after a surviving hit; a skipped
 threshold goes directly to the later stage. Assault Raiders remain whole.
 Damage never alters hit boxes, scores, movement or weapons.
+
+
+M3 checkpoint3 `fire` on a free path Light is `normal` (default), `column`,
+`volley`, or `volley-column`. WaveDef bits6/7 encode these modes contextually;
+`loops` must remain0. Segment bit4 always permits/holds fire. Column accepts
+±one4-HPOS cell around the quantized player centre. Volley snapshots ready
+members at global64-frame opportunities, claims one existing event token,
+and uses the normal shot actions/pool. Denial waits for another opening with
+no backlog; late admissions cannot join. Invalid checked L2/content falls
+back to the resident archetype fire policy. No new boss/Heavy fire mode.
+Diagnostic `--m3-volley-review --level=2:sector=0` reviews three-Light groups;
+`VS65_SMOKE_FIRE_DELAY` controls only the observer-smoke input fixture.

@@ -46,8 +46,9 @@ function statusText(state) {
   return `LIFE ${state.lives} HULL ${state.health}%`;
 }
 
-test("HUD template keeps full LIFE/HULL labels and four fixed hull plates", () => {
-  assert.match(source, /hud_ascii:\s*\.byte "SCORE 00000  LIFE 3 HULL "/);
+// 35499ba / §BL: compact labels leave room for the lance meter.
+test("HUD template keeps compact LIFE/HULL labels and four fixed hull plates", () => {
+  assert.match(source, /hud_ascii:\s*\.byte "L  H                         SCORE"/);
   assert.doesNotMatch(source, /hud_ascii:[\s\S]*?\.byte [^\n]*\b(?:ARM|FUEL)\b/);
   assert.match(source,
     /update_hud_status:[\s\S]+lda PLAYER_LIVES[\s\S]+sta SCREEN\+HUD_LIFE_DIGIT_OFFSET[\s\S]+lda BROAD_PLAYER_HEALTH/);

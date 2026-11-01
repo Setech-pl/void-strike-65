@@ -87,3 +87,30 @@ _asm_m3_tick:
     ldx #0
     rts
 .export _asm_m3_reset, _asm_m3_wave_arm, _asm_m3_admit, _asm_m3_escort, _asm_m3_tick
+
+; Existing checked L2/content validity and gameplay guard precedes every
+; access. Fighter-only; invalid returns0 for ordinary fire, never L2 data.
+.import _m3_prepare_volley, _m3_pulse_frame
+.assert _m3_prepare_volley = $1E0A, lderror, "M3 L2 entry moved"
+_asm_m3_volley:
+    jsr cc2_valid
+    bcc @invalid
+    lda $4EA5
+    cmp #7
+    bne @invalid
+    lda $86
+    and #63
+    bne @valid
+    lda _m3_pulse_frame
+    cmp $86
+    beq @valid
+    jsr _m3_prepare_volley
+@valid:
+    lda #1
+    ldx #0
+    rts
+@invalid:
+    lda #0
+    tax
+    rts
+.export _asm_m3_volley

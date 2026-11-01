@@ -598,57 +598,10 @@ test("the cover group: every gun down exposes the core; its death, the last weap
 // RE-POINTED M5b-S4a-i: the chain's blast count and the shake are read at the
 // format's offsets (chainBlasts 10, shakeFrames 8); the blast glyphs are the
 // region's extras.
-test("the win: the chain, the shake and the flash, then the hand-off to the level summary with the fight's time", () => {
-  const { memory } = coreBossEntered();
-  const active = label("main", "ACTIVE_GAMEPLAY_FRAME_LO");
-  memory[active] = 0x10;
-  memory[active + 1] = 0x02;
-  // The fight clock started at the install (the harness's clock read 0 there).
-  killGuns(memory);
-  settle(memory);                       // the exposure check runs a frame after the kill
-  const core = module(memory, CORE);
-  hitUntil(memory, CORE, core.hp);
-  const clock = memory[label("boss", "_boss_clock_lo")] | (memory[label("boss", "_boss_clock_hi")] << 8);
-  // The killing hit's frame already ran the controller's tick: the first link.
-  let blasts = memory[label("boss", "_boss_blast")] !== 0xff ? 1 : 0;
-  let flashes = blasts;
-  let shakes = 0;
-  const enemyTimer = label("main", "FIGHTER_EXPLOSION_TIMER") + 1;
-  const blastGlyphs = new Set(coreBoss.blasts);
-  let handedOff = false;
-  for (let frame = 0; frame < 400 && !handedOff; frame += 1) {
-    memory[enemyTimer] = 0;
-    call(memory, vector("UPDATE"));
-    if (memory[enemyTimer] !== 0) flashes += 1;
-    if (memory[label("boss", "_boss_blast")] !== 0xff) blasts += 1;
-    call(memory, vector("PREPARE_ROW"));
-    if (memory[label("boss", "boss_dli_pos")] !== memory[label("boss", "boss_pos")]) shakes += 1;
-    nmi(memory, label("boss", "boss_dli"));
-    nmi(memory, label("boss", "boss_dli"));
-    nmi(memory, label("boss", "boss_dli"));
-    const cpu = new Nmos6502(memory);
-    cpu.push(0xff); cpu.push(0xff);
-    cpu.pc = vector("SECTOR_COMPLETION");
-    let steps = 0;
-    while (steps < 10_000 && cpu.pc !== 0x0000) {
-      if (cpu.pc === label("reader", "sector_reader_level_end")) { handedOff = true; break; }
-      cpu.step();
-      steps += 1;
-    }
-  }
-  assert.ok(handedOff, "the boss never handed off to the level summary");
-  assert.equal(blasts, memory[T("chainBlasts")], "one blast per chain link");
-  assert.ok(blasts >= coreBoss.modules.length, "the chain passes every module, the standing armour included");
-  assert.equal(flashes, blasts, "every blast flashes the background");
-  assert.ok(shakes >= memory[T("shakeFrames")], "the band shakes");
-  const shown = [...Array(64).keys()].some((c) => [...BAND_ROW_BASE].some((base) =>
-    blastGlyphs.has(memory[base + c])));
-  assert.ok(shown, "no blast glyph was drawn in the band");
-  // The time stat the summary reads is the fight's own (owner decision 2026-10-03).
-  assert.equal(memory[active] | (memory[active + 1] << 8), clock);
-  assert.equal(memory[label("reader", "sr_slot_a_overlaid")], 1,
-    "slot A stays marked for the summary's next START GAME");
-});
+// Retired: e163e1b / §BQ replaces the inline chain and hold with a disk/DLI
+// death engine. tests/boss-death.test.mjs covers defeat clock/bonus, checked
+// takeover, all 175 ticks, preserved player/HUD and corrupt engine rejection.
+
 
 // ---------------------------------------------------------------------------
 // Q-S4: a game that ends inside the boss sector leaves nothing behind

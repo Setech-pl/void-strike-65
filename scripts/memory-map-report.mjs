@@ -81,6 +81,7 @@ const SEGMENTS = {
   LEVEL_PATHS: ["M3 path records: alias of the existing level payload path block", "level"],
   CONTENT: ["checked content home; overwritten by boss/banner/death", "level"],
   L2: ["checked fighter/capital phase module; overwritten by boss D/death", "level"],
+  M3_L2: ["fighter-only volley snapshot, checked L2 tail; disarmed before boss/death", "level"],
   ZEROPAGE: ["main: zero-page runtime variables", "resident"],
   BOOT_SPLASH: ["boot splash blob (ADR-003 hold, cassette sound, fade, loader_dli)", "splash"],
   CODE: ["main: resident code", "resident"],
@@ -646,6 +647,9 @@ function reservationTails(build, rows, reservations) {
 // lands on it. tests/cfg-overlaps.test.mjs fails on any overlap not named here
 // and on any entry here that no longer matches one.
 export const DECLARED_CFG_OVERLAPS = Object.freeze([
+  ...["BOSS_SLOT_D_RAM", "BUFFER"].map(area => ({
+    areas: ["M3_L2_RAM", area], name: "M3 fighter-only L2 tail",
+    reason: "Owner-approved volley preparation uses the checked L2 tail; boss/death overwrite it only after resident validity/phase guards disarm fighter execution" })),
   ...["BOSS_BANNER_RAM", "BOSS_SLOT_C_RAM", "BOSS_SCRATCH_RAM", "CODE"].map(area => ({
     areas: ["CONTENT_RAM", area], name: "checked content over inactive boss/death storage",
     reason: "Accepted content home $1180-$18FF is loaded for fighter/capital gameplay and disarmed before boss/banner/death images overwrite its phase-exclusive storage" })),

@@ -314,7 +314,7 @@ test('M3 denser pilot spans both sides and hands off at the next available row t
   const s={...pilot,sectors:[sector]},m=image(s),c=compile(s);
   m[L('DIFFICULTY_SETTING')]=difficulty;
   const expected=c.waves.reduce((n,w)=>n+w.count,0);let admitted=0,acc=0,previousCursor=1,cleared=null,lastFrame=0;
-  const gaps=[],xs=new Set(),columns=new Set();
+  const gaps=[],xs=new Set(),columns=new Set(),visibleGaps=[];let lastVisible=null;
   for(let frame=1;frame<=3000;frame++) {
    m[L('frame_counter')]=(m[L('frame_counter')]+1)&255;acc+=8+difficulty;
    if(acc>=20){acc-=20;run(m,'_director_c_world_row_tick');}
@@ -327,12 +327,14 @@ test('M3 denser pilot spans both sides and hands off at the next available row t
     if(m[L('light_y')+slot]>=16&&m[L('light_state')+slot]){xs.add(m[L('light_x')+slot]);columns.add(Math.floor((m[L('light_x')+slot]-48)/52));}
     if(quickKills){m[L('light_state')+slot]=0;m[L('light_screen_hi')+slot]=0;}
    }
+   const visible=Array.from({length:4},(_,i)=>m[L('light_state')+i]===2&&m[L('light_y')+i]>=16&&m[L('light_y')+i]<232).some(Boolean);
+   if(visible){if(lastVisible!==null&&frame-lastVisible>1)visibleGaps.push(frame-lastVisible-1);lastVisible=frame;}
    const empty=!m.slice(L('light_state'),L('light_state')+4).some(Boolean);
    if(empty&&m[L('_light_wave_remaining')]===0&&cleared===null)cleared=frame;
    if(!empty||m[L('_light_wave_remaining')]!==0)cleared=null;
    lastFrame=frame;if(admitted===expected&&empty)break;
   }
-  tuningResults.push({sector:sectorIndex+1,difficulty,quickKills,admitted,completionFrame:lastFrame,handoffGaps:gaps,visibleWidth:xs.size?Math.max(...xs)-Math.min(...xs):0});
+  tuningResults.push({sector:sectorIndex+1,difficulty,quickKills,admitted,completionFrame:lastFrame,handoffGaps:gaps,visibleGaps,visibleWidth:xs.size?Math.max(...xs)-Math.min(...xs):0});
   assert.equal(admitted,expected,`sector${sectorIndex+1}/${difficulty}/${quickKills}: every group admitted`);
   assert.ok(lastFrame<3000);assert.equal(gaps.length,c.waves.length-1);
   assert.ok(gaps.every(n=>n>=1&&n<=4),`handoff ${gaps}: only the existing clear/row cadence`);
@@ -348,4 +350,19 @@ test('M3 mirrored centre fan descends from opposite sides before crossing',()=>{
  }
  assert.deepEqual(entries,[200,48],'hidden fan precedes visible opposing entries');
  assert.ok(m[L('light_x')]<124&&m[L('light_x')+1]>124,'both members cross the centre');
+});
+
+
+test('M3 four admitted path Lights share one glyph pair and one volley token',()=>{
+ const s=source('straight');s.sectors[0].lights=4;s.sectors[0].waves[0].count=4;
+ s.sectors[0].waves[0].spacing=16;s.sectors[0].waves[0].fire='volley';const m=image(s);
+ for(let frame=0;frame<54;frame++)tick(m);
+ assert.deepEqual([...m.slice(L('light_state'),L('light_state')+4)],[2,2,2,2]);
+ assert.equal(m[L('_light_wave_remaining')],0);assert.equal(m[L('_light_slot_limit')],4);
+ assert.equal(new Set(m.slice(L('_light_code'),L('_light_code')+4)).size,1,'same authored look shares an installed pair');
+ for(let i=0;i<4;i++){m[L('_light_fire_timer')+i]=0;m[L('light_y')+i]=64;}
+ m[L('frame_counter')]=64;m[L('_light_token_budget')]=1;const actions=[];
+ for(let i=0;i<4;i++){m[L('light_slot')]=i;actions.push(run(m,'_enemy_c_light_tick').a);}
+ assert.deepEqual(actions,[1,1,1,1]);assert.equal(m[L('_light_token')],0);
+ for(let i=0;i<4;i++){m[L('light_slot')]=i;assert.equal(run(m,'_enemy_c_light_tick').a,0,'no duplicate pulse');}
 });

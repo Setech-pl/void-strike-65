@@ -607,7 +607,7 @@ test("T12: level-02.json compiles and differs from level 1 in sector count, wave
       assert.notEqual(two.sectors[index].mask, sector.mask, `sector ${index + 1}'s mask`);
     }
     for (const index of [0, 3]) {
-      assert.equal(two.sectors[index].effectiveLights, 3, "a swarm sector's Light ceiling");
+      assert.equal(two.sectors[index].effectiveLights, 4, "a swarm sector's Light ceiling");
       assert.equal(two.sectors[index].effectiveHeavies, 0, "and it has no Heavy slot");
     }
 
@@ -629,7 +629,7 @@ test("T12: level-02.json compiles and differs from level 1 in sector count, wave
     // teach → mirror → pressure → release, retaining room to escalate at M7.
     const sectorFour = two.waves.filter((wave) => wave.sector === 4);
     assert.deepEqual(sectorFour.map((wave) => [wave.archetype, wave.count, wave.spacing]),
-      Array.from({length:4},()=>["interceptor",6,16]));
+      Array.from({length:4},()=>["interceptor",8,16]));
     // Owner tuning uses the16-frame Light floor for back-to-back pilot groups.
     for (const wave of two.waves.filter((candidate) => candidate.class === "light")) {
       assert.ok(wave.spacing >= 16, `a level-2 Light wave at spacing ${wave.spacing}`);

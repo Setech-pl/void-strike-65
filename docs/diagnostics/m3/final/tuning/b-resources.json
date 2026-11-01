@@ -1,0 +1,70 @@
+{
+  "content": {
+    "address": 4480,
+    "endExclusive": 6400,
+    "capacityBytes": 1920,
+    "usedBytes": 1863,
+    "runIndex": 12,
+    "validAddress": 34483,
+    "phase": "checked fighter/capital content; disarmed before boss"
+  },
+  "window": {
+    "step": "owner decision X",
+    "owner": "HYBRID_C_WINDOW",
+    "address": 44544,
+    "guardAddress": 48154,
+    "endExclusive": 48128,
+    "capacityBytes": 3584,
+    "guardBytes": 6,
+    "directorHalfBytes": 2437,
+    "lightKernelBytes": 0,
+    "usedBytes": 2437,
+    "freeBytes": 1147,
+    "beforeLanceFreeBytes": 379,
+    "availability": "unconditional: disable_basic_rom forces PORTB bit 1 and writes BASICF at every stage-2 entry",
+    "boundedBy": {
+      "below": "16-sector level buffer $A600-$ADFF",
+      "above": "sector reader BSS $BC00-$BC19, then the guard and the OS screen $BC20-$BFFF (RAMTOP $C0 when BASIC is disabled at coldstart)"
+    },
+    "guard": "HYBRID_C_WINDOW_GUARD $BC1A-$BC1F, reserved with no segment, plus the ld65 assert \"HYBRID_C_WINDOW reaches the sector reader BSS at $BC00\"",
+    "contents": "Director: HYBRID_ASM_WINDOW + HYBRID_C_WINDOW + HYBRID_C_WINDOW_RODATA + HYBRID_C_WINDOW_FLOW + HYBRID_C_WINDOW_HEAVY + HYBRID_C_WINDOW_HEAVY_RODATA + HYBRID_ASM_HEAVY_WINDOW + HYBRID_C_WINDOW_LOOK",
+    "transport": {
+      "record": "own DFMC record, LZ, stagingId extension",
+      "finalDestination": 44544,
+      "startSector": 175,
+      "sectors": 16,
+      "rawBytes": 2437,
+      "packedBytes": 1987,
+      "paddingBytes": 40,
+      "landing": "direct: stage 2 decodes it to AE00 after disable_basic_rom"
+    }
+  },
+  "l2": {
+    "address": 6400,
+    "endExclusive": 8192,
+    "capacityBytes": 1792,
+    "usedBytes": 1457,
+    "freeBytes": 335,
+    "postOneReserveBytes": 256,
+    "runIndex": 11,
+    "phase": "fighter/capital; overwritten by boss"
+  },
+  "delta": {
+    "content": 0,
+    "window": 0,
+    "l2": 0
+  },
+  "capacity": {
+    "existingSlots": 4,
+    "appearancePairs": 3,
+    "swarmCeiling": 4,
+    "eliteCeiling": 1,
+    "capitalCeiling": 0,
+    "bossCeiling": 1
+  },
+  "waveCounts": {
+    "opening": 24,
+    "pilot": 32
+  },
+  "pathRecords": 6
+}

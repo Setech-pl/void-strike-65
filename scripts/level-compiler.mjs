@@ -163,7 +163,7 @@ export const PATH_ARCHETYPE_DEFAULT = 0xff;
 // bytes). A file above these is legal - the runtime clamps - but the author is
 // told, because the level will not play the way it reads.
 export const SUBTYPE_CEILING = Object.freeze({
-  "space/swarm": { heavy: 0, light: 3 },
+  "space/swarm": { heavy: 0, light: 4 },
   "space/elite": { heavy: 2, light: 1 },
   capital: { heavy: 0, light: 0 },
   // M5b-S3 (docs/plans/m5-loading-boss.md §5.1, decision 5a): one Light may

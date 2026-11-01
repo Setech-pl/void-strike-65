@@ -201,7 +201,7 @@ volatile uint8_t heavy_motion;
  * 23 §10.7). A level file may ask for less; it may never ask for more. Index 0
  * SWARM, 1 ELITE, 2 CAPITAL, 3 BOSS. The CAPITAL row exists and is zero so
  * that paying for plan §5.1 later is a table VALUE, not a format change. */
-const uint8_t subtype_ceiling_light[4] = { 3u, 1u, 0u, 1u };
+const uint8_t subtype_ceiling_light[4] = { 4u, 1u, 0u, 1u };
 const uint8_t subtype_ceiling_heavy[4] = { 0u, 2u, 0u, 0u };
 /* Class spacing floors in frames: Light is light_wave_step's admission floor,
  * Heavy the fastest interceptor_admission_retry_frames. A wave asking for less

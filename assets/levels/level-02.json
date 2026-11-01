@@ -249,7 +249,7 @@
         "interceptor",
         "wingman"
       ],
-      "lights": 3,
+      "lights": 4,
       "heavies": 0,
       "hazards": {
         "debris": 1,
@@ -262,7 +262,7 @@
         {
           "row": 0,
           "archetype": "interceptor",
-          "count": 6,
+          "count": 8,
           "spacing": 16,
           "entry": 52,
           "path": "wide-west",
@@ -272,7 +272,7 @@
         {
           "row": 0,
           "archetype": "wingman",
-          "count": 6,
+          "count": 8,
           "spacing": 16,
           "entry": 200,
           "path": "wide-east",
@@ -282,7 +282,7 @@
         {
           "row": 0,
           "archetype": "interceptor",
-          "count": 6,
+          "count": 8,
           "spacing": 16,
           "entry": 124,
           "appearance": "hunter",
@@ -375,7 +375,7 @@
       "archetypes": [
         "interceptor"
       ],
-      "lights": 3,
+      "lights": 4,
       "heavies": 0,
       "hazards": {
         "debris": 1,
@@ -540,7 +540,7 @@
     "teach-mirror-pressure-release": [
       {
         "row": 0,
-        "count": 6,
+        "count": 8,
         "path": "wide-west",
         "entry": 52,
         "appearance": "hunter",
@@ -549,7 +549,7 @@
       },
       {
         "row": 0,
-        "count": 6,
+        "count": 8,
         "path": "wide-cross",
         "mirror": true,
         "appearance": "hunter",
@@ -559,7 +559,7 @@
       },
       {
         "row": 0,
-        "count": 6,
+        "count": 8,
         "path": "wide-track",
         "appearance": "lancer",
         "fire": "volley-column",
@@ -568,7 +568,7 @@
       },
       {
         "row": 0,
-        "count": 6,
+        "count": 8,
         "path": "wide-return",
         "appearance": "lancer",
         "fire": "normal",

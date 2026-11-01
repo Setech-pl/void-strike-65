@@ -15,24 +15,25 @@
         "wingman",
         "interceptor"
       ],
-      "lights": 3,
+      "lights": 4,
       "waves": [
         {
           "row": 0,
           "archetype": "wingman",
-          "count": 9,
+          "count": 12,
           "spacing": 16,
-          "entry": 80,
-          "path": "snake",
-          "fire": "volley"
+          "entry": 124,
+          "path": "stress-wide",
+          "fire": "volley",
+          "mirror": true
         },
         {
           "row": 8,
           "archetype": "interceptor",
-          "count": 3,
+          "count": 4,
           "spacing": 16,
           "entry": 124,
-          "path": "tracking-dive",
+          "path": "stress-track",
           "fire": "volley-column"
         }
       ]
@@ -45,5 +46,53 @@
       "lights": 0,
       "waves": []
     }
-  ]
+  ],
+  "payload": {
+    "paths": {
+      "stress-wide": [
+        {
+          "dy": 2,
+          "frames": 16,
+          "flags": 0
+        },
+        {
+          "dy": 0,
+          "frames": 64,
+          "flags": 20
+        },
+        {
+          "dy": 0,
+          "frames": 64,
+          "flags": 24
+        },
+        {
+          "dy": 2,
+          "frames": 0,
+          "flags": 0
+        }
+      ],
+      "stress-track": [
+        {
+          "dy": 2,
+          "frames": 16,
+          "flags": 0
+        },
+        {
+          "dy": 0,
+          "frames": 128,
+          "flags": 28
+        },
+        {
+          "dy": 2,
+          "frames": 0,
+          "flags": 0
+        },
+        {
+          "dy": 2,
+          "frames": 0,
+          "flags": 0
+        }
+      ]
+    }
+  }
 }

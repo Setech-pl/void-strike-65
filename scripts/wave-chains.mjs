@@ -57,7 +57,7 @@ export function waveTimeline(sectors,waves,data,hull) {
         const rows=entries.map(w=>{
           const minimum=Math.ceil(w.row*denominator/rate)+1;
           if(!w.path){unknown=true;return {minimumStartFrame:minimum,finishFrame:null,note:'archetype/Heavy lifetime requires native coverage'};}
-          const life=pathLifetime(data,w.motion),start=Math.max(minimum,finish),slots=Array(Math.min(sector.effectiveLights,3)).fill(start);
+          const life=pathLifetime(data,w.motion),start=Math.max(minimum,finish),slots=Array(Math.min(sector.effectiveLights,4)).fill(start);
           if(!slots.length)return {minimumStartFrame:minimum,finishFrame:null,note:'zero admission ceiling'};
           let last=start-w.spacing-1;
           for(let i=0;i<w.count;i++) {

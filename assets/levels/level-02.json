@@ -239,6 +239,10 @@
           "flags": 0
         }
       ]
+    },
+    "appearanceHp": {
+      "hunter": 2,
+      "lancer": 4
     }
   },
   "sectors": [

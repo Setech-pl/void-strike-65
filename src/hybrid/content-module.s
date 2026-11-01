@@ -114,3 +114,16 @@ _asm_m3_volley:
     tax
     rts
 .export _asm_m3_volley
+
+; Admission-only HP policy is fighter-only, including Light Heavy escorts.
+; Boss escorts retain archetype HP without reading either checked home.
+.import _m3_skin_admit
+_asm_m3_skin:
+    jsr cc2_valid
+    bcc :+
+    lda $4EA5
+    cmp #7
+    bne :+
+    jmp _m3_skin_admit
+:   rts
+.export _asm_m3_skin

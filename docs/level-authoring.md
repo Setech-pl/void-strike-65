@@ -639,3 +639,17 @@ release at minimum rows0/8/16/24: its existing Light lock serializes complete
 waves, and fast kills need no long authored wait. Quiet return ends upward.
 Level1 and all decoded Heavy WaveDefs remain unchanged. Twelve-level campaign
 loading remains M4; later authored variations/regional presets remain M7.
+
+### Appearance durability (C-skin)
+
+`payload.appearanceHp` maps an authored Light look name to0..4 HP, for example
+`{ "hunter": 2, "lancer": 4 }`.0/omitted inherits that Light archetype's HP;
+base appearance0 always inherits. The selected appearance determines HP at
+admission for either Light archetype; no WaveDef flag/extra slot field is used.
+Unknown look names/out-of-range values fail compilation. Four bytes$ABB3–$ABB6
+reuse the hull-parameter tail after the17-B Heavy look; one byte remains.
+Weapons, score and renderer class stay unchanged. Level2 authors hunter2/lancer4;
+its `escort` look remains inherited. Boss escorts retain archetype HP because
+the admission override requires the valid checked pair and fighter phase.
+The36-B policy lives in L2 under the accepted64-B content-floor decision;
+this adds0 content bytes/level sectors/reads and no per-frame/row work.

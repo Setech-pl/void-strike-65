@@ -94,11 +94,12 @@ test("no segment of any link reaches $0C00-$1FFF except the boss's own homes; on
       const contentHome = ["content-module.map", "encounter-director.map"].includes(file) &&
         ["CONTENT_HEADER", "CONTENT_CODE", "CONTENT_DATA"].includes(name) && inside(from,to,[0x1180,0x1900]);
       const l2Home = file === "l2.map" && name === "L2" && inside(from,to,SLOT_D);
+      const m3Home = ["content-module.map","encounter-director.map"].includes(file) && name === "M3_L2" && inside(from,to,[0x1e0a,0x1f00]);
       const deathHome = file === "boss-death.map" && deathHomes[name] && inside(from,to,deathHomes[name]);
-      assert.ok(!overlaps(from, to, SLOT_D) || deathHome || l2Home || (file === "boss.map" && BOSS_HOMES[name] === SLOT_D),
+      assert.ok(!overlaps(from, to, SLOT_D) || deathHome || l2Home || m3Home || (file === "boss.map" && BOSS_HOMES[name] === SLOT_D),
         `${file}: ${name} $${start}-$${end} reaches $1900-$1FFF`);
       if (!overlaps(from, to, [BOSS_CLAIM.start, BOSS_CLAIM.endExclusive])) continue;
-      assert.ok(contentHome || menuHome || deathHome || l2Home || (file === "boss.map" && BOSS_HOMES[name] && inside(from, to, BOSS_HOMES[name])),
+      assert.ok(contentHome || menuHome || deathHome || l2Home || m3Home || (file === "boss.map" && BOSS_HOMES[name] && inside(from, to, BOSS_HOMES[name])),
         `${file}: ${name} $${start}-$${end} reaches the boss's $0C00-$1FFF`);
       bossSegments += 1;
     }
@@ -120,16 +121,18 @@ test("no cfg memory area reaches the claim except boss.cfg's slot C, scratch and
       const contentHome = file === "encounter-director.cfg" && name === "CONTENT_RAM";
       if (contentHome) assert.deepEqual([from,to],[0x1180,0x1900]);
       const l2Home = file === "l2.cfg" && name === "L2_RAM" && inside(from,to,SLOT_D);
+      const m3Home = file === "encounter-director.cfg" && name === "M3_L2_RAM";
+      if(m3Home) assert.deepEqual([from,to],[0x1e0a,0x1f00]);
       const deathHome = file === "boss-death.cfg" && deathHomes[name] && inside(from,to,deathHomes[name]);
-      assert.ok(!overlaps(from, to, SLOT_D) || deathHome || l2Home || (file === "boss.cfg" && name === "BOSS_SLOT_D_RAM"),
+      assert.ok(!overlaps(from, to, SLOT_D) || deathHome || l2Home || m3Home || (file === "boss.cfg" && name === "BOSS_SLOT_D_RAM"),
         `cfg/${file}: ${name} reaches $1900-$1FFF`);
       if (!overlaps(from, to, [BOSS_CLAIM.start, BOSS_CLAIM.endExclusive])) continue;
-      assert.ok(contentHome || menuHome || deathHome || l2Home || (file === "boss.cfg" && CFG_HOMES[name] && inside(from, to, CFG_HOMES[name])),
+      assert.ok(contentHome || menuHome || deathHome || l2Home || m3Home || (file === "boss.cfg" && CFG_HOMES[name] && inside(from, to, CFG_HOMES[name])),
         `cfg/${file}: ${name} reaches the boss's $0C00-$1FFF`);
       found.push(name);
     }
   }
-  assert.deepEqual(found.sort(), ["BOSS_BANNER_RAM", "BOSS_SCRATCH_RAM", "BOSS_SLOT_C_RAM", "BOSS_SLOT_D_RAM", "BUFFER", "CODE", "CONTENT_RAM", "L2_RAM", "MENU_OVERLAY_RAM"]);
+  assert.deepEqual(found.sort(), ["BOSS_BANNER_RAM", "BOSS_SCRATCH_RAM", "BOSS_SLOT_C_RAM", "BOSS_SLOT_D_RAM", "BUFFER", "CODE", "CONTENT_RAM", "L2_RAM", "M3_L2_RAM", "MENU_OVERLAY_RAM"]);
 });
 
 test("the boot path and the runtime ranges stay out of $0C00-$1FFF", () => {

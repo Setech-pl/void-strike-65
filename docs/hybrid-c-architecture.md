@@ -501,3 +501,17 @@ failed free admission consumes no parity. Boss/menu/death never read path RAM.
 Hardware publication, erase, shot admission, PMG and collision ownership stay
 with the existing kernel. Checkpoint2 measures content1,800 B/window2,384 B/
 L2 1,290 B; later C-skin placement is not decided until full M3 compiles.
+
+### M3 guarded volley and appearance HP (2026-11-01)
+
+M3_L2 is an alias of the existing checked L2 tail at$1E0A, assembled with
+Director C references and emitted separately into the L2 image. Snapshot
+preparation is131 B; appearance-HP admission36 B follows it. The builder and
+link assert the append pin and L2≤1,536 B, retaining the256-B protected reserve.
+Resident veneers test the shared checked-L2/content valid flag and gameplay/
+fighter phase before any entry or home read. Invalid dispatch uses normal
+resident fire/default archetype HP; boss never reads either checked home.
+C still owns grouping/HP decisions; ASM guards and publishes existing actions.
+HP reuses the existing slot HP field and four level payload bytes. Final
+content1,863/window2,437/L2 1,457/extension878 B; extension's3-B shared admission
+call leaves21 B. No new DFMC record, renderer, shot pool or PMG allocation.

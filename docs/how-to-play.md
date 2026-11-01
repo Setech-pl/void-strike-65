@@ -152,13 +152,13 @@ A surviving hit can add holes during departure, too.
 The Bomber's green hull darkens at 2 HP and turns orange-red at 1 HP. It brightens when braking to aim and dims when its sweep
 resumes. A surviving hit makes it dodge sideways for six frames; its height
 stays fixed during the dodge. A hit during an authored stop does not shorten
-that stop. An Interceptor takes three hits: when one of your shots hits it
+that stop. A standard Interceptor takes three hits: when one of your shots hits it
 and it survives, its red pods flash for a moment.
 
 Some waves send Wingmen or Interceptors with different markings or a different
-shape. They are still the same enemy: they fly, fire and score exactly like the
-type they belong to. The colour of the stars changes between sectors too; it
-only marks where you are.
+shape. Their weapon and points stay the same, but some variants take more
+hits than others. In the level 2 pilot, hunter takes two hits and lancer four.
+The colour of the stars changes between sectors too; it only marks where you are.
 
 **Heavy waves block the sector handoff.** A sector waits for its active Heavy
 formation to clear before moving on. Raiders and Bombers cross the playfield
@@ -173,7 +173,8 @@ the Heavy formation has cleared.
 choice between points and safety.
 
 Some Light waves follow a fixed flight route instead of pursuing you.
-Their weapon, toughness and points still belong to the same enemy type.
+Some hold fire during approach, fire only near your column, or attack on
+shared volley beats. Their weapon and points stay the same.
 
 One exception: light fighters escorting a heavy stay with it.
 

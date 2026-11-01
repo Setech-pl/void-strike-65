@@ -1,0 +1,70 @@
+{
+  "measurement": "MEASURED Atari800 PAL DMA on; standard runtime-wall-trace timer",
+  "results": [
+    {
+      "id": "l2-960-1-flight",
+      "length": 960,
+      "difficulty": 1,
+      "brake": false,
+      "dir": "build/frame-peak-fixed-960",
+      "code": 0,
+      "passed": true,
+      "gateFailures": [],
+      "frames": 3967,
+      "capitalFrames": 2273,
+      "spaceFrames": 1575,
+      "bossFrames": 119,
+      "peak": 31156,
+      "capitalPeak": 29166,
+      "capitalWithoutAudio": 28346,
+      "composedCapital": 29533,
+      "spacePeak": 31156,
+      "bossPeak": 28738,
+      "targetOverruns": 0,
+      "fence": 6395,
+      "misses": 0,
+      "extraVbi": 0,
+      "dliErrors": 0,
+      "shifted": 0,
+      "staleL2": 0,
+      "bossEntryFrames": 325,
+      "coincidenceFrames": 0,
+      "artifact": "1c19f6151af4c0770be902593a7a6f7afc7a2ac46a50fd77936c9ba438fe8dda",
+      "stateFileSha256": "fc0a606a6fa2a306f5c41f402015e3fdb9fc8bbc673130dc5fb4cf3cf65d3ea3",
+      "traceSha256": "c1c4b137a380324527bd815cadd2198a4470dad5856b427af293809808563a74"
+    }
+  ],
+  "overruns": [],
+  "worst5": [
+    {
+      "route": "l2-960-1-flight",
+      "frame": 2448,
+      "sector": "SPACE",
+      "cycles": 31156
+    },
+    {
+      "route": "l2-960-1-flight",
+      "frame": 2837,
+      "sector": "SPACE",
+      "cycles": 30984
+    },
+    {
+      "route": "l2-960-1-flight",
+      "frame": 2447,
+      "sector": "SPACE",
+      "cycles": 30977
+    },
+    {
+      "route": "l2-960-1-flight",
+      "frame": 2460,
+      "sector": "SPACE",
+      "cycles": 30976
+    },
+    {
+      "route": "l2-960-1-flight",
+      "frame": 2422,
+      "sector": "SPACE",
+      "cycles": 30956
+    }
+  ]
+}

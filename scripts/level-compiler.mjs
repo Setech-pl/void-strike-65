@@ -92,6 +92,7 @@ export const PAYLOAD_BLOCK_BYTES = Object.freeze({
 });
 export const HEAVY_LOOK_BYTES = 17;
 export const HEAVY_LOOK_OFFSET = PAYLOAD_OFFSET.hullParams;
+export const LIGHT_HP_OFFSET = HEAVY_LOOK_OFFSET + HEAVY_LOOK_BYTES;
 // The grade's thresholds (decision 28; M8 tunes them): two accuracy tiers in
 // per cent, two time limits in whole seconds (16-bit), two lives-lost bounds,
 // and the bonus per tier point as one packed-BCD byte in score units.
@@ -520,6 +521,14 @@ function compilePayload(source, context) {
     look.copy(page, HEAVY_LOOK_OFFSET);
   } catch (error) {
     fail(context, "payload.heavyLook", error.message);
+  }
+  const hp=payload.appearanceHp??{};
+  if(!hp||typeof hp!=="object"||Array.isArray(hp))fail(context,"payload.appearanceHp","must map appearance names to0..4 HP");
+  for(const [name,value] of Object.entries(hp)) {
+    const slot=names.indexOf(name)+1;
+    if(slot===0||!Number.isInteger(value)||value<0||value>4)
+      fail(context,"payload.appearanceHp","requires a named authored look and HP0..4 (0 inherits archetype)");
+    page[LIGHT_HP_OFFSET+slot]=value;
   }
   return { page, looks: names, weaponClasses: classes };
 }

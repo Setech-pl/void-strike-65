@@ -1,0 +1,9 @@
+{
+  "src/c/lifecycle.c": "e191751e3eb4a42acbbb376f522a7b670466ec752db16c7f2cd0b7bf872eeda5",
+  "src/c/lifecycle.h": "b39e59c49d6919547251b0d9ecb8c78750f9bcb5b42830c34ccea98b86bef80d",
+  "src/hybrid/content-module.s": "0c74b2d7bad046b949d1f15a6448c67aaef0bf69787554acd3ded9b3cfe9c775",
+  "scripts/level-compiler.mjs": "2e9f77d27030dbdae423e792c81cfc68cd8bc48fb3765b2bc8a39fb15c50bb20",
+  "scripts/wave-chains.mjs": "ee604efb0497205b28c8ada83312d182fbf341d76380b0650739c4dddd1c1bae",
+  "assets/levels/level-02.json": "bd9e130e82c30ba97fcd89eb0a92fb01141f02ce0f8d3595bab32307d6f7ee1f",
+  "tests/light-skin-hp.test.mjs": "ea80cc5a2ce6060e56785ef8d158b5a0a19d6c84dc9e2efbd97c386f23e4ee36"
+}

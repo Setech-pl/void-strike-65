@@ -120,7 +120,7 @@ test('M3-H placement: appended H2, thirteen BSS bytes and unchanged protected ca
   assert.ok(r[7].sectorCount<=18);assert.equal(r[8].sectorCount,9);assert.equal(r[10].sectorCount,3);
   // Phase resync uses existing boot-publication padding. Packed content is
   // +22 B over B1; protected capacities and transport sectors stay unchanged.
-  assert.equal(m.transportCapacity.initialBootContentBytes,12865);assert.equal(m.l2.usedBytes,1290+131);
+  assert.equal(m.transportCapacity.initialBootContentBytes,12865);assert.equal(m.l2.usedBytes,1290+167);
 });
 
 

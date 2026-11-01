@@ -81,7 +81,7 @@ const SEGMENTS = {
   LEVEL_PATHS: ["M3 path records: alias of the existing level payload path block", "level"],
   CONTENT: ["checked content home; overwritten by boss/banner/death", "level"],
   L2: ["checked fighter/capital phase module; overwritten by boss D/death", "level"],
-  M3_L2: ["fighter-only volley snapshot, checked L2 tail; disarmed before boss/death", "level"],
+  M3_L2: ["fighter-only volley snapshot + appearance HP admission, checked L2 tail; disarmed before boss/death", "level"],
   ZEROPAGE: ["main: zero-page runtime variables", "resident"],
   BOOT_SPLASH: ["boot splash blob (ADR-003 hold, cassette sound, fade, loader_dli)", "splash"],
   CODE: ["main: resident code", "resident"],

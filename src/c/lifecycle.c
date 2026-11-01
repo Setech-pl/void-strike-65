@@ -981,6 +981,7 @@ static uint8_t light_admit(void)
     light_archetype[light_slot] = light_record;
     light_work = LIGHT_FIELD(ENEMY_ARCHETYPE_FIELD_HIT_POINTS);
     light_hp[light_slot] = light_work;
+    asm_m3_skin();
     light_burst_left[light_slot] = 0u;
     light_y[light_slot] = 0u;
     light_flash[light_slot] = 0u;
@@ -2074,3 +2075,16 @@ retire:
 }
 #pragma code-name (pop)
 #pragma rodata-name (pop)
+
+/* C-skin: selected per-level appearance owns HP,0 inherits the archetype.
+ * Separate L2 admission-only policy; resident guard precedes this entry. */
+#pragma code-name (push, "M3_L2")
+#pragma rodata-name (push, "M3_L2")
+void m3_skin_admit(void)
+{
+    m3_index = (uint8_t)((light_wave_look >> 4u) & 3u);
+    light_work = ((const uint8_t*)0xABB3u)[m3_index];
+    if (light_work != 0u) light_hp[light_slot] = light_work;
+}
+#pragma rodata-name (pop)
+#pragma code-name (pop)

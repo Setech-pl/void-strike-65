@@ -7,10 +7,10 @@
 Owner smoke of checkpoint2 `742b80e` PASSED. Owner now authorizes3 and4,
 plus C-skin separately, with a pause after4 and a hard byte-overflow STOP
 before relocating3/4 policy. Owner selected B and authorized automatic C fallback. B now fits and passes;
-current measurements are in§11. Planning commits had zero
+final measurements are in§13. Planning commits had zero
 runtime delta; actual implementation sizes are recorded in §8.
 [Owner decisions](../decisions/2026-10-31-m3-waves.md) include Q1–Q6A and the
-§7 amendments. No C-skin implementation before checkpoint4.
+§7 amendments. C-skin is implemented in its own commit after checkpoint4; owner smoke is pending.
 
 This rebases the **M3/P1–P8** portion of
 [the original plan](m3-waves-heavy.md#2-m3--wave-paths-v1-lights-only).
@@ -147,7 +147,7 @@ which can stall at the player's column are rejected by the compiler.
 A chain is a named **authoring sequence expanded into ordinary WaveDefs**.
 It is not a runtime queue, extra Director, dynamic allocator or new enemy
 capacity. Names/macros are host conveniences; the emitted core keeps the
-current eight-sector/twenty-wave limits and its fixed-size image. Explicit
+current ten-sector/twenty-wave limits and its fixed-size image. Explicit
 WaveDefs remain valid. Expansion reports wave count, earliest rows, path
 slots, requested population and terminal lifetime; exceeding a limit fails
 compilation, without truncation.
@@ -669,3 +669,59 @@ After4 before HP:content1,863/window2,421/L2 1,421. Quick31,156; final no-fire
 chain30,649, all10 admissions/release clear. [Audit](../diagnostics/m3/checkpoint-4/report.md).
 C-skin is next separate commit; content57 free selects guarded L2. Owner smoke
 waits for that final delivery, with no next roadmap item started.
+
+
+## 13. Final4 + separate C-skin — 2026-11-01
+
+**OWNER-SMOKE CANDIDATE; STOP for owner review/play.** Checkpoint3 `b52d7ff`
+and4 `6cb44bc` are committed separately; C-skin is the following independent
+commit. All Q5A modes remain; approved B fits and passes, so no C fallback.
+
+| Home | After3 | After4 | After C-skin | Full-M3 plan estimate |
+| --- | ---: | ---: | ---: | ---: |
+| Content | 1,863 | 1,863 | **1,863** | 1,855 |
+| Window | 2,421 | 2,421 | **2,437** | 2,526 |
+| L2 | 1,421 | 1,421 | **1,457** | 1,290 |
+
+Measured content57 free is already below64. Thus selected-look HP admission
+policy goes in guarded fighter-only **L2:36 B**, alongside the approved131-B
+volley helper. Resident entry16 B and shared admission call3 B (extension)
+are the only other code growth. No additional state. Window final growth135 B
+vs baseline2,302 meets≤300; actual is89 B below the old full-M3 window estimate.
+Content exceeds its old component budget by8 B (report-only), physically fits.
+L2 uses167 B previously unassigned, leaving79 usable plus256 protected. Content
+has57 free, window374 usable. Extension878 leaves21 (above16-B floor). Arena830,
+Director high324 and initial content12,865 unchanged. Eleven records/214 total
+transport sectors, no new record; payload uses4 existing bytes atABB3..ABB6,
+leaving1 byte before summaryABB8. All allocation/sector gates pass.
+
+C-skin table0 inherits base HP; slots1..3 follow the existing authored Light
+appearance indices. Level2 hunter2/lancer4, default and escort unchanged. All
+Light archetypes may use a selected look's HP; weapons, score and renderer are
+unchanged. No per-wave spare flag is consumed; contextual bits retain Q4/Q5A.
+The resident checked-pair/gameplay/fighter guard precedes every policy read;
+boss and invalid pair retain archetype HP. Admission entry95 cycles including
+40 guard overhead, plus6 outer call cycles; helper55. No steady per-frame/row
+cost. Volley decision guard69 cycles (helper630, guarded699, no outer JSR/DMA).
+
+Final native PAL quick peaks30,465 Spread and31,156 capital-960; unchanged vs2.
+Three-Light path/volley case30,207,769 three-Light frames, three-shot pulses at
+128/832. Final HP chain sweep31,052; pre-HP no-fire chain30,649 and all10
+admissions/release complete. All≤32,568 with no timing anomalies. These are
+focused measurements, not a release matrix. Full test auditA11/B0/C0 against
+main8da7c66 after14 accepted stale-pin repairs; raw logs preserved. Normal
+build warns release evidence pending, as expected.
+
+M4 inherits374 usable window B (provisional180-B core would leave194; not a
+compiled promise),57 content and79 usable L2;16-sector buffer remains unchanged.
+Existing reader has24 B rather than old provisional34 (10 short); summary
+1,792-B reservation is full; HP consumes4 of the5 old payload reserve bytes.
+M4 must measure its actual fit and preserve the L2/boss lifetime guard and
+protected256 B. No reserves silently spent. Regional packs stay an M7 authoring
+convenience; each level may independently author its current format mix.
+B-shot, independent hues, Bomber skins and Bomber shot re-skin remain DEFER
+under§6/§7, with no additional scope accepted.
+
+[Final resources, CPU, tests, hashes and smoke handoff](../diagnostics/m3/checkpoint-4/c-skin/report.md).
+Play ATRs/checklist are under `build/play/m3/checkpoint-4/`; owner acceptance of
+checkpoint2 does not promote3/4/C-skin. **No M4 implementation before review.**

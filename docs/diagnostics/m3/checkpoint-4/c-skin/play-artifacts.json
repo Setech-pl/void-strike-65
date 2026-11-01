@@ -1,0 +1,26 @@
+{
+  "campaign.atr": {
+    "bytes": 133136,
+    "sha256": "e071cdf29beb0e17e0605cd67de5947466972fed1a28e44cb3b7e0fb8be6b682"
+  },
+  "paths.atr": {
+    "bytes": 133136,
+    "sha256": "17f0f4d9ff199e7c9bd07b8b57dd4635d173fce59ec2769831e61683fbfa40ff"
+  },
+  "pilot-no-hp.atr": {
+    "bytes": 133136,
+    "sha256": "78d24bba8f2c9dfbcd9f59048d943d35c42ea92072797b347fa75d537c9a4b49"
+  },
+  "pilot.atr": {
+    "bytes": 133136,
+    "sha256": "2d1b29f8bbdc9dfdbd1021a39f840f1565d6ac4dd4cc9d112ad56002549d84d2"
+  },
+  "swarm.atr": {
+    "bytes": 133136,
+    "sha256": "37b0a6add92d74f10135ff2751dd2c75100d16661f2c5db53e9cee76daaa28a2"
+  },
+  "volley.atr": {
+    "bytes": 133136,
+    "sha256": "a23e23723b411d4960d6970967d32882826b310777d738d90a58c63e4cf1238b"
+  }
+}

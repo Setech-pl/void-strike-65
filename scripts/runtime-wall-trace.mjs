@@ -4684,7 +4684,6 @@ function main() {
           layout.variant.includes(`boss-region-${bossRegion}-`)) : [])
     : [{ ...baselineSessions[0], difficulty: smokeDifficulty,
       id: process.env.VS65_L2_SESSION ?? "observer-smoke", kind: "observer-smoke", frames: smokeFrames,
-      fireDelay: Number(process.env.VS65_SMOKE_FIRE_DELAY ?? baselineSessions[0].fireDelay),
       policy: process.env.VS65_L2_POLICY ?? baselineSessions[0].policy,
       endAtBossFrames: Number(process.env.DFTRACE_L2_BOSS_FRAMES ?? 0),
       bossPath: process.env.VS65_L2_BOSS_PATH }];

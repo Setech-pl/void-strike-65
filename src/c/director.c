@@ -152,8 +152,6 @@ uint8_t wave_count[LEVEL_MAX_WAVES];
 uint8_t wave_spacing[LEVEL_MAX_WAVES];
 uint8_t wave_entry[LEVEL_MAX_WAVES];
 uint8_t wave_member_offset[LEVEL_MAX_WAVES];
-#pragma bss-name ("LEVEL_PATHS")
-uint8_t level_paths[96];
 #pragma bss-name ("BSS")
 
 #pragma bss-name ("DIRECTOR_C_BSS")
@@ -201,7 +199,7 @@ volatile uint8_t heavy_motion;
  * 23 §10.7). A level file may ask for less; it may never ask for more. Index 0
  * SWARM, 1 ELITE, 2 CAPITAL, 3 BOSS. The CAPITAL row exists and is zero so
  * that paying for plan §5.1 later is a table VALUE, not a format change. */
-const uint8_t subtype_ceiling_light[4] = { 4u, 1u, 0u, 1u };
+const uint8_t subtype_ceiling_light[4] = { 3u, 1u, 0u, 1u };
 const uint8_t subtype_ceiling_heavy[4] = { 0u, 2u, 0u, 0u };
 /* Class spacing floors in frames: Light is light_wave_step's admission floor,
  * Heavy the fastest interceptor_admission_retry_frames. A wave asking for less
@@ -371,7 +369,7 @@ uint8_t director_c_try_event(void)
     /* A Light wave runs in the code window at one admission attempt per frame.
      * The lock is what keeps a swarm and a Heavy formation from coexisting:
      * _asm_director_can_allocate refuses the ASM Heavy retry while it is up. */
-    asm_m3_wave_arm();
+    light_wave_archetype = heavy_archetype_offset;
     light_wave_entry = wave_entry[director_scratch0];
     light_wave_remaining = STATE_WAVE_REMAINING;
     light_wave_timer = 0u;
@@ -436,7 +434,6 @@ static void enter_sector(void)
 #pragma code-name ("DIRECTOR_C_LOW")
 void director_c_init(void)
 {
-    asm_m3_reset();
     LIFE_CAPSULE_SPAWNED = 0u;
     STATE_ROW_LO = 0u;
     STATE_ROW_HI = 0u;

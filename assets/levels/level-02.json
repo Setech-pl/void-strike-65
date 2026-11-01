@@ -1,12 +1,105 @@
 {
   "_": [
-    "M3 final pilot tuning, owner2026-11-01: denser back-to-back groups using",
-    "existing WaveDefs/path records only. Left/right/centre entries and wide",
-    "every-frame crossing sweeps; mirrored members fan to opposite sides.",
-    "All wave rows are minimum0, so the existing clear lock is the only chain gate.",
-    "Heavy WaveDefs/holds/looks, archetype weapons/score and capital lifetime rules",
-    "are unchanged. Per-level hunter HP2/lancer HP4. This is authored data,",
-    "not a new difficulty multiplier. Final measured timeline is emitted at build."
+    "Level 2, region R1 (levels 1-4): the enemy hull style R1 and the allied",
+    "steel $88 both follow from the level NUMBER in scripts/build.mjs - there is",
+    "no field for either, and level 2 is inside the brighter half either way.",
+    "",
+    "APPROVED by the owner on 2026-09-30 with two changes (plan §11 item 15):",
+    "sector 4 is three Interceptor waves of 8 at spacing 20 instead of four at",
+    "the 16-frame floor, and debris is 1 wherever the draft said 2. Roadmap 4.6",
+    "step 3. It uses only archetypes, code paths and format fields that exist",
+    "today; nothing here asks for new frame code, a new format field or a new",
+    "boot sector.",
+    "",
+    "WHAT MAKES IT READ DIFFERENTLY FROM LEVEL 1, and it is one thing above all:",
+    "level 1 is four sectors of Heavy formations with a Wingman escort and never",
+    "more than ONE Light alive. Level 2 opens on a SWARM sector - subtype swarm,",
+    "Light ceiling 3, Heavy ceiling 0 - so the first thing the player meets is",
+    "three live Lights at once and no Heavy at all. That is the Light",
+    "multiplicity the project built for 4.6 and has never yet put in authored",
+    "data: level 1 has no Light-dominant wave anywhere.",
+    "",
+    "The six sectors, and why each one is there:",
+    "  1 SWARM   480 rows  interceptor + wingman, 3 Lights   the new opening",
+    "  2 ELITE   640 rows  bomber + wingman ONLY             the bomber line",
+    "  3 CAPITAL 352-row hull (the traversal is its clock) later than level 1",
+    "  4 SWARM   768 rows  interceptor ONLY, 3 Lights, 3 waves of 8 at 20",
+    "  5 ELITE   800 rows  raider/bomber alternating",
+    "  6 ELITE  1152 rows  all four archetypes; a Light wave inside an elite",
+    "",
+    "THE CAPITAL SITS LATER THAN LEVEL 1'S, on the authored row 1,120 (480 +",
+    "640) instead of 272. The row is the clock, so the frame follows the",
+    "difficulty on its own - later on EASY, earlier on HARD (owner decision):",
+    "  EASY 0.40 rows/frame -> frame 2,800   (56 s)",
+    "  MEDIUM 0.45          -> frame 2,489   (50 s)",
+    "  HARD 0.50            -> frame 2,240   (45 s)",
+    "WORLD_SCROLL_RATE_{EASY,MEDIUM,HARD} = 8/9/10 over 20 (build/capital-",
+    "hulls.inc); MEASURED at step 3 as the frame the Director enters sector 3,",
+    "exactly the arithmetic's figure on all three difficulties.",
+    "",
+    "WAVE ROWS ARE 'NOT BEFORE' GATES, not a timetable. director_c_world_row_tick",
+    "returns early while STATE_WAVE_REMAINING is nonzero or light_wave_lock is up,",
+    "so an armed wave holds the cursor until it is spent and the next wave arms",
+    "the moment BOTH its row has passed and the previous wave has finished. Only",
+    "the SECTOR END can cut a wave list. Every sector below is therefore sized so",
+    "that all its waves are spent inside it on EASY, the slowest stream.",
+    "MEASURED at step 3 with scripts/level-timeline.mjs on the --level=2 build:",
+    "the row of the sector's LAST admission, EASY / MEDIUM / HARD, of its length",
+    "  sector 1  18 Lights                     242 /  248 /  254 of 480",
+    "  sector 2  18 Bomber formations          553 /  533 /  521 of 640",
+    "  sector 4  24 Interceptors               316 /  324 /  331 of 768",
+    "  sector 5  24 formations                 736 /  731 /  711 of 800",
+    "  sector 6  30 formations + 4 Interceptors 1023 / 1010 / 1001 of 1152",
+    "A wave of 8 Interceptors at spacing 20 spends in 151 frames on every",
+    "difficulty. The probe retires every Light 64 frames after admission; a",
+    "Light the player leaves alive longer holds its slot longer, which is what",
+    "sector 4's headroom absorbs.",
+    "",
+    "ALTERNATION, level 1's owner decision 8, kept where it means anything:",
+    "sector 5 runs R,B,R,B and always spends all four, so it ENDS on bomber on",
+    "every difficulty and sector 6 opens on raider. Sector 2 is deliberately",
+    "three bomber waves in a row - that is the sector's identity, not an",
+    "accidental repeat, and no Heavy sector precedes or follows it directly.",
+    "",
+    "WHAT THIS FILE CANNOT EXPRESS TODAY, named rather than faked:",
+    "  * 'mirror' and 'afterCleared' compile into wave_flags but the Director",
+    "    reads only WAVE_FLAG_HEAVY today, so neither is authored here.",
+    "  * 'hazards.debris' is read as a nonzero TEST (HAZARD_DEBRIS_MASK), not as",
+    "    a live count, and no plan step makes the count live, so every sector",
+    "    authors 1 (owner decision 2026-09-30): a 2 would say something the",
+    "    game does not do.",
+    "  * HULL LENGTH (plan step 4, owner 2026-09-30): 352 rows, 'length' 1, where",
+    "    level 1 flies 480. The short hull is right-aligned - its prow ends on",
+    "    row 479 like level 1's - and keeps today's turret density per row:",
+    "    7 / 10 / 14 stations on EASY / MEDIUM / HARD against level 1's 10/15/20.",
+    "",
+    "Seed 77 (the plan's own §6 example) gives level 2 its own RNG stream:",
+    "director_c_init XORs it with the difficulty, so all three streams differ",
+    "from level 1's $6D.",
+    "",
+    "PAYLOAD, roadmap 4.6 step 5 (docs/plans/director-4.6.md §8.3, owner decision",
+    "2026-10-01: level 2 shows the full payload). Waves, rows and counts are the",
+    "ones approved on 2026-09-30; only their LOOK changes.",
+    "  * THE SKY, the rule level 1 follows too - capital steel, last sector",
+    "    yellow, every other sector white: white, white, steel, white, white,",
+    "    yellow. All three colours.",
+    "  * THREE LIGHT LOOKS (decision AD: re-skins, never new enemy code):",
+    "      hunter  - the Interceptor recoloured: red arms, white rotor pods,",
+    "                steel hub;",
+    "      escort  - the Wingman recoloured: a steel inner edge on the red V;",
+    "      lancer  - the Interceptor re-glyphed: a kite-shaped dart, red outline,",
+    "                steel body, white core.",
+    "    Sector 1 opens on the plain Interceptor and Wingman, so each archetype",
+    "    is met before its variants; its third wave is 'hunter'. Sector 2's",
+    "    Bomber escorts are 'escort'. Sector 4 runs 'hunter', then 'lancer'",
+    "    twice. Sector 5 is plain. Sector 6's first escort wave is 'escort' and",
+    "    its Interceptor wave 'lancer'.",
+    "  * TWO WEAPON LOOKS, level 2 only: PULSE (Raider, Wingman) becomes a",
+    "    staggered twin pulse - two one-pixel pulses, steel over white, offset",
+    "    diagonally; LASER (Interceptor) a broken beam of three short dashes.",
+    "    White and steel only, never %11, the art rule for hostile fire.",
+    "    BOMBER keeps its shell: its second animation phase does not fit a",
+    "    9-byte look."
   ],
   "level": 2,
   "seed": 77,
@@ -122,123 +215,7 @@
           "00000000"
         ]
       }
-    ],
-    "paths": {
-      "wide-west": [
-        {
-          "dy": 2,
-          "frames": 12,
-          "flags": 0
-        },
-        {
-          "dy": 2,
-          "frames": 32,
-          "flags": 20
-        },
-        {
-          "dy": 2,
-          "frames": 32,
-          "flags": 24
-        },
-        {
-          "dy": 2,
-          "frames": 0,
-          "flags": 0
-        }
-      ],
-      "wide-east": [
-        {
-          "dy": 2,
-          "frames": 12,
-          "flags": 0
-        },
-        {
-          "dy": 2,
-          "frames": 32,
-          "flags": 24
-        },
-        {
-          "dy": 2,
-          "frames": 32,
-          "flags": 20
-        },
-        {
-          "dy": 2,
-          "frames": 0,
-          "flags": 0
-        }
-      ],
-      "wide-cross": [
-        {
-          "dy": 0,
-          "frames": 20,
-          "flags": 4
-        },
-        {
-          "dy": 2,
-          "frames": 8,
-          "flags": 0
-        },
-        {
-          "dy": 2,
-          "frames": 38,
-          "flags": 24
-        },
-        {
-          "dy": 2,
-          "frames": 0,
-          "flags": 0
-        }
-      ],
-      "wide-track": [
-        {
-          "dy": 2,
-          "frames": 12,
-          "flags": 0
-        },
-        {
-          "dy": 1,
-          "frames": 40,
-          "flags": 29
-        },
-        {
-          "dy": 2,
-          "frames": 0,
-          "flags": 0
-        },
-        {
-          "dy": 2,
-          "frames": 0,
-          "flags": 0
-        }
-      ],
-      "wide-return": [
-        {
-          "dy": 2,
-          "frames": 16,
-          "flags": 0
-        },
-        {
-          "dy": 1,
-          "frames": 32,
-          "flags": 4
-        },
-        {
-          "dy": -1,
-          "frames": 16,
-          "flags": 8
-        },
-        {
-          "dy": -2,
-          "frames": 0,
-          "flags": 0
-        }
-      ]
-    },
-    "appearanceHp": {
-      "hunter": 2,
-      "lancer": 4
-    }
+    ]
   },
   "sectors": [
     {
@@ -249,7 +226,7 @@
         "interceptor",
         "wingman"
       ],
-      "lights": 4,
+      "lights": 3,
       "heavies": 0,
       "hazards": {
         "debris": 1,
@@ -262,33 +239,24 @@
         {
           "row": 0,
           "archetype": "interceptor",
-          "count": 8,
-          "spacing": 16,
-          "entry": 52,
-          "path": "wide-west",
-          "mirror": false,
-          "fire": "normal"
+          "count": 6,
+          "spacing": 24,
+          "entry": 88
         },
         {
-          "row": 0,
+          "row": 96,
           "archetype": "wingman",
-          "count": 8,
-          "spacing": 16,
-          "entry": 200,
-          "path": "wide-east",
-          "mirror": false,
-          "fire": "normal"
+          "count": 6,
+          "spacing": 24,
+          "entry": 160
         },
         {
-          "row": 0,
+          "row": 192,
           "archetype": "interceptor",
-          "count": 8,
-          "spacing": 16,
+          "count": 6,
+          "spacing": 24,
           "entry": 124,
-          "appearance": "hunter",
-          "path": "wide-cross",
-          "mirror": true,
-          "fire": "normal"
+          "appearance": "hunter"
         }
       ]
     },
@@ -375,7 +343,7 @@
       "archetypes": [
         "interceptor"
       ],
-      "lights": 4,
+      "lights": 3,
       "heavies": 0,
       "hazards": {
         "debris": 1,
@@ -386,13 +354,28 @@
       },
       "waves": [
         {
-          "chain": "teach-mirror-pressure-release",
           "row": 0,
-          "with": {
-            "archetype": "interceptor",
-            "spacing": 16,
-            "entry": 124
-          }
+          "archetype": "interceptor",
+          "count": 8,
+          "spacing": 20,
+          "entry": 64,
+          "appearance": "hunter"
+        },
+        {
+          "row": 128,
+          "archetype": "interceptor",
+          "count": 8,
+          "spacing": 20,
+          "entry": 184,
+          "appearance": "lancer"
+        },
+        {
+          "row": 256,
+          "archetype": "interceptor",
+          "count": 8,
+          "spacing": 20,
+          "entry": 96,
+          "appearance": "lancer"
         }
       ]
     },
@@ -500,9 +483,7 @@
           "count": 4,
           "spacing": 24,
           "entry": 124,
-          "appearance": "lancer",
-          "path": "tracking-dive",
-          "fire": "column"
+          "appearance": "lancer"
         },
         {
           "row": 480,
@@ -535,47 +516,5 @@
         }
       ]
     }
-  ],
-  "chains": {
-    "teach-mirror-pressure-release": [
-      {
-        "row": 0,
-        "count": 8,
-        "path": "wide-west",
-        "entry": 52,
-        "appearance": "hunter",
-        "fire": "normal",
-        "spacing": 16
-      },
-      {
-        "row": 0,
-        "count": 8,
-        "path": "wide-cross",
-        "mirror": true,
-        "appearance": "hunter",
-        "fire": "column",
-        "spacing": 16,
-        "entry": 124
-      },
-      {
-        "row": 0,
-        "count": 8,
-        "path": "wide-track",
-        "appearance": "lancer",
-        "fire": "volley-column",
-        "spacing": 16,
-        "entry": 200
-      },
-      {
-        "row": 0,
-        "count": 8,
-        "path": "wide-return",
-        "appearance": "lancer",
-        "fire": "normal",
-        "spacing": 16,
-        "entry": 52,
-        "mirror": true
-      }
-    ]
-  }
+  ]
 }

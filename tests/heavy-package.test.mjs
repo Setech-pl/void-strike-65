@@ -115,12 +115,10 @@ test('M3-H placement: appended H2, thirteen BSS bytes and unchanged protected ca
   assert.equal(r[0].sectorCount,44);assert.equal(r[6].sectorCount,6);
   // H12's guarded entry grows record 8 past its three-byte packed tail.
   // Accepted content-home placement still keeps the publisher out of it.
-  // M3's guarded path entries use the planned +1..3 sectors above the
-  // accepted M3-H 15-sector record; decoded window guards still own RAM.
-  assert.ok(r[7].sectorCount<=18);assert.equal(r[8].sectorCount,9);assert.equal(r[10].sectorCount,3);
+  assert.ok(r[7].sectorCount<=15);assert.equal(r[8].sectorCount,9);assert.equal(r[10].sectorCount,3);
   // Phase resync uses existing boot-publication padding. Packed content is
   // +22 B over B1; protected capacities and transport sectors stay unchanged.
-  assert.equal(m.transportCapacity.initialBootContentBytes,12865);assert.equal(m.l2.usedBytes,1290+167);
+  assert.equal(m.transportCapacity.initialBootContentBytes,12865);assert.equal(m.l2.usedBytes,1290);
 });
 
 

@@ -1,6 +1,6 @@
 # VOID STRIKE 65 — CURRENT STATUS
 
-Last update: 2026-11-01 (M3 final tuning + checkpoint5, merge-ready candidate)
+Last update: 2026-10-31 (test debt part 2; gameplay baseline unchanged)
 
 What is true now. Rules: [reguly-projektu.txt](reguly-projektu.txt). Roadmap:
 [plan-realizacji.md](plan-realizacji.md). Source-of-truth order:
@@ -20,65 +20,13 @@ the values below.
 
 ## Checkpoint
 
-### M3 final +checkpoint5 — merge-ready OWNER-SMOKE CANDIDATE
+### Pre-v0.4.0 test debt part 2 — uncommitted infrastructure handoff
 
-Owner checkpoint4 mechanics OK; sparse/narrow tuning rejected. Data tuning
-9f3735d widens entries/sweeps/crossings, removes authored row waits and raises
-counts. Separate1f299a5 grants4 free Lights through existing storage/renderer;
-opening24 and pilot32 admissions. Level1/all12 Heavy WaveDefs unchanged.
-Current main8da7c66 merged at a0fb7d5; conflicts preserve accepted test-debt
-fixes and M3's resource pins. No new owner acceptance of the tuning is inferred.
-
-All Q5A modes retained through guarded131-B L2 volley prep. C-skin stays36 B
-L2 +16 window +3 extension, selected because content free57<64. Invalid
-pair/phase uses normal fire/base HP before any home read. Hunter2/lancer4,
-other looks inherit. Wave chains remain host-expanded; no guest queue/overlap.
-
-| Home | Final used /usable ceiling B | Free B | Tuning delta |
-| --- | ---: | ---: | ---: |
-| Content | 1863 /1920 | 57 | 0 |
-| Window | 2437 /2811 | 374 | 0 |
-| L2 | 1457 /1536 | 79 (+256 protected) | 0 |
-
-Arena830/832, Director high324, extension878/tail21, initial12865 unchanged;
-11 records/214 transport sectors. Total M3 window growth135≤300. Overlap's
-scan-free decision probe alone88+1 B would make content1952/1920 (32 over),
-also larger than L2's usable tail before glue. No new scan/relocation/reserve
-spend. Arm gaps2–3 frames; actual renderer Y24 entry cues up to34, explicitly
-retained. [Pricing and alternatives](diagnostics/m3/final/tuning/report.md).
-
-Native PAL worst32224 (target+724, hard margin344), four-shot pulses/864
-four-Light frames per difficulty; no timing anomaly. E/N/H authored pilot
-32079/31239/32095, all32 admissions and quiet release complete. Quick Spread
-30465/capital-96031156 unchanged; boss entry325. Bomber approach/capital32089,
-Heavy cleared beforehand; registered boss pause and RESET31327 both pass,
-next-game hull rebuild once and no stale reads. Linked guards/lifetime,
-departure, rendering, compiler/chains/HP and no-path/main comparisons pass.
-
-Normal computed gates PASS, release evidence pending. Fresh full main
-1632 PASS/11 FAIL/4 SKIP; task raw1664/13/5. Two stale3-Light expectations
-corrected; complete affected files pass. Audited **A11/B0/C0**, exact first
-assertion/message match; existing11 unit and32 milestone-trace debts retained.
-[One combined report, resources, logs and hashes](diagnostics/m3/final/report.md).
-
-Final play ATRs/checklists: `build/play/m3/final/` (campaign, level2, pilot,
-volley, approach, boss). EN/PL player docs and the
-[denser regional recipe sheet](plans/m3-regional-recipes.md) are current.
-M4 inherits57/374/79 usable home B, reader24 (old estimate10 short), full1792-B
-summary and1 payload-tail byte. B-shot, hues, Bomber skins/shot re-skin,
-terminal overlap and later levels remain DEFER. **NEXT: owner smoke/merge;
-STOP. No M4 implementation, push, tag or release.**
-
-### Pre-v0.4.0 test debt triage — baseline merged in main4e84bc4
-
-Main baseline 6046c0b. Full suite 1512 PASS/137 FAIL/4 SKIP before; raw after 1527/121/4. One generated-ABI fixture race repaired and full affected file rerun; audited 1528/120/4, A120/B0/C17 (line-only assertion shifts audited). 119 unit cases and all 32 native assertions remain unknown; the known preview-tool defect remains. No game source, CPU/RAM layout or canonical runtime evidence changed. The triage session reported Git metadata permissions blocking its own commits; the owner subsequently supplied this work in main4e84bc4, merged above. [Per-test classification, audit and remaining work](diagnostics/test-debt/report.md). NEXT TASK: investigate remaining unknowns and refresh milestone release evidence; no release-readiness claim.
-### Pre-v0.4.0 test debt part 2 — merged baseline8da7c66
-
-Main8da7c66 includes the accepted test-debt part2 commits; merged into this task at checkpoint5. The original infrastructure handoff reported metadata restrictions, now resolved by the owner merge. No game source, asset, layout or native predicate changed.
+Branch codex/test-debt, HEAD b6bf627; main 4e84bc4 has the identical tree. Merge and commits are blocked by linked Git metadata permissions. No game source, asset, layout or native predicate changed.
 
 Nine root families cover all 120 baseline unit failures (119 former unknowns plus the known preview defect). **109 addressed**, including five obsolete tests retired with replacement coverage. Raw full suite **1625 PASS/18 FAIL/4 SKIP**; after seven §BR stale expectations and 35/35 affected-file checks, audited **1632/11/4**. No task-only failing names. Two first-assertion moves expose existing baseline collision/evidence debt and are recorded explicitly.
 
-Remaining: eight milestone-evidence unit checks; a linked NMOS collision regression first bad 5bc8d51; the preview clipping bug (source condition first bad effe71c); and a no-kill authored-wave/fixture candidate requiring native/intent confirmation. All 32 native ledger assertions are grouped as needing fresh milestone reproduction, not cleared. [Groups, bisects, exact assertions and audit](diagnostics/test-debt/part2/report.md). **NEXT TASK: owner selects defect follow-up and milestone evidence refresh; no release certification.**
+Remaining: eight milestone-evidence unit checks; a linked NMOS collision regression first bad 5bc8d51; the preview clipping bug (source condition first bad effe71c); and a no-kill authored-wave/fixture candidate requiring native/intent confirmation. All 32 native ledger assertions are grouped as needing fresh milestone reproduction, not cleared. [Groups, bisects, exact assertions and audit](diagnostics/test-debt/part2/report.md). **NEXT TASK: owner records the merge/commits, then selects defect follow-up and milestone evidence refresh; no release certification.**
 
 ### M3-H session 2 — smoke repair OWNER-SMOKE CANDIDATE
 

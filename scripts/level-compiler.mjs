@@ -26,8 +26,6 @@ import { compileCapitalHulls, loadCapitalHullsDefinition, HULL_MAX_ROWS } from "
 import { hostileWeaponGlyphRows } from "./fighter-weapons.mjs";
 import {compileHeavyDamage} from "./heavy-damage.mjs";
 import { compileHeavyLook, defaultArmouredRaiderLook } from "./enemy-roster.mjs";
-import {packWavePaths} from "./wave-paths.mjs";
-import {expandWaveChains,waveTimeline} from "./wave-chains.mjs";
 
 const scriptDirectory = path.dirname(fileURLToPath(import.meta.url));
 const rootDirectory = path.resolve(scriptDirectory, "..");
@@ -92,7 +90,6 @@ export const PAYLOAD_BLOCK_BYTES = Object.freeze({
 });
 export const HEAVY_LOOK_BYTES = 17;
 export const HEAVY_LOOK_OFFSET = PAYLOAD_OFFSET.hullParams;
-export const LIGHT_HP_OFFSET = HEAVY_LOOK_OFFSET + HEAVY_LOOK_BYTES;
 // The grade's thresholds (decision 28; M8 tunes them): two accuracy tiers in
 // per cent, two time limits in whole seconds (16-bit), two lives-lost bounds,
 // and the bonus per tier point as one packed-BCD byte in score units.
@@ -163,7 +160,7 @@ export const PATH_ARCHETYPE_DEFAULT = 0xff;
 // bytes). A file above these is legal - the runtime clamps - but the author is
 // told, because the level will not play the way it reads.
 export const SUBTYPE_CEILING = Object.freeze({
-  "space/swarm": { heavy: 0, light: 4 },
+  "space/swarm": { heavy: 0, light: 3 },
   "space/elite": { heavy: 2, light: 1 },
   capital: { heavy: 0, light: 0 },
   // M5b-S3 (docs/plans/m5-loading-boss.md §5.1, decision 5a): one Light may
@@ -522,14 +519,6 @@ function compilePayload(source, context) {
   } catch (error) {
     fail(context, "payload.heavyLook", error.message);
   }
-  const hp=payload.appearanceHp??{};
-  if(!hp||typeof hp!=="object"||Array.isArray(hp))fail(context,"payload.appearanceHp","must map appearance names to0..4 HP");
-  for(const [name,value] of Object.entries(hp)) {
-    const slot=names.indexOf(name)+1;
-    if(slot===0||!Number.isInteger(value)||value<0||value>4)
-      fail(context,"payload.appearanceHp","requires a named authored look and HP0..4 (0 inherits archetype)");
-    page[LIGHT_HP_OFFSET+slot]=value;
-  }
   return { page, looks: names, weaponClasses: classes };
 }
 
@@ -815,17 +804,9 @@ function compileSectors(source, context, warnings) {
       const mirror = requireBoolean(context, waveWhere, "mirror", wave.mirror, false);
       const onCleared = requireBoolean(context, waveWhere, "afterCleared",
         wave.afterCleared, false);
-      const fireMode = wave.fire ?? "normal";
-      const fireBits = new Map([["normal",0],["volley",0x40],["column",0x80],["volley-column",0xc0]]).get(fireMode);
-      if (fireBits === undefined) fail(context,waveWhere,"fire must be normal, volley, column or volley-column");
-      if (wave.fire !== undefined && wave.path === undefined)
-        fail(context,waveWhere,"fire envelopes require a free Light path wave");
       if (wave.path !== undefined) {
-        if(waveClass!=="light" || !isSpace)
-          fail(context,waveWhere,"a path requires a free Light wave in SPACE");
-        if(wave.loops)fail(context,waveWhere,"path and Interceptor loops cannot be combined");
-        if(entry%4)fail(context,waveWhere,"path entry must be a four-HPOS cell");
-        if(subtype===SECTOR_SUBTYPE.elite)warnings.push(`${context.file} ${waveWhere}: path shares the ELITE budget; measure Heavy/path coincidences`);
+        fail(context, waveWhere, "names a path; the path evaluator and its library are " +
+          "plan step 6 (docs/plans/director-4.6.md §8)");
       }
       // feat/interceptor-standoff (the owner's smoke of 2026-10-11): how many
       // times an Interceptor of this wave climbs to the top-hold row and dives
@@ -867,13 +848,13 @@ function compileSectors(source, context, warnings) {
       }
       // wave_flags: bits 0-1 appearance slot, bit 2 mirror, bit 3 Heavy class,
       // bit 4 after-cleared, bit 5 armoured Raider,
-      // bits6-7: path-Light fire modes, otherwise Interceptor loops (Q4A).
+      // bits 6-7 the Interceptor's loops.
       const flags = appearance | (mirror ? 0x04 : 0) |
         (waveClass === "heavy" ? 0x08 : 0) | (onCleared ? 0x10 : 0) |
-        (heavyKind === "armoured" ? 0x20 : 0) | (wave.path !== undefined ? fireBits : loops << 6);
+        (heavyKind === "armoured" ? 0x20 : 0) | loops << 6;
       waves.push({
         sector: index + 1, row, flags, count, spacing, entry, appearance, mirror,
-        onCleared, loops, archetype, escort, class: waveClass, kind: heavyKind, motion, path:wave.path, hold: wave.hold ?? null,
+        onCleared, loops, archetype, escort, class: waveClass, kind: heavyKind, motion, hold: wave.hold ?? null,
         rowModules: row / HULL_MODULE_ROWS,
         archetypeOffset: ARCHETYPE_INDEX[archetype] * ARCHETYPE_RECORD_BYTES,
         escortOffset: escort === null
@@ -900,9 +881,6 @@ export function compileLevel(source, { hullAsset, file = "level.json" } = {}) {
   if (typeof source !== "object" || source === null || Array.isArray(source)) {
     fail(context, null, "must be a JSON object");
   }
-  let chainExpansions;
-  try { const expanded=expandWaveChains(source);source=expanded.source;chainExpansions=expanded.expansions; }
-  catch(error) { fail(context,null,error.message); }
   const level = requireInteger(context, null, "level", source.level, 1, MAX_LEVEL_NUMBER);
   const seed = requireInteger(context, null, "seed", source.seed ?? 1, 1, 255);
   const stars = source.stars === undefined
@@ -928,9 +906,6 @@ export function compileLevel(source, { hullAsset, file = "level.json" } = {}) {
 
   const hull = compileHull(source, context);
   const { sectors, waves, bossSectorIndex } = compileSectors(source, context, warnings);
-  let paths;
-  try { paths=packWavePaths(waves,source.payload?.paths); }
-  catch(error) { fail(context,"paths",error.message); }
   if (bossId !== 0 && bossSectorIndex < 0) {
     fail(context, null, `names boss ${bossId} but no sector has kind "boss"`);
   }
@@ -986,16 +961,10 @@ export function compileLevel(source, { hullAsset, file = "level.json" } = {}) {
   // Step 5 fills the appearances and the weapon looks; the path and
   // hull_params blocks stay zero until steps 6 and 4.8a. M5b-S3 fills boss_def.
   const payload = payloadPage.page;
-  paths.copy(payload,PAYLOAD_OFFSET.path);
   compileBossDef(source, context, bossId).copy(payload, PAYLOAD_OFFSET.bossDef);
 
-  const timeline=waveTimeline(sectors,waves,payload.subarray(PAYLOAD_OFFSET.path,PAYLOAD_OFFSET.path+96),hullAsset);
-  for(const expansion of chainExpansions) for(const difficulty of timeline[expansion.sector-1].difficulties)
-    if(difficulty.rows.some(row=>row.mayCutAtSectorEnd))
-      warnings.push(`${file} sector ${expansion.sector} chain ${expansion.name}: ${difficulty.difficulty} no-fire model may cut a wave at the sector end`);
   return {
     level, seed, hull, geometry, sectors, waves, warnings, core, payload,
-    chainExpansions, timeline,
     looks: payloadPage.looks, weaponClasses: payloadPage.weaponClasses,
     pages: { core, payload, geometry: geometryPage, islands: islandPage },
   };

@@ -109,7 +109,7 @@ test("everything before the boss sector is the level that shipped (gameplay up t
 
 test("the boss sector's ceiling is one Light in the runtime and the compiler alike", () => {
   const director = read("src/c/director.c").toString("utf8");
-  assert.ok(/const uint8_t subtype_ceiling_light\[4\] = \{ 4u, 1u, 0u, 1u \};/.test(director),
+  assert.ok(/const uint8_t subtype_ceiling_light\[4\] = \{ 3u, 1u, 0u, 1u \};/.test(director),
     "light[3] 0 -> 1 (plan §5.1, decision 5a)");
   assert.ok(/const uint8_t subtype_ceiling_heavy\[4\] = \{ 0u, 2u, 0u, 0u \};/.test(director),
     "the boss sector admits no Heavy");

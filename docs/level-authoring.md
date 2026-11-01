@@ -81,7 +81,7 @@ numbers; world rows, not eighths.
 | `seed` | 1-255 | 1 | the Director RNG's initial value |
 | `stars` | `white`, `steel`, `yellow` | `white` | the level's default sky: the near-star pixel value - white `COLPF0`, the allied steel `COLPF1`, yellow `COLPF2` (budget-1.0 M2 variant S2). A sector without `look.stars` takes it. `0` is accepted and means `white` |
 | `nebula` | 0 | 0 | the nebula (variant S3) is not built; any other value is refused |
-| `payload.appearances` | 0-3 looks | `[]` | Light looks for appearance slots 1-3, in order. Each is `{ "name", "rows" }`: a lower-case name a wave can use, and eight rows of eight pixels, left cell then right cell, each pixel `.` black, `W` white, `S` steel or `R` hostile red (a Light's code carries the hostile bit, so `%11` is `COLPF3`). A look reuses its archetype (decision AD); `appearanceHp` may override HP at admission, while weapon and score remain unchanged |
+| `payload.appearances` | 0-3 looks | `[]` | Light looks for appearance slots 1-3, in order. Each is `{ "name", "rows" }`: a lower-case name a wave can use, and eight rows of eight pixels, left cell then right cell, each pixel `.` black, `W` white, `S` steel or `R` hostile red (a Light's code carries the hostile bit, so `%11` is `COLPF3`). A look is a re-skin (decision AD): the Light keeps its archetype's motion, HP, fire and score |
 | `payload.weapons` | 0-2 looks | `[]` | hostile weapon looks laid over the defaults at level start. Each is `{ "class": "pulse" \| "laser", "rows" }`, `rows` the eight 8-bit masks of `assets/graphics/fighter-weapons.json` with its rules: pixels 0-1 only (the right phase is the glyph shifted two pixels) and never `%11`, so hostile fire stays white and steel. One look per class. `bomber` is refused: its second animation phase does not fit the 9-B record |
 | `payload.heavyLook` | one armoured Raider look | `enemy-roster.json`'s `heavyLooks.armouredRaider` | `{ "rows", "colour" }`: exactly 14 strings of eight binary PMG pixels; row 13 must be clear and the body nonempty. Colour `$44`, `$46` or `$48` (or its integer value). Stored at `$ABA2`: 14 rows, 2 zero storage rows, colour; 17 of the 22 hullParams bytes, leaving 5. Override pixels must contain every `heavyDamage.armouredRaider` clear-mask bit and preserve the authored hole rows. Read in place at Heavy admission; no new archetype, collision box or PMG slot. Applies only to the wave's `kind: "armoured"`; assault and Bomber art stay unchanged |
 | `boss` | 0-255 | 0 | BossDef index; 0 = none. Non-zero needs a `boss` sector and a `bossDef` ("The boss" below) |
@@ -192,7 +192,7 @@ A level holds at most 20 waves in total, across all its sectors.
 | `spacing` | frames, ≥ the class floor | the class floor | frames between members. Light floor 16, Heavy floor 24 |
 | `entry` | 48-200 | 124 | entry column |
 | `mirror` | boolean | false | mirror the entry |
-| `afterCleared` | boolean | false | arm only when the minimum `row` is reached AND the whole field is clear. A refusal retries on a later row tick; it does not consume the cursor |
+| `afterCleared` | boolean | false | arm when the previous wave cleared instead of on `row`. **Compiled (flags bit 4) but not read by the Director yet** (fix/smoke-2026-10-07: `src/c/director.c` reads the look and Heavy bits only); what paces waves today is in [level-data-howto.md](level-data-howto.md), "When the next wave can start" |
 | `appearance` | a look's name, or 0-3 | 0 | 0 = the archetype's own art; otherwise a `payload.appearances` look, by name or slot number. On a Light wave its members wear it; on a Heavy wave its **Light escort** does, and the Heavy pair keeps its PMG art, so a Heavy wave without an escort is refused |
 | `loops` | 0-3 | 0 | an **Interceptor**'s top-hold loops (decision AK points 9-10, flags bits 6-7): after each 64-frame standoff it climbs to its top-hold row (y 32, two rows lower per Light slot), holds, dives back and flies the standoff again, this many times, then climbs out upward. 0 is a single pass. Only a wave whose Light is an Interceptor - its archetype, or a Heavy wave's escort - may carry it. Each loop adds 128 frames to the Interceptor's life (64 + 128 × loops + the climb out; fix/interceptor-speed, decision AS - 100 and 139 before), and a Light wave holds the cursor until its last Light has gone, so loops lengthen the sector. A boss sector's escort keeps 0: its life must stay under the escort clock's 128-frame floor. Level 1's swarm and elite (a) Interceptors carry 2 |
 
@@ -223,34 +223,9 @@ capital ceiling fails at 30,025/29,756; no smoke candidate or native authored
 level-2 PASS is claimed. See the
 [sixth-continuation audit](audits/2026-10-27-m3h-step1.md#sixth-continuation--boss-deltas-fixed-native-capital-ceiling-stop).
 
-M3 checkpoints1–2 accept `path` on a free Light SPACE wave. Library names:
-`straight`, `shallow-wave`, `snake`, `arc`, `dive-return`, `tracking-dive`,
-`finite-loop`. Mirrored waves alternate lateral direction on successful
-admissions, including reused slots; refused admissions do not consume parity.
-Tracking always follows the actual player column, quantized to4 HPOS and
-clamped48..200. Tracking itself is not reversed by mirror.
-It replaces archetype motion, keeps weapon/HP/score and uses the existing
-96-B payload block (up to8 deduplicated12-B records). No-path remains `$FF`.
-Paths on Heavy/boss waves and `path` combined with nonzero `loops` are refused.
-Optional `payload.paths.<name>` is exactly four `{dy, frames, flags}` segments;
-`dy` is -2..2 pixels/frame; `frames`0..255. Flags bits0..1 encode lateral
-period masks0/1/3 (every1/2/4 frames); bits2..3 select none/right/left/track;
-bit4 permits the archetype weapon; bits5..6 select a relative jump back0..3
-segments at expiry (0 means next); bit7 retires at expiry. No fire envelope
-mode is implemented before checkpoint3. Duration0 needs nonzero vertical
-motion and no end action. The fourth finite segment must retire or loop;
-cycles require net vertical progress. Upward exit retires before byte wrap,
-bottom exit at232; lateral motion clamps to48..200. Path entry is aligned
-to4 HPOS. ELITE paths warn about Heavy/path CPU coincidences to measure.
-No new image or payload allocation.
-Every no-path Light wave compiles with `wave_path = $FF`,
+`path` is **not** authorable yet: the path evaluator and its library are step 6,
+and a file naming one is rejected. Every Light wave compiles with `wave_path = $FF`,
 "the archetype's own movement".
-
-Review all seven shapes with `node scripts/build.mjs --level=2:sector=0
---m3-path-review`. This diagnostic uses
-`assets/levels/diagnostics/m3-path-review.json`, starts each wave after the
-preceding one clears and changes no campaign source. Its manifest carries
-`m3PathReview.diagnosticOnly`; normal builds never select it.
 
 ## What the compiler refuses
 
@@ -276,9 +251,7 @@ field:
 * `lights` above 4 or `heavies` above 2 — the packed nibbles hold no more;
 * a wave arming at or past its own sector's end;
 * `loops` above 3, or on a wave whose Light is not an Interceptor;
-* malformed/unknown paths, more than8 distinct records, paths on Heavy/boss
-  waves, nonzero `loops` together with a path, or unbounded zero-progress
-  cycles; a turret density other than3;
+* a `path` (step 6), or a turret density other than 3 (step 4);
 * a sky other than `white`, `steel` or `yellow`, or a nebula (step 5);
 * an `appearance` that names no authored look, or sits on a Heavy wave with
   no escort; more than three looks, two looks with one name, a Light row that
@@ -287,7 +260,7 @@ field:
   `%11` (step 5).
 
 It **warns**, and the file stays legal, when a requested cap exceeds what the
-subtype admits — swarm 4 Light / 0 Heavy, elite 1 Light / 2 Heavy, capital
+subtype admits — swarm 3 Light / 0 Heavy, elite 1 Light / 2 Heavy, capital
 0 / 0. The byte keeps what the author asked for; the runtime clamps to
 `min(requested, subtype ceiling)` at admission.
 
@@ -535,21 +508,16 @@ and the overlay's once-per-entry ASM) are shared, at 528-583.
 
 ## Level 2
 
-`assets/levels/level-02.json` is the M3 pilot (owner mechanics OK; final tuning
-awaits play). Six sectors: opening SWARM, Bomber ELITE, CAPITAL, four-step
-SWARM chain, then two ELITE sectors. The opening is three groups of8; the
-teach→mirror→pressure→release chain has four groups of8. Both swarms request4
-Lights, every pilot step uses minimum row0 and16-frame spacing. The existing
-clear lock/next row tick arms the next step in2–3 frames; no chain overlap.
-Left52/right200/centre124 entries, long every-frame lateral sweeps and hidden
-mirrored fans replace the former single-file routes. Tracking keeps a slower
-readable period; approach/return exits are quiet. Six distinct records fit the
-existing96-B path block. Every Heavy WaveDef and level1 are unchanged.
-Native E/M/H pilot routes admit all32 chain members and complete release;
-exact linked lifetimes, fast-kill/no-fire timelines and resource/timing audit
-are in [the combined handoff](diagnostics/m3/final/report.md). The authored
-capital row remains1120. Swarm early-end/drain rules still apply; row lengths
-are cut bounds, not mandatory waits. Play: `npm run level:play -- --level=2`.
+`assets/levels/level-02.json` (roadmap 4.6 step 3; owner-approved 2026-09-30,
+plan §11 item 15) is the first level that is not a reproduction. It has six
+sectors against level 1's four, opening on a **swarm** sector with three live
+Lights and no Heavy. Sector 2 is Bombers only. The capital is on authored row
+**1,120** (level 1: 272). Sector 4 is three Interceptor waves of eight at
+spacing 20, and sectors 5 and 6 alternate Raider and Bomber by wave, with
+sector 6 also carrying every archetype. The Light class floor of 16 frames is
+deliberately **not** used, so later levels have room to escalate. Every sector's
+sizing figures, MEASURED with the timeline probe, are in the file's own notes.
+Play it with `npm run level:play -- --level=2`.
 
 Since step 5 it carries the full payload (plan §8.3): three Light looks -
 `hunter` (the Interceptor recoloured: red arms, white pods, steel hub),
@@ -610,68 +578,3 @@ sprites are stored. Rebuild preview with
 C chooses stage1 at 2 HP and stage2 at 1 HP after a surviving hit; a skipped
 threshold goes directly to the later stage. Assault Raiders remain whole.
 Damage never alters hit boxes, scores, movement or weapons.
-
-
-M3 checkpoint3 `fire` on a free path Light is `normal` (default), `column`,
-`volley`, or `volley-column`. WaveDef bits6/7 encode these modes contextually;
-`loops` must remain0. Segment bit4 always permits/holds fire. Column accepts
-±one4-HPOS cell around the quantized player centre. Volley snapshots ready
-members at global64-frame opportunities, claims one existing event token,
-and uses the normal shot actions/pool. Denial waits for another opening with
-no backlog; late admissions cannot join. Invalid checked L2/content falls
-back to the resident archetype fire policy. No new boss/Heavy fire mode.
-Diagnostic `--m3-volley-review --level=2:sector=0` reviews four-Light wide-hold/volley and tracking/combined groups;
-`VS65_SMOKE_FIRE_DELAY` controls only the observer-smoke input fixture.
-
-
-### Named wave chains (M3 checkpoint4)
-
-`chains` is a top-level map of names to arrays of ordinary wave templates.
-A sector may mix explicit waves with `{ "chain": "lesson", "row": 0,
-"with": { "archetype": "interceptor", "spacing": 24, "entry": 124 } }`.
-Template `row` values are offsets from the invocation row; `with` supplies
-wave defaults, then each step's explicit fields win. No nested chains or
-runtime parameters. Expansion goes through every ordinary WaveDef/path/class/
-row/capacity validator: maximum20 emitted waves,8 distinct paths, existing
-sector/live ceilings. No truncation, runtime interpreter, new queue or state.
-
-`build/level-N-timeline.json` records expansions and per-difficulty schedules.
-Path terminal lifetime is exact; no-fire and immediate-kill schedule models
-exclude reaction/token/restore delays and are labeled estimates. A modeled
-sector-end cut warns. Heavy/no-path lifetimes are marked unknown and need
-native/owner coverage. The level2 sector4 recipe emits teach→mirror→pressure→
-release at minimum rows0/8/16/24: its existing Light lock serializes complete
-waves, and fast kills need no long authored wait. Quiet return ends upward.
-Level1 and all decoded Heavy WaveDefs remain unchanged. Twelve-level campaign
-loading remains M4; later authored variations/regional presets remain M7.
-
-### Appearance durability (C-skin)
-
-`payload.appearanceHp` maps an authored Light look name to0..4 HP, for example
-`{ "hunter": 2, "lancer": 4 }`.0/omitted inherits that Light archetype's HP;
-base appearance0 always inherits. The selected appearance determines HP at
-admission for either Light archetype; no WaveDef flag/extra slot field is used.
-Unknown look names/out-of-range values fail compilation. Four bytes$ABB3–$ABB6
-reuse the hull-parameter tail after the17-B Heavy look; one byte remains.
-Weapons, score and renderer class stay unchanged. Level2 authors hunter2/lancer4;
-its `escort` look remains inherited. Boss escorts retain archetype HP because
-the admission override requires the valid checked pair and fighter phase.
-The36-B policy lives in L2 under the accepted64-B content-floor decision;
-this adds0 content bytes/level sectors/reads and no per-frame/row work.
-
-
-### Final M3 density and regional recipes
-
-[The regional recipe sheet](plans/m3-regional-recipes.md) updates the accepted
-12-level progression proposal with full-width entries, crossing/mirrored pairs,
-2–3 back-to-back groups, quiet exits and at most4 simultaneous free Lights.
-It is an M7 authoring sheet, not automatic runtime escalation. Current hull
-styles still map the engine's16 supported level IDs in quarters; M3 does not
-change that directory/style rule or implement later levels. Independent
-per-level look mixes remain allowed; regional packs are optional convenience.
-
-A hidden mirrored fan is an intentional short entry cue. The renderer begins
-at gameplay Y24; actual linked visible gaps can reach34 frames, while state
-clear/arm gaps are2–3. Do not substitute one measure for the other. Bounded
-terminal overlap was priced and deferred: its straightforward scan-free helper
-alone adds89 content B (32 over the available home), before integration.

@@ -175,8 +175,8 @@ test("the arena lands directly as its own DFMC record and is the only owner of i
   // guard's sector in the Light kernel's record.
   // RE-PINNED 2026-10-08 (feat/sector-flow, owner-accepted +163 B of window):
   // 212 -> 213, the window record 10 -> 11 sectors; this record did not move.
-  assert.equal(manifest.transportCapacity.totalTransportSectors, 214);
-  assert.equal(parsed.totalOccupiedSectors, 214);
+  assert.equal(manifest.transportCapacity.totalTransportSectors, 213);
+  assert.equal(parsed.totalOccupiedSectors, 213);
 });
 
 test("the temporary Heavy window transport is retired without moving any address", () => {

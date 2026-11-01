@@ -617,7 +617,7 @@ test("placement contract: legal composite and packed size, state inside its rese
   // Re-recorded feat/interceptor-armour (owner answer F1 of 2026-10-12): 30
   // -> 24, the other side of the composite's 869 -> 875 - light_admit clears
   // the slot's hit flash, 6 B. Still above the 16-B owner floor.
-  assert.equal(manifest.residentCapacity.tails.hybridCExtension, 21);
+  assert.equal(manifest.residentCapacity.tails.hybridCExtension, 24);
   // Both moved down 4 B in music v2 §10.2: the v1 gameplay player's
   // self-modified read tail was at $9D21, ahead of the art tables, and went
   // with the v1 player. Nothing about the tables themselves changed.

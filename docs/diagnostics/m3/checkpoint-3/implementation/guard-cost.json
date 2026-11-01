@@ -1,6 +1,0 @@
-{
-  "method": "MEASURED NMOS entry-through-RTS, no caller JSR/DMA; identical three-ready-member state",
-  "helper": 630,
-  "guarded": 699,
-  "guardOverhead": 69
-}

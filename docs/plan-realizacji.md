@@ -479,11 +479,7 @@ scalone; tamże §8.1, §8.2); krok 5 = **M2**, w tym STARFIELD PER SECTOR —
 **DONE, wydany jako v0.2.0** 2026-10-02 (tag `v0.2.0`, ATR `04943660…`;
 tamże §8.3); krok 6 (PATH-DRIVEN WAVES) = **M3**, plan
 [`plans/m3-waves-heavy.md`](plans/m3-waves-heavy.md); krok 7 (poziomy 3-12) =
-**M7**. M3: checkpoint5 i końcowe strojenie są kandydatem OWNER-SMOKE CANDIDATE;
-[raport końcowy](diagnostics/m3/final/report.md), [plan fal](plans/m3-waves.md)
-i [regionalne receptury M7](plans/m3-regional-recipes.md). Mechanika checkpoint4
-przeszła test właściciela; gęstsze strojenie i pułap4 czekają na odbiór.
-Kolejność: §0.
+**M7**. Kolejność: §0.
 
 Z trzema wiążącymi decyzjami właściciela (decyzja 21 §21.1-21.3):
 

@@ -155,14 +155,8 @@ taranuje Cię: zawisa nad Tobą i strzela w dół.
 ## Oznaczenia
 
 Niektóre fale wysyłają Wingmana albo Interceptora z innymi oznaczeniami lub w
-innym kształcie. Broń i punkty pozostają te same; lot może prowadzić po trasie
-fali. Podane wcześniej liczby trafień dotyczą standardowego wyglądu. W pilocie
-poziomu 2 hunter wytrzymuje dwa trafienia, a lancer cztery; pozostałe wyglądy
-zachowują standardową wytrzymałość.
-
-Pilot poziomu 2 wykorzystuje szerokie, przecinające się trasy i szybkie grupy
-maksymalnie czterech lekkich przeciwników. Inne oznaczenia nadal zachowują
-broń i punktację archetypu.
+innym kształcie. To wciąż ten sam przeciwnik: lata, strzela, wytrzymuje
+trafienia i daje punkty dokładnie tak jak jego typ.
 
 ### Wingman: flight-lead
 

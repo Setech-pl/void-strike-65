@@ -44,8 +44,7 @@ test('heavyLook compiler uses exactly 17 reserved bytes and rejects unsafe shape
   for(const id of [1,2]) {
     const level=compileLevelFile(levelSourcePath(id));
     assert.deepEqual(level.payload.slice(HEAVY_LOOK_OFFSET,HEAVY_LOOK_OFFSET+17),expected);
-    assert.deepEqual([...level.payload.slice(179,183)],id===1?[0,0,0,0]:[0,2,0,4]);
-    assert.ok(level.payload.slice(183,184).every(v=>v===0),'last geometry byte stays free after the appearance HP table');
+    assert.ok(level.payload.slice(HEAVY_LOOK_OFFSET+17,184).every(v=>v===0),'five geometry bytes stay free');
   }
   for(const invalid of [null,{rows:[]},{rows:Array(14).fill('00000000'),colour:'$46'},
     {rows:Array(14).fill('11111111'),colour:'$46'},

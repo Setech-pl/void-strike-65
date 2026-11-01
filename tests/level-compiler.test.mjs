@@ -242,13 +242,13 @@ test("T1: the validator rejects every §5 case and warns on a cap above the subt
     }],
   })), /heavies is 3; it must be an integer in 0\.\.2/);
 
-  // M3 paths are named payload/library records, never raw runtime IDs.
+  // Limit class: paths are step 6, and a level file may not name one yet.
   assert.match(rejection(baseSource({
     sectors: [{
       kind: "space", subtype: "swarm", rows: 512, archetypes: ["interceptor"],
       waves: [{ row: 0, archetype: "interceptor", count: 1, spacing: 16, path: 2 }],
     }],
-  })), /path must name a library or payload.paths entry/);
+  })), /names a path; the path evaluator and its library are plan step 6/);
 
   // WARNS, does not reject: an ELITE sector asking for more Lights than the
   // subtype table admits. The file is legal and the runtime clamps to 1.
@@ -571,9 +571,7 @@ test("T12: level-02.json compiles and differs from level 1 in sector count, wave
   () => {
     const one = compileLevelFile(levelSourcePath(1), { hullAsset });
     const two = compileLevelFile(levelSourcePath(2), { hullAsset });
-    assert.deepEqual(two.warnings, [
-      "level-02.json sector 6 wave 3: path shares the ELITE budget; measure Heavy/path coincidences",
-    ], "level 2 has only the authored M3 coincidence warning, no runtime clamp");
+    assert.deepEqual(two.warnings, [], "level 2 asks for nothing the runtime clamps");
     assert.equal(two.level, 2);
     assert.equal(two.pages.core[1], 2, "level_number in the core page");
 
@@ -607,7 +605,7 @@ test("T12: level-02.json compiles and differs from level 1 in sector count, wave
       assert.notEqual(two.sectors[index].mask, sector.mask, `sector ${index + 1}'s mask`);
     }
     for (const index of [0, 3]) {
-      assert.equal(two.sectors[index].effectiveLights, 4, "a swarm sector's Light ceiling");
+      assert.equal(two.sectors[index].effectiveLights, 3, "a swarm sector's Light ceiling");
       assert.equal(two.sectors[index].effectiveHeavies, 0, "and it has no Heavy slot");
     }
 
@@ -621,18 +619,20 @@ test("T12: level-02.json compiles and differs from level 1 in sector count, wave
     // the boss sector's Interceptor escort is a fourth.
     assert.equal(one.waves.filter((wave) => wave.class === "light").length, 4);
     assert.notEqual(one.waves[0].class, "light");
-    assert.equal(two.waves.filter((wave) => wave.class === "light").length, 8);
+    assert.equal(two.waves.filter((wave) => wave.class === "light").length, 7);
     assert.equal(two.waves[0].archetype, "interceptor");
-    assert.equal(two.waves.length, 20);
+    assert.equal(two.waves.length, 19);
 
-    // Accepted M3 checkpoint4 replaces the older three-wave recipe with
-    // teach → mirror → pressure → release, retaining room to escalate at M7.
+    // Owner decision, 2026-09-30 (plan §11 item 15): sector 4 is three
+    // Interceptor waves of eight at spacing 20 - NOT four at the 16-frame
+    // class floor, which is kept for later levels so level 2 leaves room to
+    // escalate.
     const sectorFour = two.waves.filter((wave) => wave.sector === 4);
     assert.deepEqual(sectorFour.map((wave) => [wave.archetype, wave.count, wave.spacing]),
-      Array.from({length:4},()=>["interceptor",8,16]));
-    // Owner tuning uses the16-frame Light floor for back-to-back pilot groups.
+      [["interceptor", 8, 20], ["interceptor", 8, 20], ["interceptor", 8, 20]]);
+    // ... and no wave anywhere in level 2 sits on the Light class floor.
     for (const wave of two.waves.filter((candidate) => candidate.class === "light")) {
-      assert.ok(wave.spacing >= 16, `a level-2 Light wave at spacing ${wave.spacing}`);
+      assert.ok(wave.spacing > 16, `a level-2 Light wave at spacing ${wave.spacing}`);
     }
 
     // Owner decision, 2026-09-30: debris 1 wherever the draft said 2. The

@@ -3,6 +3,9 @@
 #include "enemy-archetype.h"
 #include "level-def.h"
 
+extern uint8_t level_paths[96];
+extern uint8_t wave_path[20];
+
 #pragma code-name ("HYBRID_C_EXT")
 #pragma rodata-name ("ENEMY_ARCHETYPE_DATA")
 
@@ -978,6 +981,7 @@ static uint8_t light_admit(void)
     light_archetype[light_slot] = light_record;
     light_work = LIGHT_FIELD(ENEMY_ARCHETYPE_FIELD_HIT_POINTS);
     light_hp[light_slot] = light_work;
+    asm_m3_skin();
     light_burst_left[light_slot] = 0u;
     light_y[light_slot] = 0u;
     light_flash[light_slot] = 0u;
@@ -1022,6 +1026,7 @@ static void light_wave_step(void)
         if (light_admit() == 0u) {
             return;                 /* refused: retry next frame */
         }
+        asm_m3_admit();
         --light_wave_remaining;
         light_wave_timer = light_wave_spacing_frames;
         return;
@@ -1201,6 +1206,10 @@ static uint8_t light_tick_body(void)
         light_state[light_slot] = LIGHT_ACTIVE_FREE;
     }
     if (light_state[light_slot] != LIGHT_ACTIVE_ESCORT) {
+        light_fire_work = asm_m3_tick();
+        if (light_fire_work != M3_NO_PATH) {
+            return light_fire_work;
+        }
         /* Free flight. A Wingman that lost its leader drifts straight down at
          * the Heavy descent rate; an Interceptor is born free-flying and flies
          * its standoff (the constants above). PLAYER_X_MIN equals
@@ -1451,7 +1460,9 @@ static void encounter_light_admit(void)
     light_admit_state = light_record == LIGHT_OFFSET_WINGMAN
         ? LIGHT_ACTIVE_ESCORT       /* takes its leader's column and lag */
         : LIGHT_ACTIVE_FREE;        /* no leader, ever: free-flying hunter */
-    light_admit();
+    if (light_admit() != 0u) {
+        asm_m3_escort();
+    }
 }
 
 #pragma code-name (pop)
@@ -1886,4 +1897,194 @@ void enemy_c_heavy_look_colour(void)
     }
 }
 #pragma code-name (pop)
+#pragma code-name (pop)
+
+/* M3 path and fire policy stays in the checked fighter/capital home.
+ * A segment255 marker makes its timer dead; admission initializes every live
+ * timer before it is read. No C stack arguments or new resident policy. */
+#pragma data-name (push, "CONTENT_DATA")
+uint8_t m3_path_segment[4] = {255u,255u,255u,255u};
+uint8_t m3_path_timer[4] = {0u,0u,0u,0u};
+uint8_t m3_armed_path = 255u;
+static uint8_t m3_index = 0u;
+static uint8_t m3_flags = 0u;
+static uint8_t m3_dy = 0u;
+static uint8_t m3_mirror_phase = 0u;
+uint8_t m3_pulse_frame = 255u;
+static uint8_t m3_pulse_mask = 0u;
+static uint8_t m3_volley_valid = 0u;
+#pragma data-name (pop)
+#pragma rodata-name (push, "CONTENT_DATA")
+static const uint8_t m3_next_step[4] = {3u,253u,250u,247u};
+static const uint8_t m3_slot_bit[4] = {1u,2u,4u,8u};
+#pragma rodata-name (pop)
+#pragma rodata-name (push, "CONTENT_DATA")
+#pragma code-name (push, "CONTENT_CODE")
+void m3_reset(void)
+{
+    m3_index = 4u;
+    do {
+        --m3_index;
+        m3_path_segment[m3_index] = M3_NO_PATH;
+    } while (m3_index != 0u);
+    m3_armed_path = M3_NO_PATH;
+    m3_mirror_phase = 0u;
+    m3_pulse_frame = 255u;
+    m3_pulse_mask = 0u;
+}
+
+void m3_wave_arm(void)
+{
+    m3_index = U8_AT(0x80F7u);
+    m3_armed_path = wave_path[m3_index];
+    m3_mirror_phase = 0u;
+}
+
+void m3_escort(void)
+{
+    m3_path_segment[light_slot] = M3_NO_PATH;
+    m3_pulse_mask &= (uint8_t)~m3_slot_bit[light_slot];
+}
+
+void m3_admit(void)
+{
+    m3_escort();
+    if (m3_armed_path != M3_NO_PATH) {
+        m3_dy = (uint8_t)(m3_armed_path | m3_mirror_phase);
+        m3_path_segment[light_slot] = m3_dy;
+        if ((heavy_wave_flags & 4u) != 0u) m3_mirror_phase ^= 128u;
+        m3_index = (uint8_t)(m3_armed_path + 1u);
+        m3_dy = level_paths[m3_index];
+        m3_path_timer[light_slot] = m3_dy;
+    }
+}
+
+/* One common player target for movement and fire eligibility. */
+static void m3_target(void)
+{
+    light_target_x = (uint8_t)((uint8_t)(PLAYER_X + 6u) & 0xFCu);
+    if (light_target_x > LIGHT_X_LAST) light_target_x = LIGHT_X_LAST;
+    if (light_target_x < LIGHT_X_FIRST) light_target_x = LIGHT_X_FIRST;
+}
+
+/* Caller supplies this member's segment flags and current/snapshot Y.
+ * Reload readiness is checked by the caller without advancing it here. */
+static uint8_t m3_ready(void)
+{
+    if ((m3_flags & 16u) == 0u ||
+        (uint8_t)(light_work - LIGHT_FIRE_TOP) >= (LIGHT_FIRE_BOTTOM - LIGHT_FIRE_TOP) ||
+        (PLAYER_LIFECYCLE & 1u) != 0u) return 0u;
+    if ((light_loops[light_slot] & 128u) != 0u &&
+        (uint8_t)(light_x[light_slot] - light_target_x + 4u) >= 9u) return 0u;
+    return 1u;
+}
+
+/* Only called at an opening, once. The existing Director lock admits one
+ * free path wave at a time, so all live path members share the volley mode.
+ * Snapshot before movement; each slot rechecks its post-motion eligibility.
+ * Admission clears its mask bit, preventing reuse from joining a late pulse. */
+#pragma code-name (push, "M3_L2")
+void m3_prepare_volley(void)
+{
+    m3_pulse_frame = FRAME_COUNTER;
+    m3_pulse_mask = 0u;
+    light_slot_save = light_slot;
+    light_slot = LIGHT_SLOT_COUNT;
+    do {
+        --light_slot;
+        if (light_state[light_slot] == LIGHT_ACTIVE_FREE &&
+            m3_path_segment[light_slot] != M3_NO_PATH &&
+            light_fire_timer[light_slot] == 0u) {
+            m3_index = (uint8_t)((m3_path_segment[light_slot] & 127u) + 2u);
+            m3_flags = level_paths[m3_index];
+            light_work = light_y[light_slot];
+            if (m3_ready() != 0u) m3_pulse_mask |= m3_slot_bit[light_slot];
+        }
+    } while (light_slot != 0u);
+    light_slot = light_slot_save;
+    if (m3_pulse_mask != 0u && light_take_token() == 0u) m3_pulse_mask = 0u;
+}
+#pragma code-name (pop)
+
+uint8_t m3_path_tick(void)
+{
+    m3_index = m3_path_segment[light_slot];
+    if (m3_index == M3_NO_PATH) return M3_NO_PATH;
+    m3_target();
+    m3_volley_valid = 0u;
+    if ((light_loops[light_slot] & 64u) != 0u) m3_volley_valid = asm_m3_volley();
+    m3_index = m3_path_segment[light_slot] & 127u;
+    m3_dy = level_paths[m3_index];
+    m3_index = (uint8_t)(m3_index + 2u);
+    m3_flags = level_paths[m3_index];
+    /* Valid Y0..231 plus dy-2..2: either edge, including unsigned upward
+     * wrap, gives a result>=232. Test before publishing, then share cleanup. */
+    light_work = (uint8_t)(light_y[light_slot] + m3_dy);
+    if (light_work >= LIGHT_RETIRE_Y) goto retire;
+    light_y[light_slot] = light_work;
+    if ((m3_flags & 12u) != 0u && (FRAME_COUNTER & (m3_flags & 3u)) == 0u) {
+        m3_index = m3_flags & 12u;
+        light_fire_work = light_x[light_slot];
+        if (m3_index == 12u) {
+            m3_dy = 4u;
+            if (light_fire_work >= light_target_x) m3_dy = 252u;
+            if (light_fire_work == light_target_x) m3_dy = 0u;
+        } else {
+            m3_dy = m3_index & 8u;
+            m3_dy = (uint8_t)(4u - m3_dy);
+            if ((m3_path_segment[light_slot] & 128u) != 0u) m3_dy = (uint8_t)(0u - m3_dy);
+        }
+        m3_dy = (uint8_t)(light_fire_work + m3_dy);
+        if ((uint8_t)(m3_dy - LIGHT_X_FIRST) <= (LIGHT_X_LAST - LIGHT_X_FIRST))
+            light_x[light_slot] = m3_dy;
+    }
+    m3_dy = m3_path_timer[light_slot];
+    if (m3_dy != 0u) {
+        --m3_dy;
+        m3_path_timer[light_slot] = m3_dy;
+        if (m3_dy == 0u) {
+            if ((m3_flags & 128u) != 0u) goto retire;
+            m3_dy = (uint8_t)((m3_flags >> 5u) & 3u);
+            /* Compiled relative transitions stay inside one12-B record.
+             * Their8-bit addition preserves the packed mirror bit directly. */
+            m3_index = (uint8_t)(m3_path_segment[light_slot] + m3_next_step[m3_dy]);
+            m3_path_segment[light_slot] = m3_index;
+            m3_index = (uint8_t)((m3_index & 127u) + 1u);
+            m3_dy = level_paths[m3_index];
+            m3_path_timer[light_slot] = m3_dy;
+        }
+    }
+    light_fire_work = light_fire_timer[light_slot];
+    if (light_fire_work != 0u) {
+        --light_fire_work;
+        light_fire_timer[light_slot] = light_fire_work;
+        return 0u;
+    }
+    if (m3_ready() == 0u) return 0u;
+    if (m3_volley_valid != 0u) {
+        if (m3_pulse_frame != FRAME_COUNTER ||
+            (m3_pulse_mask & m3_slot_bit[light_slot]) == 0u) return 0u;
+        m3_pulse_mask ^= m3_slot_bit[light_slot];
+    } else if (light_take_token() == 0u) return 0u;
+    light_reload();
+    return LIGHT_FIELD(ENEMY_ARCHETYPE_FIELD_WEAPON);
+retire:
+    light_state[light_slot] = ENEMY_INACTIVE;
+    m3_path_segment[light_slot] = M3_NO_PATH;
+    return 0u;
+}
+#pragma code-name (pop)
+#pragma rodata-name (pop)
+
+/* C-skin: selected per-level appearance owns HP,0 inherits the archetype.
+ * Separate L2 admission-only policy; resident guard precedes this entry. */
+#pragma code-name (push, "M3_L2")
+#pragma rodata-name (push, "M3_L2")
+void m3_skin_admit(void)
+{
+    m3_index = (uint8_t)((light_wave_look >> 4u) & 3u);
+    light_work = ((const uint8_t*)0xABB3u)[m3_index];
+    if (light_work != 0u) light_hp[light_slot] = light_work;
+}
+#pragma rodata-name (pop)
 #pragma code-name (pop)

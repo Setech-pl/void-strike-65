@@ -1,0 +1,120 @@
+{
+  "emulator": "Atari800 7.1.2 PAL/XL",
+  "guest_instrumentation_bytes": 0,
+  "diagnostic_allowances": {
+    "release_evidence": false,
+    "reuse_existing_traces": false,
+    "host_lives_top_up": "3",
+    "forced_booster_fixture": null,
+    "l2_exit_fixture": null,
+    "terminal_state_seed": false,
+    "l2_variant_alias": false
+  },
+  "artifact_sha256": {
+    "void-strike-65-boot.bin": {
+      "path": "build/level-2-s1/void-strike-65-boot.bin",
+      "bytes": 27392,
+      "sha256": "b62703a0421f1f2cf64bf7249ba6247c15c9e46ff20f6f7bc6728b615b2f101f"
+    },
+    "void-strike-65.atr": {
+      "path": "build/level-2-s1/void-strike-65.atr",
+      "bytes": 133136,
+      "sha256": "35a31a3d80f87c0970ee2d41f3e036a9e3a54d5e62a575f5672a12fc0c6101a5"
+    },
+    "void-strike-65-manifest.json": {
+      "path": "build/level-2-s1/void-strike-65-manifest.json",
+      "bytes": 81288,
+      "sha256": "123ffa969ea8f2e3c920dc67edcf4a9b804fb352ba076bd7d2bc72ac8c28db25"
+    }
+  },
+  "variant": "level-2-s1",
+  "diagnostic_only": true,
+  "sessions": [
+    {
+      "id": "m3-bomber-approach",
+      "kind": "observer-smoke",
+      "medium": "ATR",
+      "difficulty": 1,
+      "policy": "sweep",
+      "fire_delay": 0,
+      "measured_frames": 2600,
+      "maximum_wall_cycles": 32089,
+      "deadline_overrun_frames": 0,
+      "missed_frames": 0,
+      "hull_map_draws": 388,
+      "hull_map_stale_draws": 0,
+      "hull_map_dirty_reads": 0,
+      "hull_map_rebuilds_after_boss": 0,
+      "level_summary": {
+        "start_summaries": [
+          {
+            "entry": 660,
+            "display": 662,
+            "loaded": 752,
+            "ready": 863,
+            "accept": 868,
+            "reads": 53,
+            "shown_frames": 206,
+            "best": "BEST                  --"
+          }
+        ]
+      }
+    }
+  ],
+  "acceptance": {
+    "measured_frames": 2600,
+    "maximum_wall_cycles": 32089,
+    "wall_ceiling": 32568,
+    "physical_headroom": 3479,
+    "missed_frames": 0,
+    "extra_vbi_boundaries": 0,
+    "physical_overruns": 0,
+    "deadline_overruns": 0,
+    "dli_ordering_errors": 0,
+    "passed": true
+  },
+  "passed": true,
+  "lifecycle": {
+    "sectors": [
+      1,
+      2,
+      3
+    ],
+    "bossFrames": 0,
+    "bossPathStages": [
+      0
+    ],
+    "firstCapital": 1426,
+    "beforeCapital": [
+      {
+        "frame": 1422,
+        "heavy": 0,
+        "state": 7
+      },
+      {
+        "frame": 1423,
+        "heavy": 0,
+        "state": 7
+      },
+      {
+        "frame": 1424,
+        "heavy": 0,
+        "state": 7
+      },
+      {
+        "frame": 1425,
+        "heavy": 0,
+        "state": 7
+      },
+      {
+        "frame": 1426,
+        "heavy": 0,
+        "state": 0
+      }
+    ],
+    "hullMapRebuilds": 0,
+    "hullMapDirtyReads": 0,
+    "bossEntries": [],
+    "heavyFrames": 1066
+  }
+}

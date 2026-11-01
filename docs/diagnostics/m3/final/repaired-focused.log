@@ -1,0 +1,42 @@
+✔ C EnemyArchetype is a compact exact Raider record in legal extension placement (3.847333ms)
+✔ C initialization owns fighter state, Raider lifecycle, and the ASM profile cache (46.986959ms)
+✔ C maps the existing capital corridor phases and complete lifecycle exactly (11.142625ms)
+✔ first-capital scheduling and future boss handoff stay high-level C decisions (14.88675ms)
+✔ C owns both Raider member lifecycles while ASM retains pending damage and effects (12.117959ms)
+✔ ownership is singular and generated C requires neither software stack nor runtime helpers (1.651583ms)
+✔ T5: a SectorDef may ask for more Lights than its subtype admits, and the runtime clamps (40.714917ms)
+✔ T6: a sector whose mask excludes an archetype never spawns it, and the validator agrees (24.539083ms)
+✔ M3 compiler packs a named path into the existing payload, deduplicating identical records (2617.042333ms)
+✔ M3 compiler rejects malformed, Heavy, boss, looping-archetype and nonterminating paths (1.248458ms)
+✔ M3 straight policy descends once per tick and retires without kill credit or fragments (27.677167ms)
+✔ M3 finite segments advance on exact durations and a terminal flag retires immediately (15.588959ms)
+✔ M3 invalid/disarmed home is never executed and shared wave publication still works (13.588167ms)
+✔ M3 no-path Wingman and Interceptor retain main positions, cadence and loop decisions (63.013125ms)
+✔ M3 no-path and orphan escort use resident movement, no inherited segment (13.52925ms)
+✔ M3 boss escort skips poisoned path state and orphan falls back without home reads (12.699125ms)
+✔ M3 mirror alternates successful admissions, including a recycled slot after refusal (12.821333ms)
+✔ M3 tracking quantizes and clamps player column without overshoot (38.410083ms)
+✔ M3 vocabulary has repeatable shallow, snake and arc landmarks (39.250666ms)
+✔ M3 three-Light simultaneous segment transitions stay independent and bounded (11.99725ms)
+✔ M3 upward return retires before negative wrap; side exit clamps before terminal retirement (25.053083ms)
+✔ M3 relative loop stays within its record, progresses vertically and eventually retires (25.870833ms)
+✔ M3 compiler refuses zero-progress loops, invalid relative ends, cadence2 and ninth distinct path (0.803ms)
+✔ M3 contextual fire bits preserve no-path and escort loops and reject invalid modes (0.819125ms)
+✔ M3 one volley opportunity emits only ready members using one token, without backlog (12.327208ms)
+✔ M3 token-denied volley does not retry until the next opening or advance reloads (12.923834ms)
+✔ M3 column is inclusive one cell and combined volley filters its snapshot (60.994959ms)
+✔ M3 segment hold-fire and late/reused admissions cannot join a prepared volley (24.88375ms)
+✔ M3 invalid L2/phase returns ordinary fallback without reading poisoned L2 or content (36.837958ms)
+✔ M3 invalid checked pair falls back to ordinary per-member token/fire policy (12.251708ms)
+✔ M3 volley guard overhead is measured against its identical direct helper (12.305833ms)
+✔ M3 denser pilot spans both sides and hands off at the next available row tick (359.36925ms)
+✔ M3 mirrored centre fan descends from opposite sides before crossing (17.504916ms)
+✔ M3 four admitted path Lights share one glyph pair and one volley token (15.804458ms)
+ℹ tests 34
+ℹ suites 0
+ℹ pass 34
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 3586.440292

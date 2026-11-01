@@ -1,0 +1,71 @@
+{
+  "measurement": "MEASURED Atari800 PAL DMA on; standard runtime-wall-trace timer",
+  "results": [
+    {
+      "id": "campaign-1-spread-capital",
+      "difficulty": 1,
+      "brake": false,
+      "dir": "build/frame-peak-fixed-campaign",
+      "campaign": true,
+      "spread": true,
+      "code": 0,
+      "passed": true,
+      "gateFailures": [],
+      "frames": 1800,
+      "capitalFrames": 1192,
+      "spaceFrames": 608,
+      "bossFrames": 0,
+      "peak": 30465,
+      "capitalPeak": 29547,
+      "capitalWithoutAudio": 28966,
+      "composedCapital": 30153,
+      "spacePeak": 30465,
+      "bossPeak": null,
+      "targetOverruns": 0,
+      "fence": 2034,
+      "misses": 0,
+      "extraVbi": 0,
+      "dliErrors": 0,
+      "shifted": 0,
+      "staleL2": 0,
+      "bossEntryFrames": null,
+      "coincidenceFrames": 0,
+      "artifact": "71cc98f080cb1f3eea041d953e0df31a06e314c0dd6c7eaaee88403343e71941",
+      "stateFileSha256": "0ed17bbdb6bee3cf9ac93a2c99cf607bea5369c94a3397d2fa486ba4328ab1a2",
+      "traceSha256": "7d23224e34814aa42467683e7a0c9f66d0e895fd5221ae6358416e4964f209cf"
+    }
+  ],
+  "overruns": [],
+  "worst5": [
+    {
+      "route": "campaign-1-spread-capital",
+      "frame": 246,
+      "sector": "SPACE",
+      "cycles": 30465
+    },
+    {
+      "route": "campaign-1-spread-capital",
+      "frame": 222,
+      "sector": "SPACE",
+      "cycles": 30456
+    },
+    {
+      "route": "campaign-1-spread-capital",
+      "frame": 204,
+      "sector": "SPACE",
+      "cycles": 30421
+    },
+    {
+      "route": "campaign-1-spread-capital",
+      "frame": 207,
+      "sector": "SPACE",
+      "cycles": 30382
+    },
+    {
+      "route": "campaign-1-spread-capital",
+      "frame": 216,
+      "sector": "SPACE",
+      "cycles": 30374
+    }
+  ]
+}

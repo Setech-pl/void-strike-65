@@ -1,0 +1,149 @@
+{
+  "measurement": "MEASURED fresh Atari800 7.1.2 PAL 64KB XL/65XE class, DMA on",
+  "main": "6046c0b6beb25f15c53ca15cda8f39a431983cd3",
+  "results": [
+    {
+      "id": "campaign-1-spread-capital",
+      "difficulty": 1,
+      "brake": false,
+      "dir": "build/frame-peak-baseline-campaign",
+      "campaign": true,
+      "spread": true,
+      "code": 0,
+      "passed": true,
+      "gateFailures": [],
+      "frames": 1800,
+      "capitalFrames": 1192,
+      "spaceFrames": 608,
+      "bossFrames": 0,
+      "peak": 30465,
+      "capitalPeak": 29547,
+      "capitalWithoutAudio": 28966,
+      "composedCapital": 30153,
+      "spacePeak": 30465,
+      "bossPeak": null,
+      "targetOverruns": 0,
+      "fence": 2157,
+      "misses": 0,
+      "extraVbi": 0,
+      "dliErrors": 0,
+      "shifted": 0,
+      "staleL2": 0,
+      "bossEntryFrames": null,
+      "coincidenceFrames": 0,
+      "artifact": "e777080b16f95c29d0da9fff16f0f444c3790a91ef87e4fac178c3908a24ef3a",
+      "stateFileSha256": "4cbfc60dee0e5eac2dbcba0e5ff97beb29315af5b5f4c361e1a0c35658fdd181",
+      "traceSha256": "ae692ce94daabce4ad63cf15c048031e6700bb651c70e82048729b5a832c1b85",
+      "worstFrame": {
+        "frame": "246",
+        "wall_cycles": "30465",
+        "sector_state": "7",
+        "start_host_frame": 1117
+      },
+      "worst5": [
+        {
+          "route": "campaign-1-spread-capital",
+          "frame": 246,
+          "sector": "SPACE",
+          "cycles": 30465
+        },
+        {
+          "route": "campaign-1-spread-capital",
+          "frame": 222,
+          "sector": "SPACE",
+          "cycles": 30456
+        },
+        {
+          "route": "campaign-1-spread-capital",
+          "frame": 204,
+          "sector": "SPACE",
+          "cycles": 30427
+        },
+        {
+          "route": "campaign-1-spread-capital",
+          "frame": 207,
+          "sector": "SPACE",
+          "cycles": 30382
+        },
+        {
+          "route": "campaign-1-spread-capital",
+          "frame": 216,
+          "sector": "SPACE",
+          "cycles": 30377
+        }
+      ]
+    },
+    {
+      "id": "l2-960-1-flight",
+      "length": 960,
+      "difficulty": 1,
+      "brake": false,
+      "dir": "build/frame-peak-baseline-960",
+      "code": 0,
+      "passed": true,
+      "gateFailures": [],
+      "frames": 3967,
+      "capitalFrames": 2273,
+      "spaceFrames": 1575,
+      "bossFrames": 119,
+      "peak": 31153,
+      "capitalPeak": 29166,
+      "capitalWithoutAudio": 28346,
+      "composedCapital": 29533,
+      "spacePeak": 31153,
+      "bossPeak": 28738,
+      "targetOverruns": 0,
+      "fence": 6394,
+      "misses": 0,
+      "extraVbi": 0,
+      "dliErrors": 0,
+      "shifted": 0,
+      "staleL2": 0,
+      "bossEntryFrames": 325,
+      "coincidenceFrames": 0,
+      "artifact": "c0cfa71c3c0872071a4089cf9cc514ddfeb2b4f770510e18130dc33df78692fe",
+      "stateFileSha256": "00ec878fad0aba0652e6f31d3ce792326953e8b86811b96d62fdfa35e540298b",
+      "traceSha256": "9560e7172cb2eb023f3a1f6c8da87bf1a582796fc82ec25d16e57a64722e0054",
+      "worstFrame": {
+        "frame": "2448",
+        "wall_cycles": "31153",
+        "sector_state": "7",
+        "start_host_frame": 3319
+      },
+      "worst5": [
+        {
+          "route": "l2-960-1-flight",
+          "frame": 2448,
+          "sector": "SPACE",
+          "cycles": 31153
+        },
+        {
+          "route": "l2-960-1-flight",
+          "frame": 2837,
+          "sector": "SPACE",
+          "cycles": 30981
+        },
+        {
+          "route": "l2-960-1-flight",
+          "frame": 2447,
+          "sector": "SPACE",
+          "cycles": 30977
+        },
+        {
+          "route": "l2-960-1-flight",
+          "frame": 2460,
+          "sector": "SPACE",
+          "cycles": 30976
+        },
+        {
+          "route": "l2-960-1-flight",
+          "frame": 2422,
+          "sector": "SPACE",
+          "cycles": 30956
+        }
+      ]
+    }
+  ],
+  "worstCycles": 31153,
+  "notAGlobalGameplayMaximum": true
+}

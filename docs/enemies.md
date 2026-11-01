@@ -149,8 +149,12 @@ not ram you: it holds above you and fires down.
 ## Markings
 
 Some waves send a Wingman or an Interceptor with different markings, or with a
-different shape. It is still the same enemy: it flies, fires, takes hits and
-scores exactly as its type does.
+different shape. Its weapon and score stay the same; its flight may follow a
+fixed wave route. Hit counts above describe standard appearances. In the
+level 2 pilot, hunter takes two hits and lancer four; other looks keep their
+standard durability. The level 2 pilot uses wide crossing routes and quick
+groups of up to four Lights; different markings still use the same weapons
+and award the same points.
 
 ### Wingman: flight-lead
 

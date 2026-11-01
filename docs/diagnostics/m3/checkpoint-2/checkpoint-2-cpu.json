@@ -1,0 +1,2665 @@
+{
+  "method": "MEASURED linked NMOS CPU; entry through RTS, no DMA or caller JSR",
+  "rows": [
+    {
+      "archetype": "wingman",
+      "frame": 0,
+      "main": 284,
+      "current": 355,
+      "delta": 71
+    },
+    {
+      "archetype": "wingman",
+      "frame": 1,
+      "main": 328,
+      "current": 399,
+      "delta": 71
+    },
+    {
+      "archetype": "wingman",
+      "frame": 2,
+      "main": 233,
+      "current": 304,
+      "delta": 71
+    },
+    {
+      "archetype": "wingman",
+      "frame": 3,
+      "main": 233,
+      "current": 304,
+      "delta": 71
+    },
+    {
+      "archetype": "wingman",
+      "frame": 4,
+      "main": 233,
+      "current": 304,
+      "delta": 71
+    },
+    {
+      "archetype": "wingman",
+      "frame": 5,
+      "main": 233,
+      "current": 304,
+      "delta": 71
+    },
+    {
+      "archetype": "wingman",
+      "frame": 6,
+      "main": 233,
+      "current": 304,
+      "delta": 71
+    },
+    {
+      "archetype": "wingman",
+      "frame": 7,
+      "main": 233,
+      "current": 304,
+      "delta": 71
+    },
+    {
+      "archetype": "wingman",
+      "frame": 8,
+      "main": 233,
+      "current": 304,
+      "delta": 71
+    },
+    {
+      "archetype": "wingman",
+      "frame": 9,
+      "main": 233,
+      "current": 304,
+      "delta": 71
+    },
+    {
+      "archetype": "wingman",
+      "frame": 10,
+      "main": 233,
+      "current": 304,
+      "delta": 71
+    },
+    {
+      "archetype": "wingman",
+      "frame": 11,
+      "main": 233,
+      "current": 304,
+      "delta": 71
+    },
+    {
+      "archetype": "wingman",
+      "frame": 12,
+      "main": 233,
+      "current": 304,
+      "delta": 71
+    },
+    {
+      "archetype": "wingman",
+      "frame": 13,
+      "main": 233,
+      "current": 304,
+      "delta": 71
+    },
+    {
+      "archetype": "wingman",
+      "frame": 14,
+      "main": 233,
+      "current": 304,
+      "delta": 71
+    },
+    {
+      "archetype": "wingman",
+      "frame": 15,
+      "main": 233,
+      "current": 304,
+      "delta": 71
+    },
+    {
+      "archetype": "wingman",
+      "frame": 16,
+      "main": 233,
+      "current": 304,
+      "delta": 71
+    },
+    {
+      "archetype": "wingman",
+      "frame": 17,
+      "main": 233,
+      "current": 304,
+      "delta": 71
+    },
+    {
+      "archetype": "wingman",
+      "frame": 18,
+      "main": 233,
+      "current": 304,
+      "delta": 71
+    },
+    {
+      "archetype": "wingman",
+      "frame": 19,
+      "main": 233,
+      "current": 304,
+      "delta": 71
+    },
+    {
+      "archetype": "wingman",
+      "frame": 20,
+      "main": 233,
+      "current": 304,
+      "delta": 71
+    },
+    {
+      "archetype": "wingman",
+      "frame": 21,
+      "main": 233,
+      "current": 304,
+      "delta": 71
+    },
+    {
+      "archetype": "wingman",
+      "frame": 22,
+      "main": 233,
+      "current": 304,
+      "delta": 71
+    },
+    {
+      "archetype": "wingman",
+      "frame": 23,
+      "main": 233,
+      "current": 304,
+      "delta": 71
+    },
+    {
+      "archetype": "wingman",
+      "frame": 24,
+      "main": 233,
+      "current": 304,
+      "delta": 71
+    },
+    {
+      "archetype": "wingman",
+      "frame": 25,
+      "main": 233,
+      "current": 304,
+      "delta": 71
+    },
+    {
+      "archetype": "wingman",
+      "frame": 26,
+      "main": 233,
+      "current": 304,
+      "delta": 71
+    },
+    {
+      "archetype": "wingman",
+      "frame": 27,
+      "main": 233,
+      "current": 304,
+      "delta": 71
+    },
+    {
+      "archetype": "wingman",
+      "frame": 28,
+      "main": 233,
+      "current": 304,
+      "delta": 71
+    },
+    {
+      "archetype": "wingman",
+      "frame": 29,
+      "main": 233,
+      "current": 304,
+      "delta": 71
+    },
+    {
+      "archetype": "wingman",
+      "frame": 30,
+      "main": 233,
+      "current": 304,
+      "delta": 71
+    },
+    {
+      "archetype": "wingman",
+      "frame": 31,
+      "main": 233,
+      "current": 304,
+      "delta": 71
+    },
+    {
+      "archetype": "wingman",
+      "frame": 32,
+      "main": 233,
+      "current": 304,
+      "delta": 71
+    },
+    {
+      "archetype": "wingman",
+      "frame": 33,
+      "main": 233,
+      "current": 304,
+      "delta": 71
+    },
+    {
+      "archetype": "wingman",
+      "frame": 34,
+      "main": 233,
+      "current": 304,
+      "delta": 71
+    },
+    {
+      "archetype": "wingman",
+      "frame": 35,
+      "main": 233,
+      "current": 304,
+      "delta": 71
+    },
+    {
+      "archetype": "wingman",
+      "frame": 36,
+      "main": 233,
+      "current": 304,
+      "delta": 71
+    },
+    {
+      "archetype": "wingman",
+      "frame": 37,
+      "main": 233,
+      "current": 304,
+      "delta": 71
+    },
+    {
+      "archetype": "wingman",
+      "frame": 38,
+      "main": 233,
+      "current": 304,
+      "delta": 71
+    },
+    {
+      "archetype": "wingman",
+      "frame": 39,
+      "main": 233,
+      "current": 304,
+      "delta": 71
+    },
+    {
+      "archetype": "wingman",
+      "frame": 40,
+      "main": 233,
+      "current": 304,
+      "delta": 71
+    },
+    {
+      "archetype": "wingman",
+      "frame": 41,
+      "main": 233,
+      "current": 304,
+      "delta": 71
+    },
+    {
+      "archetype": "wingman",
+      "frame": 42,
+      "main": 233,
+      "current": 304,
+      "delta": 71
+    },
+    {
+      "archetype": "wingman",
+      "frame": 43,
+      "main": 233,
+      "current": 304,
+      "delta": 71
+    },
+    {
+      "archetype": "wingman",
+      "frame": 44,
+      "main": 233,
+      "current": 304,
+      "delta": 71
+    },
+    {
+      "archetype": "wingman",
+      "frame": 45,
+      "main": 233,
+      "current": 304,
+      "delta": 71
+    },
+    {
+      "archetype": "wingman",
+      "frame": 46,
+      "main": 233,
+      "current": 304,
+      "delta": 71
+    },
+    {
+      "archetype": "wingman",
+      "frame": 47,
+      "main": 233,
+      "current": 304,
+      "delta": 71
+    },
+    {
+      "archetype": "wingman",
+      "frame": 48,
+      "main": 233,
+      "current": 304,
+      "delta": 71
+    },
+    {
+      "archetype": "wingman",
+      "frame": 49,
+      "main": 233,
+      "current": 304,
+      "delta": 71
+    },
+    {
+      "archetype": "wingman",
+      "frame": 50,
+      "main": 233,
+      "current": 304,
+      "delta": 71
+    },
+    {
+      "archetype": "wingman",
+      "frame": 51,
+      "main": 233,
+      "current": 304,
+      "delta": 71
+    },
+    {
+      "archetype": "wingman",
+      "frame": 52,
+      "main": 233,
+      "current": 304,
+      "delta": 71
+    },
+    {
+      "archetype": "wingman",
+      "frame": 53,
+      "main": 233,
+      "current": 304,
+      "delta": 71
+    },
+    {
+      "archetype": "wingman",
+      "frame": 54,
+      "main": 233,
+      "current": 304,
+      "delta": 71
+    },
+    {
+      "archetype": "wingman",
+      "frame": 55,
+      "main": 233,
+      "current": 304,
+      "delta": 71
+    },
+    {
+      "archetype": "wingman",
+      "frame": 56,
+      "main": 233,
+      "current": 304,
+      "delta": 71
+    },
+    {
+      "archetype": "wingman",
+      "frame": 57,
+      "main": 233,
+      "current": 304,
+      "delta": 71
+    },
+    {
+      "archetype": "wingman",
+      "frame": 58,
+      "main": 233,
+      "current": 304,
+      "delta": 71
+    },
+    {
+      "archetype": "wingman",
+      "frame": 59,
+      "main": 233,
+      "current": 304,
+      "delta": 71
+    },
+    {
+      "archetype": "wingman",
+      "frame": 60,
+      "main": 233,
+      "current": 304,
+      "delta": 71
+    },
+    {
+      "archetype": "wingman",
+      "frame": 61,
+      "main": 233,
+      "current": 304,
+      "delta": 71
+    },
+    {
+      "archetype": "wingman",
+      "frame": 62,
+      "main": 233,
+      "current": 304,
+      "delta": 71
+    },
+    {
+      "archetype": "wingman",
+      "frame": 63,
+      "main": 233,
+      "current": 304,
+      "delta": 71
+    },
+    {
+      "archetype": "wingman",
+      "frame": 64,
+      "main": 233,
+      "current": 304,
+      "delta": 71
+    },
+    {
+      "archetype": "wingman",
+      "frame": 65,
+      "main": 233,
+      "current": 304,
+      "delta": 71
+    },
+    {
+      "archetype": "wingman",
+      "frame": 66,
+      "main": 233,
+      "current": 304,
+      "delta": 71
+    },
+    {
+      "archetype": "wingman",
+      "frame": 67,
+      "main": 233,
+      "current": 304,
+      "delta": 71
+    },
+    {
+      "archetype": "wingman",
+      "frame": 68,
+      "main": 233,
+      "current": 304,
+      "delta": 71
+    },
+    {
+      "archetype": "wingman",
+      "frame": 69,
+      "main": 233,
+      "current": 304,
+      "delta": 71
+    },
+    {
+      "archetype": "wingman",
+      "frame": 70,
+      "main": 233,
+      "current": 304,
+      "delta": 71
+    },
+    {
+      "archetype": "wingman",
+      "frame": 71,
+      "main": 233,
+      "current": 304,
+      "delta": 71
+    },
+    {
+      "archetype": "wingman",
+      "frame": 72,
+      "main": 233,
+      "current": 304,
+      "delta": 71
+    },
+    {
+      "archetype": "wingman",
+      "frame": 73,
+      "main": 233,
+      "current": 304,
+      "delta": 71
+    },
+    {
+      "archetype": "wingman",
+      "frame": 74,
+      "main": 233,
+      "current": 304,
+      "delta": 71
+    },
+    {
+      "archetype": "wingman",
+      "frame": 75,
+      "main": 233,
+      "current": 304,
+      "delta": 71
+    },
+    {
+      "archetype": "wingman",
+      "frame": 76,
+      "main": 233,
+      "current": 304,
+      "delta": 71
+    },
+    {
+      "archetype": "wingman",
+      "frame": 77,
+      "main": 233,
+      "current": 304,
+      "delta": 71
+    },
+    {
+      "archetype": "wingman",
+      "frame": 78,
+      "main": 233,
+      "current": 304,
+      "delta": 71
+    },
+    {
+      "archetype": "wingman",
+      "frame": 79,
+      "main": 233,
+      "current": 304,
+      "delta": 71
+    },
+    {
+      "archetype": "wingman",
+      "frame": 80,
+      "main": 360,
+      "current": 431,
+      "delta": 71
+    },
+    {
+      "archetype": "wingman",
+      "frame": 81,
+      "main": 233,
+      "current": 304,
+      "delta": 71
+    },
+    {
+      "archetype": "wingman",
+      "frame": 82,
+      "main": 233,
+      "current": 304,
+      "delta": 71
+    },
+    {
+      "archetype": "wingman",
+      "frame": 83,
+      "main": 233,
+      "current": 304,
+      "delta": 71
+    },
+    {
+      "archetype": "wingman",
+      "frame": 84,
+      "main": 233,
+      "current": 304,
+      "delta": 71
+    },
+    {
+      "archetype": "wingman",
+      "frame": 85,
+      "main": 233,
+      "current": 304,
+      "delta": 71
+    },
+    {
+      "archetype": "wingman",
+      "frame": 86,
+      "main": 233,
+      "current": 304,
+      "delta": 71
+    },
+    {
+      "archetype": "wingman",
+      "frame": 87,
+      "main": 233,
+      "current": 304,
+      "delta": 71
+    },
+    {
+      "archetype": "wingman",
+      "frame": 88,
+      "main": 233,
+      "current": 304,
+      "delta": 71
+    },
+    {
+      "archetype": "wingman",
+      "frame": 89,
+      "main": 233,
+      "current": 304,
+      "delta": 71
+    },
+    {
+      "archetype": "wingman",
+      "frame": 90,
+      "main": 233,
+      "current": 304,
+      "delta": 71
+    },
+    {
+      "archetype": "wingman",
+      "frame": 91,
+      "main": 233,
+      "current": 304,
+      "delta": 71
+    },
+    {
+      "archetype": "wingman",
+      "frame": 92,
+      "main": 233,
+      "current": 304,
+      "delta": 71
+    },
+    {
+      "archetype": "wingman",
+      "frame": 93,
+      "main": 233,
+      "current": 304,
+      "delta": 71
+    },
+    {
+      "archetype": "wingman",
+      "frame": 94,
+      "main": 233,
+      "current": 304,
+      "delta": 71
+    },
+    {
+      "archetype": "wingman",
+      "frame": 95,
+      "main": 233,
+      "current": 304,
+      "delta": 71
+    },
+    {
+      "archetype": "wingman",
+      "frame": 96,
+      "main": 233,
+      "current": 304,
+      "delta": 71
+    },
+    {
+      "archetype": "wingman",
+      "frame": 97,
+      "main": 233,
+      "current": 304,
+      "delta": 71
+    },
+    {
+      "archetype": "wingman",
+      "frame": 98,
+      "main": 233,
+      "current": 304,
+      "delta": 71
+    },
+    {
+      "archetype": "wingman",
+      "frame": 99,
+      "main": 233,
+      "current": 304,
+      "delta": 71
+    },
+    {
+      "archetype": "wingman",
+      "frame": 100,
+      "main": 233,
+      "current": 304,
+      "delta": 71
+    },
+    {
+      "archetype": "wingman",
+      "frame": 101,
+      "main": 233,
+      "current": 304,
+      "delta": 71
+    },
+    {
+      "archetype": "wingman",
+      "frame": 102,
+      "main": 233,
+      "current": 304,
+      "delta": 71
+    },
+    {
+      "archetype": "wingman",
+      "frame": 103,
+      "main": 233,
+      "current": 304,
+      "delta": 71
+    },
+    {
+      "archetype": "wingman",
+      "frame": 104,
+      "main": 233,
+      "current": 304,
+      "delta": 71
+    },
+    {
+      "archetype": "wingman",
+      "frame": 105,
+      "main": 233,
+      "current": 304,
+      "delta": 71
+    },
+    {
+      "archetype": "wingman",
+      "frame": 106,
+      "main": 233,
+      "current": 304,
+      "delta": 71
+    },
+    {
+      "archetype": "wingman",
+      "frame": 107,
+      "main": 233,
+      "current": 304,
+      "delta": 71
+    },
+    {
+      "archetype": "wingman",
+      "frame": 108,
+      "main": 233,
+      "current": 304,
+      "delta": 71
+    },
+    {
+      "archetype": "wingman",
+      "frame": 109,
+      "main": 233,
+      "current": 304,
+      "delta": 71
+    },
+    {
+      "archetype": "wingman",
+      "frame": 110,
+      "main": 233,
+      "current": 304,
+      "delta": 71
+    },
+    {
+      "archetype": "wingman",
+      "frame": 111,
+      "main": 233,
+      "current": 304,
+      "delta": 71
+    },
+    {
+      "archetype": "wingman",
+      "frame": 112,
+      "main": 233,
+      "current": 304,
+      "delta": 71
+    },
+    {
+      "archetype": "wingman",
+      "frame": 113,
+      "main": 233,
+      "current": 304,
+      "delta": 71
+    },
+    {
+      "archetype": "wingman",
+      "frame": 114,
+      "main": 233,
+      "current": 304,
+      "delta": 71
+    },
+    {
+      "archetype": "wingman",
+      "frame": 115,
+      "main": 233,
+      "current": 304,
+      "delta": 71
+    },
+    {
+      "archetype": "wingman",
+      "frame": 116,
+      "main": 233,
+      "current": 304,
+      "delta": 71
+    },
+    {
+      "archetype": "wingman",
+      "frame": 117,
+      "main": 233,
+      "current": 304,
+      "delta": 71
+    },
+    {
+      "archetype": "wingman",
+      "frame": 118,
+      "main": 233,
+      "current": 304,
+      "delta": 71
+    },
+    {
+      "archetype": "wingman",
+      "frame": 119,
+      "main": 233,
+      "current": 304,
+      "delta": 71
+    },
+    {
+      "archetype": "wingman",
+      "frame": 120,
+      "main": 233,
+      "current": 304,
+      "delta": 71
+    },
+    {
+      "archetype": "wingman",
+      "frame": 121,
+      "main": 233,
+      "current": 304,
+      "delta": 71
+    },
+    {
+      "archetype": "wingman",
+      "frame": 122,
+      "main": 233,
+      "current": 304,
+      "delta": 71
+    },
+    {
+      "archetype": "wingman",
+      "frame": 123,
+      "main": 233,
+      "current": 304,
+      "delta": 71
+    },
+    {
+      "archetype": "wingman",
+      "frame": 124,
+      "main": 233,
+      "current": 304,
+      "delta": 71
+    },
+    {
+      "archetype": "wingman",
+      "frame": 125,
+      "main": 233,
+      "current": 304,
+      "delta": 71
+    },
+    {
+      "archetype": "wingman",
+      "frame": 126,
+      "main": 233,
+      "current": 304,
+      "delta": 71
+    },
+    {
+      "archetype": "wingman",
+      "frame": 127,
+      "main": 233,
+      "current": 304,
+      "delta": 71
+    },
+    {
+      "archetype": "wingman",
+      "frame": 128,
+      "main": 233,
+      "current": 304,
+      "delta": 71
+    },
+    {
+      "archetype": "wingman",
+      "frame": 129,
+      "main": 233,
+      "current": 304,
+      "delta": 71
+    },
+    {
+      "archetype": "wingman",
+      "frame": 130,
+      "main": 233,
+      "current": 304,
+      "delta": 71
+    },
+    {
+      "archetype": "wingman",
+      "frame": 131,
+      "main": 233,
+      "current": 304,
+      "delta": 71
+    },
+    {
+      "archetype": "wingman",
+      "frame": 132,
+      "main": 233,
+      "current": 304,
+      "delta": 71
+    },
+    {
+      "archetype": "wingman",
+      "frame": 133,
+      "main": 233,
+      "current": 304,
+      "delta": 71
+    },
+    {
+      "archetype": "wingman",
+      "frame": 134,
+      "main": 233,
+      "current": 304,
+      "delta": 71
+    },
+    {
+      "archetype": "wingman",
+      "frame": 135,
+      "main": 233,
+      "current": 304,
+      "delta": 71
+    },
+    {
+      "archetype": "wingman",
+      "frame": 136,
+      "main": 233,
+      "current": 304,
+      "delta": 71
+    },
+    {
+      "archetype": "wingman",
+      "frame": 137,
+      "main": 233,
+      "current": 304,
+      "delta": 71
+    },
+    {
+      "archetype": "wingman",
+      "frame": 138,
+      "main": 233,
+      "current": 304,
+      "delta": 71
+    },
+    {
+      "archetype": "wingman",
+      "frame": 139,
+      "main": 233,
+      "current": 304,
+      "delta": 71
+    },
+    {
+      "archetype": "wingman",
+      "frame": 140,
+      "main": 233,
+      "current": 304,
+      "delta": 71
+    },
+    {
+      "archetype": "wingman",
+      "frame": 141,
+      "main": 233,
+      "current": 304,
+      "delta": 71
+    },
+    {
+      "archetype": "wingman",
+      "frame": 142,
+      "main": 233,
+      "current": 304,
+      "delta": 71
+    },
+    {
+      "archetype": "wingman",
+      "frame": 143,
+      "main": 233,
+      "current": 304,
+      "delta": 71
+    },
+    {
+      "archetype": "wingman",
+      "frame": 144,
+      "main": 233,
+      "current": 304,
+      "delta": 71
+    },
+    {
+      "archetype": "wingman",
+      "frame": 145,
+      "main": 233,
+      "current": 304,
+      "delta": 71
+    },
+    {
+      "archetype": "wingman",
+      "frame": 146,
+      "main": 233,
+      "current": 304,
+      "delta": 71
+    },
+    {
+      "archetype": "wingman",
+      "frame": 147,
+      "main": 233,
+      "current": 304,
+      "delta": 71
+    },
+    {
+      "archetype": "wingman",
+      "frame": 148,
+      "main": 233,
+      "current": 304,
+      "delta": 71
+    },
+    {
+      "archetype": "wingman",
+      "frame": 149,
+      "main": 233,
+      "current": 304,
+      "delta": 71
+    },
+    {
+      "archetype": "wingman",
+      "frame": 150,
+      "main": 233,
+      "current": 304,
+      "delta": 71
+    },
+    {
+      "archetype": "wingman",
+      "frame": 151,
+      "main": 233,
+      "current": 304,
+      "delta": 71
+    },
+    {
+      "archetype": "wingman",
+      "frame": 152,
+      "main": 233,
+      "current": 304,
+      "delta": 71
+    },
+    {
+      "archetype": "wingman",
+      "frame": 153,
+      "main": 233,
+      "current": 304,
+      "delta": 71
+    },
+    {
+      "archetype": "wingman",
+      "frame": 154,
+      "main": 233,
+      "current": 304,
+      "delta": 71
+    },
+    {
+      "archetype": "wingman",
+      "frame": 155,
+      "main": 233,
+      "current": 304,
+      "delta": 71
+    },
+    {
+      "archetype": "wingman",
+      "frame": 156,
+      "main": 233,
+      "current": 304,
+      "delta": 71
+    },
+    {
+      "archetype": "wingman",
+      "frame": 157,
+      "main": 233,
+      "current": 304,
+      "delta": 71
+    },
+    {
+      "archetype": "wingman",
+      "frame": 158,
+      "main": 233,
+      "current": 304,
+      "delta": 71
+    },
+    {
+      "archetype": "wingman",
+      "frame": 159,
+      "main": 233,
+      "current": 304,
+      "delta": 71
+    },
+    {
+      "archetype": "wingman",
+      "frame": 160,
+      "main": 233,
+      "current": 304,
+      "delta": 71
+    },
+    {
+      "archetype": "wingman",
+      "frame": 161,
+      "main": 360,
+      "current": 431,
+      "delta": 71
+    },
+    {
+      "archetype": "wingman",
+      "frame": 162,
+      "main": 233,
+      "current": 304,
+      "delta": 71
+    },
+    {
+      "archetype": "wingman",
+      "frame": 163,
+      "main": 233,
+      "current": 304,
+      "delta": 71
+    },
+    {
+      "archetype": "wingman",
+      "frame": 164,
+      "main": 233,
+      "current": 304,
+      "delta": 71
+    },
+    {
+      "archetype": "wingman",
+      "frame": 165,
+      "main": 233,
+      "current": 304,
+      "delta": 71
+    },
+    {
+      "archetype": "wingman",
+      "frame": 166,
+      "main": 233,
+      "current": 304,
+      "delta": 71
+    },
+    {
+      "archetype": "wingman",
+      "frame": 167,
+      "main": 233,
+      "current": 304,
+      "delta": 71
+    },
+    {
+      "archetype": "wingman",
+      "frame": 168,
+      "main": 233,
+      "current": 304,
+      "delta": 71
+    },
+    {
+      "archetype": "wingman",
+      "frame": 169,
+      "main": 233,
+      "current": 304,
+      "delta": 71
+    },
+    {
+      "archetype": "wingman",
+      "frame": 170,
+      "main": 233,
+      "current": 304,
+      "delta": 71
+    },
+    {
+      "archetype": "wingman",
+      "frame": 171,
+      "main": 233,
+      "current": 304,
+      "delta": 71
+    },
+    {
+      "archetype": "wingman",
+      "frame": 172,
+      "main": 233,
+      "current": 304,
+      "delta": 71
+    },
+    {
+      "archetype": "wingman",
+      "frame": 173,
+      "main": 233,
+      "current": 304,
+      "delta": 71
+    },
+    {
+      "archetype": "wingman",
+      "frame": 174,
+      "main": 233,
+      "current": 304,
+      "delta": 71
+    },
+    {
+      "archetype": "wingman",
+      "frame": 175,
+      "main": 233,
+      "current": 304,
+      "delta": 71
+    },
+    {
+      "archetype": "wingman",
+      "frame": 176,
+      "main": 233,
+      "current": 304,
+      "delta": 71
+    },
+    {
+      "archetype": "wingman",
+      "frame": 177,
+      "main": 233,
+      "current": 304,
+      "delta": 71
+    },
+    {
+      "archetype": "wingman",
+      "frame": 178,
+      "main": 233,
+      "current": 304,
+      "delta": 71
+    },
+    {
+      "archetype": "wingman",
+      "frame": 179,
+      "main": 233,
+      "current": 304,
+      "delta": 71
+    },
+    {
+      "archetype": "wingman",
+      "frame": 180,
+      "main": 233,
+      "current": 304,
+      "delta": 71
+    },
+    {
+      "archetype": "wingman",
+      "frame": 181,
+      "main": 233,
+      "current": 304,
+      "delta": 71
+    },
+    {
+      "archetype": "wingman",
+      "frame": 182,
+      "main": 233,
+      "current": 304,
+      "delta": 71
+    },
+    {
+      "archetype": "wingman",
+      "frame": 183,
+      "main": 233,
+      "current": 304,
+      "delta": 71
+    },
+    {
+      "archetype": "wingman",
+      "frame": 184,
+      "main": 233,
+      "current": 304,
+      "delta": 71
+    },
+    {
+      "archetype": "wingman",
+      "frame": 185,
+      "main": 233,
+      "current": 304,
+      "delta": 71
+    },
+    {
+      "archetype": "wingman",
+      "frame": 186,
+      "main": 233,
+      "current": 304,
+      "delta": 71
+    },
+    {
+      "archetype": "wingman",
+      "frame": 187,
+      "main": 233,
+      "current": 304,
+      "delta": 71
+    },
+    {
+      "archetype": "wingman",
+      "frame": 188,
+      "main": 233,
+      "current": 304,
+      "delta": 71
+    },
+    {
+      "archetype": "wingman",
+      "frame": 189,
+      "main": 233,
+      "current": 304,
+      "delta": 71
+    },
+    {
+      "archetype": "interceptor",
+      "frame": 0,
+      "main": 434,
+      "current": 504,
+      "delta": 70
+    },
+    {
+      "archetype": "interceptor",
+      "frame": 1,
+      "main": 519,
+      "current": 589,
+      "delta": 70
+    },
+    {
+      "archetype": "interceptor",
+      "frame": 2,
+      "main": 383,
+      "current": 453,
+      "delta": 70
+    },
+    {
+      "archetype": "interceptor",
+      "frame": 3,
+      "main": 424,
+      "current": 494,
+      "delta": 70
+    },
+    {
+      "archetype": "interceptor",
+      "frame": 4,
+      "main": 383,
+      "current": 453,
+      "delta": 70
+    },
+    {
+      "archetype": "interceptor",
+      "frame": 5,
+      "main": 424,
+      "current": 494,
+      "delta": 70
+    },
+    {
+      "archetype": "interceptor",
+      "frame": 6,
+      "main": 383,
+      "current": 453,
+      "delta": 70
+    },
+    {
+      "archetype": "interceptor",
+      "frame": 7,
+      "main": 424,
+      "current": 494,
+      "delta": 70
+    },
+    {
+      "archetype": "interceptor",
+      "frame": 8,
+      "main": 383,
+      "current": 453,
+      "delta": 70
+    },
+    {
+      "archetype": "interceptor",
+      "frame": 9,
+      "main": 424,
+      "current": 494,
+      "delta": 70
+    },
+    {
+      "archetype": "interceptor",
+      "frame": 10,
+      "main": 383,
+      "current": 453,
+      "delta": 70
+    },
+    {
+      "archetype": "interceptor",
+      "frame": 11,
+      "main": 424,
+      "current": 494,
+      "delta": 70
+    },
+    {
+      "archetype": "interceptor",
+      "frame": 12,
+      "main": 383,
+      "current": 453,
+      "delta": 70
+    },
+    {
+      "archetype": "interceptor",
+      "frame": 13,
+      "main": 424,
+      "current": 494,
+      "delta": 70
+    },
+    {
+      "archetype": "interceptor",
+      "frame": 14,
+      "main": 383,
+      "current": 453,
+      "delta": 70
+    },
+    {
+      "archetype": "interceptor",
+      "frame": 15,
+      "main": 424,
+      "current": 494,
+      "delta": 70
+    },
+    {
+      "archetype": "interceptor",
+      "frame": 16,
+      "main": 383,
+      "current": 453,
+      "delta": 70
+    },
+    {
+      "archetype": "interceptor",
+      "frame": 17,
+      "main": 424,
+      "current": 494,
+      "delta": 70
+    },
+    {
+      "archetype": "interceptor",
+      "frame": 18,
+      "main": 383,
+      "current": 453,
+      "delta": 70
+    },
+    {
+      "archetype": "interceptor",
+      "frame": 19,
+      "main": 424,
+      "current": 494,
+      "delta": 70
+    },
+    {
+      "archetype": "interceptor",
+      "frame": 20,
+      "main": 383,
+      "current": 453,
+      "delta": 70
+    },
+    {
+      "archetype": "interceptor",
+      "frame": 21,
+      "main": 424,
+      "current": 494,
+      "delta": 70
+    },
+    {
+      "archetype": "interceptor",
+      "frame": 22,
+      "main": 383,
+      "current": 453,
+      "delta": 70
+    },
+    {
+      "archetype": "interceptor",
+      "frame": 23,
+      "main": 424,
+      "current": 494,
+      "delta": 70
+    },
+    {
+      "archetype": "interceptor",
+      "frame": 24,
+      "main": 383,
+      "current": 453,
+      "delta": 70
+    },
+    {
+      "archetype": "interceptor",
+      "frame": 25,
+      "main": 424,
+      "current": 494,
+      "delta": 70
+    },
+    {
+      "archetype": "interceptor",
+      "frame": 26,
+      "main": 383,
+      "current": 453,
+      "delta": 70
+    },
+    {
+      "archetype": "interceptor",
+      "frame": 27,
+      "main": 424,
+      "current": 494,
+      "delta": 70
+    },
+    {
+      "archetype": "interceptor",
+      "frame": 28,
+      "main": 383,
+      "current": 453,
+      "delta": 70
+    },
+    {
+      "archetype": "interceptor",
+      "frame": 29,
+      "main": 424,
+      "current": 494,
+      "delta": 70
+    },
+    {
+      "archetype": "interceptor",
+      "frame": 30,
+      "main": 383,
+      "current": 453,
+      "delta": 70
+    },
+    {
+      "archetype": "interceptor",
+      "frame": 31,
+      "main": 415,
+      "current": 485,
+      "delta": 70
+    },
+    {
+      "archetype": "interceptor",
+      "frame": 32,
+      "main": 374,
+      "current": 444,
+      "delta": 70
+    },
+    {
+      "archetype": "interceptor",
+      "frame": 33,
+      "main": 415,
+      "current": 485,
+      "delta": 70
+    },
+    {
+      "archetype": "interceptor",
+      "frame": 34,
+      "main": 374,
+      "current": 444,
+      "delta": 70
+    },
+    {
+      "archetype": "interceptor",
+      "frame": 35,
+      "main": 415,
+      "current": 485,
+      "delta": 70
+    },
+    {
+      "archetype": "interceptor",
+      "frame": 36,
+      "main": 374,
+      "current": 444,
+      "delta": 70
+    },
+    {
+      "archetype": "interceptor",
+      "frame": 37,
+      "main": 415,
+      "current": 485,
+      "delta": 70
+    },
+    {
+      "archetype": "interceptor",
+      "frame": 38,
+      "main": 374,
+      "current": 444,
+      "delta": 70
+    },
+    {
+      "archetype": "interceptor",
+      "frame": 39,
+      "main": 415,
+      "current": 485,
+      "delta": 70
+    },
+    {
+      "archetype": "interceptor",
+      "frame": 40,
+      "main": 374,
+      "current": 444,
+      "delta": 70
+    },
+    {
+      "archetype": "interceptor",
+      "frame": 41,
+      "main": 415,
+      "current": 485,
+      "delta": 70
+    },
+    {
+      "archetype": "interceptor",
+      "frame": 42,
+      "main": 374,
+      "current": 444,
+      "delta": 70
+    },
+    {
+      "archetype": "interceptor",
+      "frame": 43,
+      "main": 415,
+      "current": 485,
+      "delta": 70
+    },
+    {
+      "archetype": "interceptor",
+      "frame": 44,
+      "main": 374,
+      "current": 444,
+      "delta": 70
+    },
+    {
+      "archetype": "interceptor",
+      "frame": 45,
+      "main": 415,
+      "current": 485,
+      "delta": 70
+    },
+    {
+      "archetype": "interceptor",
+      "frame": 46,
+      "main": 374,
+      "current": 444,
+      "delta": 70
+    },
+    {
+      "archetype": "interceptor",
+      "frame": 47,
+      "main": 415,
+      "current": 485,
+      "delta": 70
+    },
+    {
+      "archetype": "interceptor",
+      "frame": 48,
+      "main": 374,
+      "current": 444,
+      "delta": 70
+    },
+    {
+      "archetype": "interceptor",
+      "frame": 49,
+      "main": 415,
+      "current": 485,
+      "delta": 70
+    },
+    {
+      "archetype": "interceptor",
+      "frame": 50,
+      "main": 374,
+      "current": 444,
+      "delta": 70
+    },
+    {
+      "archetype": "interceptor",
+      "frame": 51,
+      "main": 415,
+      "current": 485,
+      "delta": 70
+    },
+    {
+      "archetype": "interceptor",
+      "frame": 52,
+      "main": 374,
+      "current": 444,
+      "delta": 70
+    },
+    {
+      "archetype": "interceptor",
+      "frame": 53,
+      "main": 415,
+      "current": 485,
+      "delta": 70
+    },
+    {
+      "archetype": "interceptor",
+      "frame": 54,
+      "main": 374,
+      "current": 444,
+      "delta": 70
+    },
+    {
+      "archetype": "interceptor",
+      "frame": 55,
+      "main": 415,
+      "current": 485,
+      "delta": 70
+    },
+    {
+      "archetype": "interceptor",
+      "frame": 56,
+      "main": 374,
+      "current": 444,
+      "delta": 70
+    },
+    {
+      "archetype": "interceptor",
+      "frame": 57,
+      "main": 415,
+      "current": 485,
+      "delta": 70
+    },
+    {
+      "archetype": "interceptor",
+      "frame": 58,
+      "main": 380,
+      "current": 451,
+      "delta": 71
+    },
+    {
+      "archetype": "interceptor",
+      "frame": 59,
+      "main": 414,
+      "current": 485,
+      "delta": 71
+    },
+    {
+      "archetype": "interceptor",
+      "frame": 60,
+      "main": 380,
+      "current": 451,
+      "delta": 71
+    },
+    {
+      "archetype": "interceptor",
+      "frame": 61,
+      "main": 414,
+      "current": 485,
+      "delta": 71
+    },
+    {
+      "archetype": "interceptor",
+      "frame": 62,
+      "main": 380,
+      "current": 451,
+      "delta": 71
+    },
+    {
+      "archetype": "interceptor",
+      "frame": 63,
+      "main": 414,
+      "current": 485,
+      "delta": 71
+    },
+    {
+      "archetype": "interceptor",
+      "frame": 64,
+      "main": 354,
+      "current": 425,
+      "delta": 71
+    },
+    {
+      "archetype": "interceptor",
+      "frame": 65,
+      "main": 354,
+      "current": 425,
+      "delta": 71
+    },
+    {
+      "archetype": "interceptor",
+      "frame": 66,
+      "main": 354,
+      "current": 425,
+      "delta": 71
+    },
+    {
+      "archetype": "interceptor",
+      "frame": 67,
+      "main": 354,
+      "current": 425,
+      "delta": 71
+    },
+    {
+      "archetype": "interceptor",
+      "frame": 68,
+      "main": 354,
+      "current": 425,
+      "delta": 71
+    },
+    {
+      "archetype": "interceptor",
+      "frame": 69,
+      "main": 354,
+      "current": 425,
+      "delta": 71
+    },
+    {
+      "archetype": "interceptor",
+      "frame": 70,
+      "main": 354,
+      "current": 425,
+      "delta": 71
+    },
+    {
+      "archetype": "interceptor",
+      "frame": 71,
+      "main": 354,
+      "current": 425,
+      "delta": 71
+    },
+    {
+      "archetype": "interceptor",
+      "frame": 72,
+      "main": 354,
+      "current": 425,
+      "delta": 71
+    },
+    {
+      "archetype": "interceptor",
+      "frame": 73,
+      "main": 354,
+      "current": 425,
+      "delta": 71
+    },
+    {
+      "archetype": "interceptor",
+      "frame": 74,
+      "main": 354,
+      "current": 425,
+      "delta": 71
+    },
+    {
+      "archetype": "interceptor",
+      "frame": 75,
+      "main": 354,
+      "current": 425,
+      "delta": 71
+    },
+    {
+      "archetype": "interceptor",
+      "frame": 76,
+      "main": 354,
+      "current": 425,
+      "delta": 71
+    },
+    {
+      "archetype": "interceptor",
+      "frame": 77,
+      "main": 354,
+      "current": 425,
+      "delta": 71
+    },
+    {
+      "archetype": "interceptor",
+      "frame": 78,
+      "main": 354,
+      "current": 425,
+      "delta": 71
+    },
+    {
+      "archetype": "interceptor",
+      "frame": 79,
+      "main": 354,
+      "current": 425,
+      "delta": 71
+    },
+    {
+      "archetype": "interceptor",
+      "frame": 80,
+      "main": 354,
+      "current": 425,
+      "delta": 71
+    },
+    {
+      "archetype": "interceptor",
+      "frame": 81,
+      "main": 354,
+      "current": 425,
+      "delta": 71
+    },
+    {
+      "archetype": "interceptor",
+      "frame": 82,
+      "main": 354,
+      "current": 425,
+      "delta": 71
+    },
+    {
+      "archetype": "interceptor",
+      "frame": 83,
+      "main": 354,
+      "current": 425,
+      "delta": 71
+    },
+    {
+      "archetype": "interceptor",
+      "frame": 84,
+      "main": 354,
+      "current": 425,
+      "delta": 71
+    },
+    {
+      "archetype": "interceptor",
+      "frame": 85,
+      "main": 354,
+      "current": 425,
+      "delta": 71
+    },
+    {
+      "archetype": "interceptor",
+      "frame": 86,
+      "main": 354,
+      "current": 425,
+      "delta": 71
+    },
+    {
+      "archetype": "interceptor",
+      "frame": 87,
+      "main": 354,
+      "current": 425,
+      "delta": 71
+    },
+    {
+      "archetype": "interceptor",
+      "frame": 88,
+      "main": 354,
+      "current": 425,
+      "delta": 71
+    },
+    {
+      "archetype": "interceptor",
+      "frame": 89,
+      "main": 354,
+      "current": 425,
+      "delta": 71
+    },
+    {
+      "archetype": "interceptor",
+      "frame": 90,
+      "main": 354,
+      "current": 425,
+      "delta": 71
+    },
+    {
+      "archetype": "interceptor",
+      "frame": 91,
+      "main": 354,
+      "current": 425,
+      "delta": 71
+    },
+    {
+      "archetype": "interceptor",
+      "frame": 92,
+      "main": 354,
+      "current": 425,
+      "delta": 71
+    },
+    {
+      "archetype": "interceptor",
+      "frame": 93,
+      "main": 354,
+      "current": 425,
+      "delta": 71
+    },
+    {
+      "archetype": "interceptor",
+      "frame": 94,
+      "main": 354,
+      "current": 425,
+      "delta": 71
+    },
+    {
+      "archetype": "interceptor",
+      "frame": 95,
+      "main": 354,
+      "current": 425,
+      "delta": 71
+    },
+    {
+      "archetype": "interceptor",
+      "frame": 96,
+      "main": 354,
+      "current": 425,
+      "delta": 71
+    },
+    {
+      "archetype": "interceptor",
+      "frame": 97,
+      "main": 354,
+      "current": 425,
+      "delta": 71
+    },
+    {
+      "archetype": "interceptor",
+      "frame": 98,
+      "main": 354,
+      "current": 425,
+      "delta": 71
+    },
+    {
+      "archetype": "interceptor",
+      "frame": 99,
+      "main": 354,
+      "current": 425,
+      "delta": 71
+    },
+    {
+      "archetype": "interceptor",
+      "frame": 100,
+      "main": 354,
+      "current": 425,
+      "delta": 71
+    },
+    {
+      "archetype": "interceptor",
+      "frame": 101,
+      "main": 354,
+      "current": 425,
+      "delta": 71
+    },
+    {
+      "archetype": "interceptor",
+      "frame": 102,
+      "main": 354,
+      "current": 425,
+      "delta": 71
+    },
+    {
+      "archetype": "interceptor",
+      "frame": 103,
+      "main": 354,
+      "current": 425,
+      "delta": 71
+    },
+    {
+      "archetype": "interceptor",
+      "frame": 104,
+      "main": 354,
+      "current": 425,
+      "delta": 71
+    },
+    {
+      "archetype": "interceptor",
+      "frame": 105,
+      "main": 354,
+      "current": 425,
+      "delta": 71
+    },
+    {
+      "archetype": "interceptor",
+      "frame": 106,
+      "main": 354,
+      "current": 425,
+      "delta": 71
+    },
+    {
+      "archetype": "interceptor",
+      "frame": 107,
+      "main": 354,
+      "current": 425,
+      "delta": 71
+    },
+    {
+      "archetype": "interceptor",
+      "frame": 108,
+      "main": 354,
+      "current": 425,
+      "delta": 71
+    },
+    {
+      "archetype": "interceptor",
+      "frame": 109,
+      "main": 354,
+      "current": 425,
+      "delta": 71
+    },
+    {
+      "archetype": "interceptor",
+      "frame": 110,
+      "main": 354,
+      "current": 425,
+      "delta": 71
+    },
+    {
+      "archetype": "interceptor",
+      "frame": 111,
+      "main": 354,
+      "current": 425,
+      "delta": 71
+    },
+    {
+      "archetype": "interceptor",
+      "frame": 112,
+      "main": 354,
+      "current": 425,
+      "delta": 71
+    },
+    {
+      "archetype": "interceptor",
+      "frame": 113,
+      "main": 354,
+      "current": 425,
+      "delta": 71
+    },
+    {
+      "archetype": "interceptor",
+      "frame": 114,
+      "main": 354,
+      "current": 425,
+      "delta": 71
+    },
+    {
+      "archetype": "interceptor",
+      "frame": 115,
+      "main": 354,
+      "current": 425,
+      "delta": 71
+    },
+    {
+      "archetype": "interceptor",
+      "frame": 116,
+      "main": 354,
+      "current": 425,
+      "delta": 71
+    },
+    {
+      "archetype": "interceptor",
+      "frame": 117,
+      "main": 354,
+      "current": 425,
+      "delta": 71
+    },
+    {
+      "archetype": "interceptor",
+      "frame": 118,
+      "main": 354,
+      "current": 425,
+      "delta": 71
+    },
+    {
+      "archetype": "interceptor",
+      "frame": 119,
+      "main": 354,
+      "current": 425,
+      "delta": 71
+    },
+    {
+      "archetype": "interceptor",
+      "frame": 120,
+      "main": 354,
+      "current": 425,
+      "delta": 71
+    },
+    {
+      "archetype": "interceptor",
+      "frame": 121,
+      "main": 354,
+      "current": 425,
+      "delta": 71
+    },
+    {
+      "archetype": "interceptor",
+      "frame": 122,
+      "main": 354,
+      "current": 425,
+      "delta": 71
+    },
+    {
+      "archetype": "interceptor",
+      "frame": 123,
+      "main": 354,
+      "current": 425,
+      "delta": 71
+    },
+    {
+      "archetype": "interceptor",
+      "frame": 124,
+      "main": 354,
+      "current": 425,
+      "delta": 71
+    },
+    {
+      "archetype": "interceptor",
+      "frame": 125,
+      "main": 354,
+      "current": 425,
+      "delta": 71
+    },
+    {
+      "archetype": "interceptor",
+      "frame": 126,
+      "main": 354,
+      "current": 425,
+      "delta": 71
+    },
+    {
+      "archetype": "interceptor",
+      "frame": 127,
+      "main": 384,
+      "current": 455,
+      "delta": 71
+    },
+    {
+      "archetype": "interceptor",
+      "frame": 128,
+      "main": 521,
+      "current": 592,
+      "delta": 71
+    },
+    {
+      "archetype": "interceptor",
+      "frame": 129,
+      "main": 414,
+      "current": 485,
+      "delta": 71
+    },
+    {
+      "archetype": "interceptor",
+      "frame": 130,
+      "main": 380,
+      "current": 451,
+      "delta": 71
+    },
+    {
+      "archetype": "interceptor",
+      "frame": 131,
+      "main": 414,
+      "current": 485,
+      "delta": 71
+    },
+    {
+      "archetype": "interceptor",
+      "frame": 132,
+      "main": 380,
+      "current": 451,
+      "delta": 71
+    },
+    {
+      "archetype": "interceptor",
+      "frame": 133,
+      "main": 414,
+      "current": 485,
+      "delta": 71
+    },
+    {
+      "archetype": "interceptor",
+      "frame": 134,
+      "main": 380,
+      "current": 451,
+      "delta": 71
+    },
+    {
+      "archetype": "interceptor",
+      "frame": 135,
+      "main": 414,
+      "current": 485,
+      "delta": 71
+    },
+    {
+      "archetype": "interceptor",
+      "frame": 136,
+      "main": 380,
+      "current": 451,
+      "delta": 71
+    },
+    {
+      "archetype": "interceptor",
+      "frame": 137,
+      "main": 414,
+      "current": 485,
+      "delta": 71
+    },
+    {
+      "archetype": "interceptor",
+      "frame": 138,
+      "main": 380,
+      "current": 451,
+      "delta": 71
+    },
+    {
+      "archetype": "interceptor",
+      "frame": 139,
+      "main": 414,
+      "current": 485,
+      "delta": 71
+    },
+    {
+      "archetype": "interceptor",
+      "frame": 140,
+      "main": 380,
+      "current": 451,
+      "delta": 71
+    },
+    {
+      "archetype": "interceptor",
+      "frame": 141,
+      "main": 414,
+      "current": 485,
+      "delta": 71
+    },
+    {
+      "archetype": "interceptor",
+      "frame": 142,
+      "main": 380,
+      "current": 451,
+      "delta": 71
+    },
+    {
+      "archetype": "interceptor",
+      "frame": 143,
+      "main": 414,
+      "current": 485,
+      "delta": 71
+    },
+    {
+      "archetype": "interceptor",
+      "frame": 144,
+      "main": 380,
+      "current": 451,
+      "delta": 71
+    },
+    {
+      "archetype": "interceptor",
+      "frame": 145,
+      "main": 414,
+      "current": 485,
+      "delta": 71
+    },
+    {
+      "archetype": "interceptor",
+      "frame": 146,
+      "main": 380,
+      "current": 451,
+      "delta": 71
+    },
+    {
+      "archetype": "interceptor",
+      "frame": 147,
+      "main": 414,
+      "current": 485,
+      "delta": 71
+    },
+    {
+      "archetype": "interceptor",
+      "frame": 148,
+      "main": 380,
+      "current": 451,
+      "delta": 71
+    },
+    {
+      "archetype": "interceptor",
+      "frame": 149,
+      "main": 414,
+      "current": 485,
+      "delta": 71
+    },
+    {
+      "archetype": "interceptor",
+      "frame": 150,
+      "main": 380,
+      "current": 451,
+      "delta": 71
+    },
+    {
+      "archetype": "interceptor",
+      "frame": 151,
+      "main": 414,
+      "current": 485,
+      "delta": 71
+    },
+    {
+      "archetype": "interceptor",
+      "frame": 152,
+      "main": 380,
+      "current": 451,
+      "delta": 71
+    },
+    {
+      "archetype": "interceptor",
+      "frame": 153,
+      "main": 414,
+      "current": 485,
+      "delta": 71
+    },
+    {
+      "archetype": "interceptor",
+      "frame": 154,
+      "main": 380,
+      "current": 451,
+      "delta": 71
+    },
+    {
+      "archetype": "interceptor",
+      "frame": 155,
+      "main": 414,
+      "current": 485,
+      "delta": 71
+    },
+    {
+      "archetype": "interceptor",
+      "frame": 156,
+      "main": 380,
+      "current": 451,
+      "delta": 71
+    },
+    {
+      "archetype": "interceptor",
+      "frame": 157,
+      "main": 414,
+      "current": 485,
+      "delta": 71
+    },
+    {
+      "archetype": "interceptor",
+      "frame": 158,
+      "main": 380,
+      "current": 451,
+      "delta": 71
+    },
+    {
+      "archetype": "interceptor",
+      "frame": 159,
+      "main": 414,
+      "current": 485,
+      "delta": 71
+    },
+    {
+      "archetype": "interceptor",
+      "frame": 160,
+      "main": 521,
+      "current": 592,
+      "delta": 71
+    },
+    {
+      "archetype": "interceptor",
+      "frame": 161,
+      "main": 414,
+      "current": 485,
+      "delta": 71
+    },
+    {
+      "archetype": "interceptor",
+      "frame": 162,
+      "main": 380,
+      "current": 451,
+      "delta": 71
+    },
+    {
+      "archetype": "interceptor",
+      "frame": 163,
+      "main": 414,
+      "current": 485,
+      "delta": 71
+    },
+    {
+      "archetype": "interceptor",
+      "frame": 164,
+      "main": 380,
+      "current": 451,
+      "delta": 71
+    },
+    {
+      "archetype": "interceptor",
+      "frame": 165,
+      "main": 414,
+      "current": 485,
+      "delta": 71
+    },
+    {
+      "archetype": "interceptor",
+      "frame": 166,
+      "main": 380,
+      "current": 451,
+      "delta": 71
+    },
+    {
+      "archetype": "interceptor",
+      "frame": 167,
+      "main": 414,
+      "current": 485,
+      "delta": 71
+    },
+    {
+      "archetype": "interceptor",
+      "frame": 168,
+      "main": 380,
+      "current": 451,
+      "delta": 71
+    },
+    {
+      "archetype": "interceptor",
+      "frame": 169,
+      "main": 414,
+      "current": 485,
+      "delta": 71
+    },
+    {
+      "archetype": "interceptor",
+      "frame": 170,
+      "main": 380,
+      "current": 451,
+      "delta": 71
+    },
+    {
+      "archetype": "interceptor",
+      "frame": 171,
+      "main": 415,
+      "current": 486,
+      "delta": 71
+    },
+    {
+      "archetype": "interceptor",
+      "frame": 172,
+      "main": 381,
+      "current": 452,
+      "delta": 71
+    },
+    {
+      "archetype": "interceptor",
+      "frame": 173,
+      "main": 415,
+      "current": 486,
+      "delta": 71
+    },
+    {
+      "archetype": "interceptor",
+      "frame": 174,
+      "main": 381,
+      "current": 452,
+      "delta": 71
+    },
+    {
+      "archetype": "interceptor",
+      "frame": 175,
+      "main": 415,
+      "current": 486,
+      "delta": 71
+    },
+    {
+      "archetype": "interceptor",
+      "frame": 176,
+      "main": 381,
+      "current": 452,
+      "delta": 71
+    },
+    {
+      "archetype": "interceptor",
+      "frame": 177,
+      "main": 415,
+      "current": 486,
+      "delta": 71
+    },
+    {
+      "archetype": "interceptor",
+      "frame": 178,
+      "main": 381,
+      "current": 452,
+      "delta": 71
+    },
+    {
+      "archetype": "interceptor",
+      "frame": 179,
+      "main": 415,
+      "current": 486,
+      "delta": 71
+    },
+    {
+      "archetype": "interceptor",
+      "frame": 180,
+      "main": 381,
+      "current": 452,
+      "delta": 71
+    },
+    {
+      "archetype": "interceptor",
+      "frame": 181,
+      "main": 415,
+      "current": 486,
+      "delta": 71
+    },
+    {
+      "archetype": "interceptor",
+      "frame": 182,
+      "main": 381,
+      "current": 452,
+      "delta": 71
+    },
+    {
+      "archetype": "interceptor",
+      "frame": 183,
+      "main": 415,
+      "current": 486,
+      "delta": 71
+    },
+    {
+      "archetype": "interceptor",
+      "frame": 184,
+      "main": 381,
+      "current": 452,
+      "delta": 71
+    },
+    {
+      "archetype": "interceptor",
+      "frame": 185,
+      "main": 415,
+      "current": 486,
+      "delta": 71
+    },
+    {
+      "archetype": "interceptor",
+      "frame": 186,
+      "main": 381,
+      "current": 452,
+      "delta": 71
+    },
+    {
+      "archetype": "interceptor",
+      "frame": 187,
+      "main": 415,
+      "current": 486,
+      "delta": 71
+    },
+    {
+      "archetype": "interceptor",
+      "frame": 188,
+      "main": 381,
+      "current": 452,
+      "delta": 71
+    },
+    {
+      "archetype": "interceptor",
+      "frame": 189,
+      "main": 415,
+      "current": 486,
+      "delta": 71
+    }
+  ]
+}

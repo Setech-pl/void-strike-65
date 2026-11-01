@@ -181,8 +181,8 @@ test("the code window is declared, guarded and addressable by the build", () => 
   // L1 separates the MAIN Light link from the Director's window record.
   const kernel = manifest.lightKernel;
   assert.deepEqual([kernel.address, kernel.endExclusive, kernel.freeBytes], [0x3643, 0x3aef, 17]);
-  assert.equal(window.address + window.directorHalfBytes, 46846);
-  assert.equal(window.address + window.usedBytes, 46846);
+  assert.equal(window.address + window.directorHalfBytes, 46981);
+  assert.equal(window.address + window.usedBytes, 46981);
   assert.ok(kernel.endExclusive <= 0x3b00, "Light must stop before PMG DMA RAM");
   const reader = manifest.sectorReader;
   assert.equal(reader.address, 0xa000);

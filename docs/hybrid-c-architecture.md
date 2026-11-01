@@ -98,20 +98,21 @@ implemented as a smaller PMG Raider.
 
 ```text
 LIGHT_SLOT_COUNT = 4        ; the declared FORMAT: four SoA slots
-LIGHT_CEILING_SWARM = 3     ; how many a SPACE/SWARM sector may fill
+LIGHT_CEILING_SWARM = 4     ; how many a SPACE/SWARM sector may fill
 LIGHT_CEILING_ELITE = 1     ; with a Heavy formation on screen: its escort
 LIGHT_CEILING_CAPITAL = 0   ; CAPITAL is fighter-only
 ```
 
-Format and ceiling are separate on purpose (roadmap 4.6, owner decision 23
-§10.7). The four slots are a fixed 48-byte structure of arrays at
-`$7FC4-$7FF3`; the ceilings are **policy bytes** that `lifecycle_c_init`
-restores, so a harness test can raise one without a build flag and 4.6's
-WaveDef can lower one per sector. The shipped SWARM ceiling of 3 is
-MEASURED-safe: see `docs/diagnostics/light-population-m1-2026-09-21.md`.
-
-A Light-class enemy is still never a smaller PMG Raider, and a fourth live
-slot is not shipped — the format allows it, no ceiling grants it.
+Format and ceiling are separate on purpose (roadmap4.6, owner decision23).
+The current runtime uses C's `subtype_ceiling_light={4,1,0,1}` and takes the
+minimum of the subtype and each authored sector's cap. M3 final tuning raises
+only SWARM3→4; level1 still authors3. The existing59-B HYBRID_LIGHT_SLOTS at
+$7FC5-$7FFF, state/cache arrays and four-slot ASM loops are unchanged. Three
+appearance pairs are shared by matching look keys; a fourth distinct live
+look is not promised, and admission still refuses unsafe pair replacement.
+Four path Lights with volley are native PAL measured at32224 cycles worst
+across E/M/H (target31500, hard32568). No PMG player, slot/state byte or new
+frame scan is allocated. [Combined handoff](diagnostics/m3/final/report.md).
 
 #### Superseded: capacity before roadmap 4.6
 
@@ -469,8 +470,8 @@ roadmap step 4.4.
 
 The separately linked `$1900-$1FFF` image is checked at every level start,
 including resident-level hits. C owns phase/entry/brake/warning decisions; ASM
-owns shared row publication and bounded interval contact. No interrupt, audio,
-Light or shared-spawn callback depends on L2. The hull renderer is not copied.
+owns shared row publication and bounded interval contact. Interrupt and audio callbacks stay resident. M3 uses explicitly guarded fighter-only
+volley preparation and HP admission below. The hull renderer is not copied.
 
 Boss install returns to the shared main loop. Before its first disk read, cold
 resident `l2_disarm` blanks interrupts, redirects the brake call to resident
@@ -481,3 +482,37 @@ read L2 state. Only successful whole-run validation followed by L2 INIT
 re-arms the call. Failure cannot run partial L2. The permanent lifetime check
 distinguishes installed boss/death code at the same addresses from stale L2
 consumers. [Linked proof and measurements](diagnostics/l2-phase-b/recovery/).
+
+## M3 path policy (checkpoints 1–2)
+
+Free Light SPACE waves may replace resident archetype motion with four bounded
+`dy/frames/flags` segments. The compiler packs up to eight deduplicated records
+into the existing96-B `LEVEL_PATHS` payload at `$AB30`; WaveDef's motion byte
+is a byte offset, or `$FF` for the original policy. Heavy holds keep their
+contextual motion encoding. Nonzero Interceptor `loops` with a path is refused.
+
+C in the checked content home owns admission parity, segment/timer state,
+quantized movement/tracking, fire permission and retirement. Eight slot bytes,
+armed offset and scratch/parity/table occupy17 content B. Existing resident
+ASM guards check validity `$86B3` and game state before any home read or entry;
+shared wave arm still publishes the resident archetype even when disarmed.
+No-path returns `$FF` internally to select resident motion; the kernel still
+receives its original exclusive action. Escort admission clears path state;
+failed free admission consumes no parity. Boss/menu/death never read path RAM.
+Hardware publication, erase, shot admission, PMG and collision ownership stay
+with the existing kernel. Checkpoint2 measures content1,800 B/window2,384 B/
+L2 1,290 B; later C-skin placement is not decided until full M3 compiles.
+
+### M3 guarded volley and appearance HP (2026-11-01)
+
+M3_L2 is an alias of the existing checked L2 tail at$1E0A, assembled with
+Director C references and emitted separately into the L2 image. Snapshot
+preparation is131 B; appearance-HP admission36 B follows it. The builder and
+link assert the append pin and L2≤1,536 B, retaining the256-B protected reserve.
+Resident veneers test the shared checked-L2/content valid flag and gameplay/
+fighter phase before any entry or home read. Invalid dispatch uses normal
+resident fire/default archetype HP; boss never reads either checked home.
+C still owns grouping/HP decisions; ASM guards and publishes existing actions.
+HP reuses the existing slot HP field and four level payload bytes. Final
+content1,863/window2,437/L2 1,457/extension878 B; extension's3-B shared admission
+call leaves21 B. No new DFMC record, renderer, shot pool or PMG allocation.

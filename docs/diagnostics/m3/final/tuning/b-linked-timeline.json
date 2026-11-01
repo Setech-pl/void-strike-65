@@ -1,0 +1,185 @@
+[
+  {
+    "sector": 1,
+    "difficulty": 0,
+    "quickKills": false,
+    "admitted": 24,
+    "completionFrame": 892,
+    "handoffGaps": [
+      2,
+      3
+    ],
+    "visibleGaps": [
+      9,
+      30
+    ],
+    "visibleWidth": 152
+  },
+  {
+    "sector": 1,
+    "difficulty": 0,
+    "quickKills": true,
+    "admitted": 24,
+    "completionFrame": 364,
+    "handoffGaps": [
+      3,
+      3
+    ],
+    "visibleGaps": [],
+    "visibleWidth": 0
+  },
+  {
+    "sector": 1,
+    "difficulty": 1,
+    "quickKills": false,
+    "admitted": 24,
+    "completionFrame": 891,
+    "handoffGaps": [
+      2,
+      2
+    ],
+    "visibleGaps": [
+      9,
+      29
+    ],
+    "visibleWidth": 152
+  },
+  {
+    "sector": 1,
+    "difficulty": 1,
+    "quickKills": true,
+    "admitted": 24,
+    "completionFrame": 364,
+    "handoffGaps": [
+      3,
+      3
+    ],
+    "visibleGaps": [],
+    "visibleWidth": 0
+  },
+  {
+    "sector": 1,
+    "difficulty": 2,
+    "quickKills": false,
+    "admitted": 24,
+    "completionFrame": 892,
+    "handoffGaps": [
+      3,
+      2
+    ],
+    "visibleGaps": [
+      10,
+      29
+    ],
+    "visibleWidth": 152
+  },
+  {
+    "sector": 1,
+    "difficulty": 2,
+    "quickKills": true,
+    "admitted": 24,
+    "completionFrame": 363,
+    "handoffGaps": [
+      2,
+      3
+    ],
+    "visibleGaps": [],
+    "visibleWidth": 0
+  },
+  {
+    "sector": 4,
+    "difficulty": 0,
+    "quickKills": false,
+    "admitted": 32,
+    "completionFrame": 1163,
+    "handoffGaps": [
+      2,
+      3,
+      3
+    ],
+    "visibleGaps": [
+      29,
+      10,
+      10
+    ],
+    "visibleWidth": 152
+  },
+  {
+    "sector": 4,
+    "difficulty": 0,
+    "quickKills": true,
+    "admitted": 32,
+    "completionFrame": 487,
+    "handoffGaps": [
+      3,
+      3,
+      4
+    ],
+    "visibleGaps": [],
+    "visibleWidth": 0
+  },
+  {
+    "sector": 4,
+    "difficulty": 1,
+    "quickKills": false,
+    "admitted": 32,
+    "completionFrame": 1162,
+    "handoffGaps": [
+      2,
+      2,
+      3
+    ],
+    "visibleGaps": [
+      29,
+      9,
+      10
+    ],
+    "visibleWidth": 152
+  },
+  {
+    "sector": 4,
+    "difficulty": 1,
+    "quickKills": true,
+    "admitted": 32,
+    "completionFrame": 486,
+    "handoffGaps": [
+      3,
+      3,
+      3
+    ],
+    "visibleGaps": [],
+    "visibleWidth": 0
+  },
+  {
+    "sector": 4,
+    "difficulty": 2,
+    "quickKills": false,
+    "admitted": 32,
+    "completionFrame": 1162,
+    "handoffGaps": [
+      3,
+      2,
+      2
+    ],
+    "visibleGaps": [
+      30,
+      9,
+      9
+    ],
+    "visibleWidth": 152
+  },
+  {
+    "sector": 4,
+    "difficulty": 2,
+    "quickKills": true,
+    "admitted": 32,
+    "completionFrame": 485,
+    "handoffGaps": [
+      2,
+      3,
+      3
+    ],
+    "visibleGaps": [],
+    "visibleWidth": 0
+  }
+]

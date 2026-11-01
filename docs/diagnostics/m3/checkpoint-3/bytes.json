@@ -1,0 +1,157 @@
+{
+  "baseline": {
+    "head": "742b80e",
+    "content": {
+      "address": 4480,
+      "endExclusive": 6400,
+      "capacityBytes": 1920,
+      "usedBytes": 1800,
+      "runIndex": 12,
+      "validAddress": 34483,
+      "phase": "checked fighter/capital content; disarmed before boss"
+    },
+    "window": {
+      "step": "owner decision X",
+      "owner": "HYBRID_C_WINDOW",
+      "address": 44544,
+      "guardAddress": 48154,
+      "endExclusive": 48128,
+      "capacityBytes": 3584,
+      "guardBytes": 6,
+      "directorHalfBytes": 2384,
+      "lightKernelBytes": 0,
+      "usedBytes": 2384,
+      "freeBytes": 1200,
+      "beforeLanceFreeBytes": 432,
+      "availability": "unconditional: disable_basic_rom forces PORTB bit 1 and writes BASICF at every stage-2 entry",
+      "boundedBy": {
+        "below": "16-sector level buffer $A600-$ADFF",
+        "above": "sector reader BSS $BC00-$BC19, then the guard and the OS screen $BC20-$BFFF (RAMTOP $C0 when BASIC is disabled at coldstart)"
+      },
+      "guard": "HYBRID_C_WINDOW_GUARD $BC1A-$BC1F, reserved with no segment, plus the ld65 assert \"HYBRID_C_WINDOW reaches the sector reader BSS at $BC00\"",
+      "contents": "Director: HYBRID_ASM_WINDOW + HYBRID_C_WINDOW + HYBRID_C_WINDOW_RODATA + HYBRID_C_WINDOW_FLOW + HYBRID_C_WINDOW_HEAVY + HYBRID_C_WINDOW_HEAVY_RODATA + HYBRID_ASM_HEAVY_WINDOW + HYBRID_C_WINDOW_LOOK",
+      "transport": {
+        "record": "own DFMC record, LZ, stagingId extension",
+        "finalDestination": 44544,
+        "startSector": 175,
+        "sectors": 16,
+        "rawBytes": 2384,
+        "packedBytes": 1942,
+        "paddingBytes": 85,
+        "landing": "direct: stage 2 decodes it to AE00 after disable_basic_rom"
+      }
+    },
+    "l2": {
+      "address": 6400,
+      "endExclusive": 8192,
+      "capacityBytes": 1792,
+      "usedBytes": 1290,
+      "freeBytes": 502,
+      "postOneReserveBytes": 256,
+      "runIndex": 11,
+      "phase": "fighter/capital; overwritten by boss"
+    }
+  },
+  "method": "Fresh normal baseline; then normal build with unchanged cfg/assert fails. Exact complete requirement from ca65 listing segment offsets and unchanged other-object sizes in baseline linker map. No enlarged home, relocation, runnable overflow image or bypassed gate.",
+  "attempt": {
+    "contentCapacity": 1920,
+    "header": 1,
+    "code": 2071,
+    "data": 52,
+    "required": 2124,
+    "overflow": 204,
+    "endExclusive": "$19CC",
+    "deltaCode": 318,
+    "deltaData": 6,
+    "deltaContent": 324,
+    "firstLinkerWarningCodeOnlyOverflow": 152,
+    "window": 2384,
+    "windowDelta": 0,
+    "l2": 1290,
+    "l2Delta": 0,
+    "runtimeStatus": "NOT RUN: link blocked before candidate creation"
+  },
+  "objects": {
+    "abiContentCode": 199,
+    "directorContentCode": 591,
+    "lifecycleContentCodeBaseline": 963,
+    "lifecycleContentCodeAttempt": 1281,
+    "otherContentData": 29,
+    "lifecycleContentDataBaseline": 17,
+    "lifecycleContentDataAttempt": 23
+  },
+  "m3Functions": {
+    "_m3_reset": {
+      "moduleOffset": 303,
+      "bytes": 50
+    },
+    "_m3_wave_arm": {
+      "moduleOffset": 353,
+      "bytes": 21
+    },
+    "_m3_escort": {
+      "moduleOffset": 374,
+      "bytes": 31
+    },
+    "_m3_admit": {
+      "moduleOffset": 405,
+      "bytes": 68
+    },
+    "_m3_column_ok": {
+      "moduleOffset": 473,
+      "bytes": 28
+    },
+    "_m3_prepare_volley": {
+      "moduleOffset": 501,
+      "bytes": 185
+    },
+    "_m3_path_tick": {
+      "moduleOffset": 686,
+      "bytes": 595
+    }
+  },
+  "alternatives": {
+    "A": {
+      "scope": "Compact/deduplicate C in the same home, all accepted behavior retained",
+      "minimumBytesToRecover": 204,
+      "contentCeiling": 1920,
+      "contentFreeAfterMinimumRecovery": 0,
+      "windowDeltaPlanned": 0,
+      "l2DeltaPlanned": 0,
+      "fit": "UNPROVEN; no compaction attempted after hard stop"
+    },
+    "B": {
+      "scope": "Owner-authorized fighter-only relocation to guarded L2, not attempted",
+      "measuredMovableHelperBodyBytes": 213,
+      "arithmeticOnlyContent": 1911,
+      "arithmeticOnlyL2": 1503,
+      "l2UsableFreeBeforeGuardAndCskin": 33,
+      "projectedCskinBytes": [
+        32,
+        48
+      ],
+      "l2OverflowWith48BCskinBeforeAdditionalGuard": 15,
+      "fit": "NOT A COMPILED FIT; new guards/ABI and C-skin need additional price"
+    },
+    "C": {
+      "scope": "Separate volley and combined mode into a later owner-reviewed checkpoint; retain column/segment hold-fire",
+      "contentTotalEstimate": [
+        1840,
+        1860
+      ],
+      "windowDeltaEstimate": 0,
+      "l2DeltaEstimate": 0,
+      "fit": "ESTIMATE ONLY; changes accepted V1 scope, requires owner decision"
+    }
+  },
+  "verification": {
+    "baselineNormalBuild": "PASS; current code identical to742b80e after restoring draft",
+    "attemptNormalBuild": "FAIL Content home overflow",
+    "fullNpmTest": "NOT RUN after hard byte stop",
+    "quickNative": "NOT RUN after hard byte stop; no new quick maximum",
+    "threeLightPathVolley": "NOT RUN; no legal linked candidate",
+    "checkpoint4": "NOT STARTED",
+    "Cskin": "NOT STARTED; no placement chosen"
+  },
+  "cpu": "NOT MEASURED; failed link. Estimates only: column30\u201370 per eligible member; 4-slot volley snapshot roughly700\u20131100 per64-frame opportunity, plus existing emissions80\u2013160/shot and ongoing projectile updates. Must be measured after a legal fit."
+}

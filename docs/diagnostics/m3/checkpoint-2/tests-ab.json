@@ -1,0 +1,128 @@
+{
+  "baselineMain": "4e84bc4e688a968910f8135ddb1ca2ba875ccee0",
+  "comparison": "file + name + first assertion + first message; all120 shared tuples identical,0 MOVED",
+  "baselineTotals": {
+    "tests": 1652,
+    "suites": 0,
+    "pass": 1528,
+    "fail": 120,
+    "cancelled": 0,
+    "skipped": 4,
+    "todo": 0,
+    "duration_ms": 1621171.136917
+  },
+  "rawCandidateTotals": {
+    "tests": 1664,
+    "suites": 0,
+    "pass": 1533,
+    "fail": 126,
+    "cancelled": 0,
+    "skipped": 5,
+    "todo": 0,
+    "duration_ms": 920943.40425
+  },
+  "rawABC": {
+    "A": 120,
+    "B": 6,
+    "C": 0
+  },
+  "auditedABC": {
+    "A": 120,
+    "B": 0,
+    "C": 0
+  },
+  "auditedFullSnapshotTotals": {
+    "tests": 1664,
+    "pass": 1539,
+    "fail": 120,
+    "skipped": 5
+  },
+  "note": "One full candidate suite; six justified fixes rerun focused, no second full suite. Three additional final focused path cases (boss poison, vocabulary landmarks, synchronized transitions) pass outside full snapshot. Optional no-path baseline case skipped in full passes focused. Full suite is not green.",
+  "focused": {
+    "tests": 63,
+    "pass": 62,
+    "fail": 0,
+    "skip": 1,
+    "skipReason": "H12 preselected-stage review variant is opt-in; no such variant built for this path task."
+  },
+  "resolutions": [
+    {
+      "file": "tests/basic-window-capacity.test.mjs",
+      "declared_at": "tests/basic-window-capacity.test.mjs:36",
+      "test": "the window's free tail agrees with the linker map's Light kernel tail",
+      "message": "Expected values to be strictly equal:",
+      "first_failing_assertion": "tests/basic-window-capacity.test.mjs:40",
+      "reason": "Accepted82-B resident guard growth: physical free1282\u21921200. Keep900-B floor; add explicit M3\u2264300 and usable\u22642811 checks.",
+      "verification": "focused.log: affected full file PASS"
+    },
+    {
+      "file": "tests/basic-window-capacity.test.mjs",
+      "declared_at": "tests/basic-window-capacity.test.mjs:51",
+      "test": "the window has room for the Director: the free tail stays at 900 B or more",
+      "message": "L1 moves Light out of the BASIC window",
+      "first_failing_assertion": "tests/basic-window-capacity.test.mjs:132",
+      "reason": "Same accepted82-B growth; second exact free-byte pin. No capacity gate weakened.",
+      "verification": "focused.log: affected full file PASS"
+    },
+    {
+      "file": "tests/cfg-overlaps.test.mjs",
+      "declared_at": "tests/cfg-overlaps.test.mjs:16",
+      "test": "every overlap between two cfg memory areas is declared on purpose and named",
+      "message": "undeclared cfg overlaps",
+      "first_failing_assertion": "tests/cfg-overlaps.test.mjs:22",
+      "reason": "Name the intentional LEVEL_PATHS/LEVEL_BUFFER alias at $AB30-$AB8F; link assertion and generated map keep exact96-B bounds.",
+      "verification": "focused.log: affected full file PASS"
+    },
+    {
+      "file": "tests/heavy-damage.test.mjs",
+      "declared_at": "tests/heavy-damage.test.mjs:313",
+      "test": "H14 recovery stays within the owner window budget and preserves full segment sizes",
+      "message": "session window growth exceeds 250 B",
+      "first_failing_assertion": "tests/heavy-damage.test.mjs:315",
+      "reason": "Separate M3+82 window/+677 content from H14 original234/250 budget; retain all other size/address checks.",
+      "verification": "focused.log: affected full file PASS"
+    },
+    {
+      "file": "tests/level-compiler.test.mjs",
+      "declared_at": "tests/level-compiler.test.mjs:570",
+      "test": "T12: level-02.json compiles and differs from level 1 in sector count, waves and masks",
+      "message": "level 2 asks for nothing the runtime clamps",
+      "first_failing_assertion": "tests/level-compiler.test.mjs:574",
+      "reason": "Expect exactly the new ELITE path coincidence warning; still reject any runtime-clamp warning.",
+      "verification": "focused.log: affected full file PASS"
+    },
+    {
+      "file": "tests/raider-projectile-ownership.test.mjs",
+      "declared_at": "tests/raider-projectile-ownership.test.mjs:17",
+      "test": "a Raider kill leaves every already-emitted PairShot visible and active",
+      "message": "Error: build/director-abi.inc has no ENEMY_PROFILE_SCORE_BCD",
+      "first_failing_assertion": "tests/raider-projectile-ownership.test.mjs:18",
+      "reason": "Harness setup race: concurrent build truncated director-abi.inc. Publish complete generated ABI by same-directory PID staging+rename; no generated hand edit or guest-byte change.",
+      "verification": "focused.log: affected full file PASS"
+    }
+  ],
+  "preflightResolutions": [
+    {
+      "test": "Heavy-package window-record cap",
+      "reason": "15\u219218 matches accepted M3 plan+1..3 sectors. Actual16; computed limits/protected tails unchanged."
+    }
+  ],
+  "sharedDebt": "tests-ab-raw.json shared (120 exact tuples)",
+  "reconcile": {
+    "log": ".cache/m3-checkpoints/checkpoint-2-reconcile.log",
+    "exit": 1,
+    "unit": {
+      "matched": 120,
+      "new": 6,
+      "moved": 0,
+      "disappeared": 0
+    },
+    "trace": {
+      "matched": 0,
+      "new": 0,
+      "moved": 0,
+      "disappeared": 32
+    },
+    "note": "Unit NEW are the six focused-resolved cases above. Imported canonical trace/registry discrepancy is unchanged release debt; no trace run, removal or release certification inferred."
+  }
+}

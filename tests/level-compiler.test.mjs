@@ -642,12 +642,12 @@ test("T12: level-02.json compiles and differs from level 1 in sector count, wave
     assert.deepEqual(two.sectors.map((sector) => sector.debris), [1, 1, 0, 1, 1, 1]);
 
     // Owner decision, 2026-09-30: everything else as drafted - the capital on
-    // post-smoke NORMAL opening grows to1600 rows to preserve all slower groups;
+    // post-smoke NORMAL opening grows to896 rows to preserve all slower groups;
     // the Heavy sector stays640 and sector6 stays1152.
-    assert.equal(two.sectors[0].rows + two.sectors[1].rows, 2240);
+    assert.equal(two.sectors[0].rows + two.sectors[1].rows, 1536);
     assert.equal(one.sectors[0].rows, 272);
     assert.equal(two.sectors[5].rows, 1152);
-    assert.deepEqual(two.sectors.map((sector) => sector.rows), [1600, 640, 0, 2040, 800, 1152]);
+    assert.deepEqual(two.sectors.map((sector) => sector.rows), [896, 640, 0, 1280, 800, 1152]);
     // RE-PINNED at roadmap 4.6 step 4 (plan §8 step 4, owner 2026-09-30):
     // level 2 flies a 352-row hull, level 1 keeps 480 (T7,
     // tests/hull-length.test.mjs).

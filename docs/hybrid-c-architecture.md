@@ -516,3 +516,15 @@ C still owns grouping/HP decisions; ASM guards and publishes existing actions.
 HP reuses the existing slot HP field and four level payload bytes. Final
 content1,863/window2,437/L2 1,457/extension878 B; extension's3-B shared admission
 call leaves21 B. No new DFMC record, renderer, shot pool or PMG allocation.
+
+
+### M3 endings-only admission spread (2026-11-02 candidate)
+
+C `m3_admit` subtracts4 HPOS per physical slot index from a successfully
+admitted path Light, wrapping a result below48 by16. This keeps all four
+starts four-aligned and inside48..200, with no new state or per-tick policy.
+No-path, escort and boss movement remain unchanged. Existing mirror parity,
+tracking targets, HP, fire policy and body segment bytes are preserved.
+The43-B CONTENT_CODE addition and59-cycle worst admission fit the owner's
+48-B/+100-cycle allowance; native PAL measurement remains authoritative.
+See [evidence and limits](diagnostics/m3-endings/report.md).

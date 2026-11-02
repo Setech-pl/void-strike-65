@@ -1956,6 +1956,13 @@ void m3_admit(void)
         m3_index = (uint8_t)(m3_armed_path + 1u);
         m3_dy = level_paths[m3_index];
         m3_path_timer[light_slot] = m3_dy;
+        /* Separate time-offset members at admission without changing path
+         * policy, mirror parity or tracking targets. Entries are four-aligned;
+         * wrap the tiny lower-edge underflow into the first four cells. */
+        m3_dy = (uint8_t)(light_slot << 2u);
+        m3_dy = (uint8_t)(light_x[light_slot] - m3_dy);
+        if (m3_dy < LIGHT_X_FIRST) m3_dy += 16u;
+        light_x[light_slot] = m3_dy;
     }
 }
 

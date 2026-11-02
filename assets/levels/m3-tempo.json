@@ -1,55 +1,60 @@
 {
-  "_": "Build-time authored tempo variants: preserve accepted EASY/NORMAL/HARD cadence while looping wide sweeps and scattering exits. No runtime multiplier; select matching OPTIONS difficulty.",
+  "_": "Build-time authored tempo variants. No runtime multiplier. Select matching difficulty in OPTIONS. HARD preserves pre-tune motion.",
   "easy": {
     "wide-west": [
       {
+        "dy": 1,
+        "frames": 24,
+        "flags": 0
+      },
+      {
         "dy": 0,
-        "frames": 76,
-        "flags": 7
+        "frames": 128,
+        "flags": 23
       },
       {
         "dy": 1,
-        "frames": 152,
+        "frames": 128,
         "flags": 27
       },
       {
-        "dy": 0,
-        "frames": 152,
-        "flags": 55
-      },
-      {
         "dy": 1,
-        "frames": 0,
-        "flags": 11
+        "frames": 152,
+        "flags": 135
       }
     ],
     "wide-east": [
       {
-        "dy": 0,
-        "frames": 76,
-        "flags": 7
+        "dy": 1,
+        "frames": 24,
+        "flags": 0
       },
       {
-        "dy": 1,
-        "frames": 152,
+        "dy": 0,
+        "frames": 128,
         "flags": 27
       },
       {
-        "dy": 0,
-        "frames": 152,
-        "flags": 55
+        "dy": 1,
+        "frames": 128,
+        "flags": 23
       },
       {
         "dy": 1,
-        "frames": 0,
-        "flags": 11
+        "frames": 152,
+        "flags": 139
       }
     ],
     "wide-cross": [
       {
         "dy": 0,
-        "frames": 76,
+        "frames": 80,
         "flags": 7
+      },
+      {
+        "dy": 1,
+        "frames": 24,
+        "flags": 0
       },
       {
         "dy": 1,
@@ -57,133 +62,133 @@
         "flags": 27
       },
       {
-        "dy": 0,
+        "dy": -1,
         "frames": 152,
-        "flags": 55
-      },
-      {
-        "dy": 1,
-        "frames": 0,
-        "flags": 11
+        "flags": 135
       }
     ],
     "wide-track": [
       {
-        "dy": 0,
-        "frames": 76,
-        "flags": 7
-      },
-      {
         "dy": 1,
-        "frames": 152,
-        "flags": 27
+        "frames": 24,
+        "flags": 0
       },
       {
         "dy": 0,
-        "frames": 152,
-        "flags": 55
+        "frames": 120,
+        "flags": 31
+      },
+      {
+        "dy": -1,
+        "frames": 76,
+        "flags": 135
       },
       {
         "dy": 1,
         "frames": 0,
-        "flags": 11
+        "flags": 7
       }
     ],
     "wide-return": [
       {
-        "dy": 0,
-        "frames": 76,
+        "dy": 1,
+        "frames": 32,
+        "flags": 0
+      },
+      {
+        "dy": 1,
+        "frames": 128,
         "flags": 7
       },
       {
-        "dy": 1,
-        "frames": 152,
-        "flags": 27
-      },
-      {
-        "dy": 0,
-        "frames": 152,
-        "flags": 55
-      },
-      {
-        "dy": 1,
-        "frames": 0,
+        "dy": -1,
+        "frames": 64,
         "flags": 11
+      },
+      {
+        "dy": -1,
+        "frames": 84,
+        "flags": 135
       }
     ],
     "tracking-dive": [
       {
+        "dy": 1,
+        "frames": 32,
+        "flags": 0
+      },
+      {
         "dy": 0,
-        "frames": 76,
-        "flags": 7
+        "frames": 128,
+        "flags": 31
       },
       {
         "dy": 1,
-        "frames": 152,
-        "flags": 27
-      },
-      {
-        "dy": 0,
-        "frames": 152,
-        "flags": 55
+        "frames": 76,
+        "flags": 151
       },
       {
         "dy": 1,
         "frames": 0,
-        "flags": 11
+        "flags": 23
       }
     ]
   },
   "hard": {
     "wide-west": [
       {
-        "dy": 0,
-        "frames": 19,
-        "flags": 4
+        "dy": 2,
+        "frames": 12,
+        "flags": 0
       },
       {
         "dy": 2,
-        "frames": 38,
+        "frames": 32,
+        "flags": 20
+      },
+      {
+        "dy": 2,
+        "frames": 32,
         "flags": 24
       },
       {
-        "dy": 0,
-        "frames": 38,
-        "flags": 52
-      },
-      {
         "dy": 2,
-        "frames": 0,
-        "flags": 8
+        "frames": 38,
+        "flags": 132
       }
     ],
     "wide-east": [
       {
-        "dy": 0,
-        "frames": 19,
-        "flags": 4
+        "dy": 2,
+        "frames": 12,
+        "flags": 0
       },
       {
         "dy": 2,
-        "frames": 38,
+        "frames": 32,
         "flags": 24
       },
       {
-        "dy": 0,
-        "frames": 38,
-        "flags": 52
+        "dy": 2,
+        "frames": 32,
+        "flags": 20
       },
       {
         "dy": 2,
-        "frames": 0,
-        "flags": 8
+        "frames": 38,
+        "flags": 136
       }
     ],
     "wide-cross": [
       {
         "dy": 0,
-        "frames": 19,
+        "frames": 20,
         "flags": 4
+      },
+      {
+        "dy": 2,
+        "frames": 8,
+        "flags": 0
       },
       {
         "dy": 2,
@@ -191,91 +196,86 @@
         "flags": 24
       },
       {
-        "dy": 0,
+        "dy": -2,
         "frames": 38,
-        "flags": 52
-      },
-      {
-        "dy": 2,
-        "frames": 0,
-        "flags": 8
+        "flags": 132
       }
     ],
     "wide-track": [
       {
-        "dy": 0,
+        "dy": 2,
+        "frames": 12,
+        "flags": 0
+      },
+      {
+        "dy": 1,
+        "frames": 40,
+        "flags": 29
+      },
+      {
+        "dy": -2,
         "frames": 38,
-        "flags": 5
+        "flags": 133
       },
       {
-        "dy": 1,
-        "frames": 76,
-        "flags": 25
-      },
-      {
-        "dy": 0,
-        "frames": 76,
-        "flags": 53
-      },
-      {
-        "dy": 1,
+        "dy": 2,
         "frames": 0,
-        "flags": 9
+        "flags": 5
       }
     ],
     "wide-return": [
       {
-        "dy": 0,
-        "frames": 19,
+        "dy": 2,
+        "frames": 16,
+        "flags": 0
+      },
+      {
+        "dy": 1,
+        "frames": 32,
         "flags": 4
       },
       {
-        "dy": 2,
-        "frames": 38,
-        "flags": 24
-      },
-      {
-        "dy": 0,
-        "frames": 38,
-        "flags": 52
-      },
-      {
-        "dy": 2,
-        "frames": 0,
+        "dy": -1,
+        "frames": 16,
         "flags": 8
+      },
+      {
+        "dy": -2,
+        "frames": 21,
+        "flags": 132
       }
     ],
     "tracking-dive": [
       {
-        "dy": 0,
-        "frames": 38,
-        "flags": 5
+        "dy": 1,
+        "frames": 32,
+        "flags": 0
       },
       {
         "dy": 1,
-        "frames": 76,
-        "flags": 25
+        "frames": 64,
+        "flags": 29
       },
       {
-        "dy": 0,
-        "frames": 76,
-        "flags": 53
+        "dy": 2,
+        "frames": 38,
+        "flags": 149
       },
       {
         "dy": 1,
         "frames": 0,
-        "flags": 9
+        "flags": 21
       }
     ]
   },
   "sectorRows": {
     "easy": {
-      "0": 1536,
-      "3": 2040
+      "0": 1280,
+      "3": 1792
     },
     "hard": {
-      "0": 896,
-      "3": 1728
+      "0": 480,
+      "3": 768
     }
   }
 }

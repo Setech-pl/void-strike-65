@@ -139,7 +139,7 @@ test("step 3: the Director reads level 2 - six sectors, the capital by authored 
     // clear.
     const capital = run.directorSectors[CAPITAL_SECTOR];
     assert.ok(capital.row <= rows[0] + rows[1], `${label}: the capital after its authored row`);
-    assert.equal(rows[0] + rows[1], 2240);
+    assert.equal(rows[0] + rows[1], 1536);
     assert.ok(run.completeFrame !== null, `${label}: the level completes`);
     assert.equal(run.directorSectors.at(-1).sector, LEVEL_TWO_SECTORS - 1);
     assert.ok(run.completeFrame.row > run.directorSectors.at(-1).row);

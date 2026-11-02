@@ -1,11 +1,9 @@
 {
   "_": [
-    "M3 smoke wave fix: mirrored diagonal arrivals, full-width returning sweeps,",
-    "bounded backward jumps with downward progress and diagonal bottom retirement.",
-    "Opening repeats one path three times; the pilot repeats two path groups twice.",
-    "Accepted per-difficulty lateral cadence and HP remain unchanged.",
-    "EASY/HARD use authored build variants; select matching OPTIONS difficulty.",
-    "All Heavy definitions and the four-Light ceiling are unchanged."
+    "M3 endings-only repair: preserve 597e4e5 body segments and accepted tempo.",
+    "Only terminal records fan down, arc upward or return to a side.",
+    "Tracking exit alternates mirror; tracking body ignores the mirror bit.",
+    "HP, counts, minimum-row chains and Heavy waves remain unchanged."
   ],
   "level": 2,
   "seed": 77,
@@ -125,53 +123,58 @@
     "paths": {
       "wide-west": [
         {
-          "dy": 0,
-          "frames": 38,
-          "flags": 5
+          "dy": 1,
+          "frames": 24,
+          "flags": 0
         },
         {
           "dy": 1,
-          "frames": 76,
+          "frames": 64,
+          "flags": 21
+        },
+        {
+          "dy": 1,
+          "frames": 64,
           "flags": 25
         },
         {
-          "dy": 0,
-          "frames": 76,
-          "flags": 53
-        },
-        {
           "dy": 1,
-          "frames": 0,
-          "flags": 9
+          "frames": 76,
+          "flags": 133
         }
       ],
       "wide-east": [
         {
-          "dy": 0,
-          "frames": 38,
-          "flags": 5
+          "dy": 1,
+          "frames": 24,
+          "flags": 0
         },
         {
           "dy": 1,
-          "frames": 76,
+          "frames": 64,
           "flags": 25
         },
         {
-          "dy": 0,
-          "frames": 76,
-          "flags": 53
+          "dy": 1,
+          "frames": 64,
+          "flags": 21
         },
         {
           "dy": 1,
-          "frames": 0,
-          "flags": 9
+          "frames": 76,
+          "flags": 137
         }
       ],
       "wide-cross": [
         {
           "dy": 0,
-          "frames": 38,
+          "frames": 40,
           "flags": 5
+        },
+        {
+          "dy": 1,
+          "frames": 24,
+          "flags": 0
         },
         {
           "dy": 1,
@@ -179,80 +182,75 @@
           "flags": 25
         },
         {
-          "dy": 0,
+          "dy": -1,
           "frames": 76,
-          "flags": 53
-        },
-        {
-          "dy": 1,
-          "frames": 0,
-          "flags": 9
+          "flags": 133
         }
       ],
       "wide-track": [
         {
-          "dy": 0,
-          "frames": 76,
-          "flags": 7
+          "dy": 1,
+          "frames": 24,
+          "flags": 0
         },
         {
           "dy": 1,
-          "frames": 152,
-          "flags": 27
+          "frames": 80,
+          "flags": 31
         },
         {
-          "dy": 0,
-          "frames": 152,
-          "flags": 55
+          "dy": -1,
+          "frames": 76,
+          "flags": 135
         },
         {
           "dy": 1,
           "frames": 0,
-          "flags": 11
+          "flags": 7
         }
       ],
       "wide-return": [
         {
-          "dy": 0,
-          "frames": 38,
+          "dy": 1,
+          "frames": 32,
+          "flags": 0
+        },
+        {
+          "dy": 1,
+          "frames": 64,
           "flags": 5
         },
         {
-          "dy": 1,
-          "frames": 76,
-          "flags": 25
-        },
-        {
-          "dy": 0,
-          "frames": 76,
-          "flags": 53
-        },
-        {
-          "dy": 1,
-          "frames": 0,
+          "dy": -1,
+          "frames": 32,
           "flags": 9
+        },
+        {
+          "dy": -1,
+          "frames": 42,
+          "flags": 133
         }
       ],
       "tracking-dive": [
         {
-          "dy": 0,
-          "frames": 76,
-          "flags": 7
+          "dy": 1,
+          "frames": 32,
+          "flags": 0
         },
         {
           "dy": 1,
-          "frames": 152,
-          "flags": 27
+          "frames": 96,
+          "flags": 31
         },
         {
-          "dy": 0,
-          "frames": 152,
-          "flags": 55
+          "dy": 1,
+          "frames": 76,
+          "flags": 151
         },
         {
           "dy": 1,
           "frames": 0,
-          "flags": 11
+          "flags": 23
         }
       ]
     },
@@ -265,7 +263,7 @@
     {
       "kind": "space",
       "subtype": "swarm",
-      "rows": 1600,
+      "rows": 896,
       "archetypes": [
         "interceptor",
         "wingman"
@@ -285,9 +283,9 @@
           "archetype": "interceptor",
           "count": 8,
           "spacing": 16,
-          "entry": 124,
-          "path": "wide-cross",
-          "mirror": true,
+          "entry": 52,
+          "path": "wide-west",
+          "mirror": false,
           "fire": "normal"
         },
         {
@@ -295,9 +293,9 @@
           "archetype": "wingman",
           "count": 8,
           "spacing": 16,
-          "entry": 124,
-          "path": "wide-cross",
-          "mirror": true,
+          "entry": 200,
+          "path": "wide-east",
+          "mirror": false,
           "fire": "normal"
         },
         {
@@ -392,7 +390,7 @@
     {
       "kind": "space",
       "subtype": "swarm",
-      "rows": 2040,
+      "rows": 1280,
       "archetypes": [
         "interceptor"
       ],
@@ -563,12 +561,11 @@
       {
         "row": 0,
         "count": 8,
-        "path": "wide-cross",
-        "entry": 124,
+        "path": "wide-west",
+        "entry": 52,
         "appearance": "hunter",
         "fire": "normal",
-        "spacing": 16,
-        "mirror": true
+        "spacing": 16
       },
       {
         "row": 0,
@@ -576,7 +573,7 @@
         "path": "wide-cross",
         "mirror": true,
         "appearance": "hunter",
-        "fire": "normal",
+        "fire": "column",
         "spacing": 16,
         "entry": 124
       },
@@ -587,17 +584,17 @@
         "appearance": "lancer",
         "fire": "volley-column",
         "spacing": 16,
-        "entry": 124,
+        "entry": 200,
         "mirror": true
       },
       {
         "row": 0,
         "count": 8,
-        "path": "wide-track",
+        "path": "wide-return",
         "appearance": "lancer",
-        "fire": "volley-column",
+        "fire": "normal",
         "spacing": 16,
-        "entry": 124,
+        "entry": 52,
         "mirror": true
       }
     ]

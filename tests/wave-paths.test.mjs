@@ -353,7 +353,7 @@ test('M3 mirrored centre fan descends from opposite sides before crossing',()=>{
  for(let f=0;f<140;f++){
   tick(m);for(let slot=0;slot<2;slot++)if(m[L('light_y')+slot]===visibleTop)entries.push(m[L('light_x')+slot]);
  }
- assert.deepEqual(entries,[152,96],'hidden fan feeds diagonal opposing arrivals at gameplay top24');
+ assert.deepEqual(entries,[200,48],'original opposite-side arrivals at gameplay top24 remain intact');
  assert.ok(m[L('light_x')]<124&&m[L('light_x')+1]>124,'both members cross the centre');
 });
 
@@ -370,4 +370,42 @@ test('M3 four admitted path Lights share one glyph pair and one volley token',()
  for(let i=0;i<4;i++){m[L('light_slot')]=i;actions.push(run(m,'_enemy_c_light_tick').a);}
  assert.deepEqual(actions,[1,1,1,1]);assert.equal(m[L('_light_token')],0);
  for(let i=0;i<4;i++){m[L('light_slot')]=i;assert.equal(run(m,'_enemy_c_light_tick').a,0,'no duplicate pulse');}
+});
+
+test('M3 admission spreads path starts within four-HPOS bounds; no-path starts stay exact',()=>{
+ for(let x=48;x<=200;x+=4)for(let slot=0;slot<4;slot++)for(const armed of [0,255]) {
+  const m=new Uint8Array(65536);m.set(fs.readFileSync(`${root}/build/content-module.bin`),0x1180);
+  m[L('_m3_armed_path')]=armed;m[L('light_slot')]=slot;m[L('light_x')+slot]=x;
+  run(m,'_m3_admit');
+  const expected=x-slot*4<48?x-slot*4+16:x-slot*4;
+  assert.equal(m[L('light_x')+slot],armed===255?x:expected);
+  assert.ok(m[L('light_x')+slot]>=48&&m[L('light_x')+slot]<=200);
+  assert.equal(m[L('light_x')+slot]%4,0);
+ }
+ for(const x of [52,124,200]) {
+  const starts=Array.from({length:4},(_,i)=>x-i*4<48?x-i*4+16:x-i*4);
+  assert.equal(new Set(starts).size,4);
+ }
+});
+test('M3 admission spread fits the owner byte and instruction-cycle allowance',
+ {skip:!process.env.VS65_M3_ADMISSION_BASELINE},()=>{
+ const base=process.env.VS65_M3_ADMISSION_BASELINE,bl=new Map();
+ for(const file of ['void-strike-65','encounter-director','integration-glue','light-kernel'])
+  for(const m of fs.readFileSync(`${base}/build/${file}.lbl`,'utf8').matchAll(/^al\s+([\da-f]+)\s+\.?(\S+)$/gim))if(!bl.has(m[2]))bl.set(m[2],parseInt(m[1],16));
+ const rows=[];
+ for(let x=48;x<=200;x+=4)for(let slot=0;slot<4;slot++)for(const armed of [0,255]) {
+  const calls=[];
+  for(const [dir,lab] of [[base,bl],[root,labels]]) {
+   const m=new Uint8Array(65536);m.set(fs.readFileSync(`${dir}/build/content-module.bin`),0x1180);
+   m[lab.get('_m3_armed_path')]=armed;m[lab.get('light_slot')]=slot;m[lab.get('light_x')+slot]=x;
+   const cpu=new Nmos6502(m),stop=0x7fff;cpu.push((stop-1)>>8);cpu.push((stop-1)&255);cpu.pc=lab.get('_m3_admit');
+   for(let i=0;i<10000&&cpu.pc!==stop;i++)cpu.step();assert.equal(cpu.pc,stop);
+   calls.push(cpu.cycles);
+  }
+  rows.push({entry:x,slot,path:armed!==255,before:calls[0],after:calls[1],delta:calls[1]-calls[0]});
+ }
+ const before=JSON.parse(fs.readFileSync(`${base}/build/manifest.json`)),after=JSON.parse(fs.readFileSync(`${root}/build/manifest.json`));
+ const bytes=after.contentModule.usedBytes-before.contentModule.usedBytes;
+ const maximum=Math.max(...rows.map(r=>r.delta));assert.ok(bytes<=48);assert.ok(maximum<=100);
+ if(process.env.VS65_M3_ADMISSION_COST_REPORT)fs.writeFileSync(process.env.VS65_M3_ADMISSION_COST_REPORT,JSON.stringify({method:'MEASURED direct linked NMOS C admission through RTS, no caller/DMA; all39 columns, four slots, path/no-path',contentBytes:bytes,additionalStateBytes:0,maximumAddedInstructionCycles:maximum,rows},null,2)+'\n');
 });

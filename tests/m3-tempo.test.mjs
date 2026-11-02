@@ -35,15 +35,19 @@ test('M3 EASY is slower than NORMAL laterally; NORMAL halves wide sweeps and use
  for(const s of [easy,normal])for(const path of Object.values(s.payload.paths))assert.ok(path.every(p=>Math.abs(p.dy)<=1));
  for(const name of ['wide-track','tracking-dive'])assert.ok(normal.payload.paths[name].filter(p=>p.flags&12).every(p=>(p.flags&3)===3));
 });
-test('M3 smoke fix repeats recipes and keeps every authored exit lateral with a progressing back-loop',()=>{
+test('M3 endings preserve every accepted body byte and four distinct chain families',()=>{
+ const before=JSON.parse(fs.readFileSync(new URL('./fixtures/m3-597e4e5-bodies.json',import.meta.url)));
+ const families={'wide-west':'snake','wide-east':'snake','wide-cross':'arc','wide-track':'tracking','wide-return':'dive-return','tracking-dive':'tracking'};
  const s=source();
- assert.equal(new Set(s.sectors[0].waves.map(w=>w.path)).size,1);
- const steps=s.chains['teach-mirror-pressure-release'];
- assert.deepEqual(steps[0],steps[1]);assert.deepEqual(steps[2],steps[3]);
- for(const tempo of ['easy','normal','hard'])for(const segments of Object.values(m3TempoSource(s,tempo).payload.paths)) {
-  assert.ok(segments.every(p=>(p.flags&12)===4||(p.flags&12)===8),'directional flight throughout, including safety exit');
-  assert.equal((segments[2].flags>>5)&3,1,'bounded back-loop');
-  assert.ok(segments[1].dy*segments[1].frames+segments[2].dy*segments[2].frames>0,'downward progress');
-  assert.equal(segments[3].frames,0);assert.ok(segments[3].dy>0);
+ for(const steps of Object.values(s.chains)) {
+  assert.ok(new Set(steps.map(w=>families[w.path])).size>=4,'four shape families in each chain');
+  for(let i=1;i<steps.length;i++)assert.notEqual(families[steps[i].path],families[steps[i-1].path]);
+ }
+ for(const tempo of ['easy','normal','hard'])for(const [name,segments] of Object.entries(m3TempoSource(s,tempo).payload.paths)) {
+  const prefix=before[tempo][name];
+  assert.deepEqual(segments.slice(0,prefix.length),prefix,`${tempo}/${name}: accepted body unchanged`);
+  const ending=segments[prefix.length];
+  assert.ok((ending.flags&12)===4||(ending.flags&12)===8,'directional exit');
+  assert.ok(ending.flags&128,'deterministic finite side/up/down departure');
  }
 });

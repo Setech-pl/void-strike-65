@@ -1,4 +1,7 @@
-# M3 wave-design correction — candidate, owner smoke pending
+# M3 wave-design correction — REJECTED by owner smoke
+
+Owner smoke of463cdbb: **REJECTED** — shape variety was lost.
+The [endings-only repair](../m3-endings/report.md) supersedes this candidate.
 
 Work only in `codex/m3-tune`, starting at `597e4e5`. Tempo from that checkpoint
 is owner-accepted; this wave design is not. No runtime C/ASM, HP or shot changes.

@@ -1,6 +1,6 @@
 # VOID STRIKE 65 — CURRENT STATUS
 
-Last update: 2026-11-02 (M3 pre-merge wave correction candidate)
+Last update: 2026-11-02 (M3 endings-only smoke repair candidate)
 
 What is true now. Rules: [reguly-projektu.txt](reguly-projektu.txt). Roadmap:
 [plan-realizacji.md](plan-realizacji.md). Source-of-truth order:
@@ -20,32 +20,34 @@ the values below.
 
 ## Checkpoint
 
-### M3 pre-merge wave correction — owner smoke pending
+### M3 varied endings — OWNER-SMOKE CANDIDATE
 
-Branch `codex/m3-tune`, task start597e4e5, main baselineeaae85a. The owner
-accepted the previous tempo. The subsequent smoke found long vertical
-terminal columns. The data correction uses mirrored wide sweeps and a
-back1 loop with positive downward progress, with diagonal bottom retirement.
-Opening repeats one flight recipe three times; pilot repeats two recipes
-twice. Counts24/32, four slots, accepted cadence/HP and all Heavy definitions
-remain. NORMAL cut bounds1600/2040, EASY1536/2040, HARD896/1728.
+Owner smoke **REJECTED463cdbb**: all paths became wide zigzags. Branch
+`codex/m3-tune` now restores597e4e5's distinct body segments and accepted
+E/N/H tempo, counts24/32, HP and fire modes. Only endings change: diagonal
+side exits, upward arcs/return and mirrored tracking fan-out. The named chain
+has four shape families and no adjacent repeated shape. Original row bounds
+NORMAL896/1280, EASY1280/1792, HARD480/768 are restored.
 
-This is a partial data solution: brief same-X crossings and visible gaps
-remain. Literal zero alignment/continuous pressure is not claimed. The
-[wave report](diagnostics/m3-wave-fix/report.md) records actual linked gaps
-and prices admission spread, per-member offsets and overlap before any code
-implementation. No runtime state/ABI/address/segment change. The earlier
-one-line vertical shot-hit widening remains intact.
+Authorised C admission spread: slot*4 HPOS, bounded to48..200;43 content B,
+0 new state/L2/window B, at most59 linked instruction cycles once/frame.
+Content1906/1920 (14 free), window2437/2811, L2 1457/1536 plus256 protected.
+No per-tick policy or scan; no-path/escort/boss behaviour remains unchanged.
+All pre-terminal data bytes match597e4e5. Focused48/48 passes, including
+same-state no-path comparison with main and exhaustive start-column pricing.
+Actual clear/arm gaps2–4 frames; hidden entry/refill can still leave visible
+gaps13–106, and tracking/crossings can coincide. No perpetual-disorder claim.
 
-Normal gated build PASS; full test diff A11/B0/C1 (task1669/11/5).
-Quick Spread30465/capital-96031156; four-Light E/N/H32224/32184/32033,
-worst344 below32568; new pilot NORMAL31685. No VBI/DLI/miss events.
-Release evidence remains pending.
+Normal gated build and generated map PASS; full suites audited A11/B0/C1
+(task1671/11/6 after one stale whole-content size pin repair). Quick Spread
+30465/capital-96031156; four-Light E/N/H32224/32184/32033 (zero peak increase,
+344 hard margin worst); pilot NORMAL31260. Native pilot admits32, gaps2/3/3.
+No VBI/DLI/miss events. Runtime release evidence remains pending.
 
-Play ATRs and bilingual launch lines: `build/play/m3-tune/`; rebuild with
-`node scripts/build-m3-tune-play.mjs`. Validation and exact artifact hashes
-are in the wave report. Only the owner records smoke acceptance. **NEXT
-TASK: owner smoke and choice about residual gaps; STOP.** No merge/push/tag.
+[Current report and validation](diagnostics/m3-endings/report.md). Play ATRs:
+`build/play/m3-tune/`; rebuild `node scripts/build-m3-tune-play.mjs`.
+Only the owner records smoke acceptance. **NEXT TASK: owner smoke; STOP.**
+No merge, push, release, tag or next roadmap task.
 
 ### Pre-v0.4.0 test debt triage — baseline merged in main4e84bc4
 

@@ -1,6 +1,6 @@
 # VOID STRIKE 65 — CURRENT STATUS
 
-Last update: 2026-11-01 (M3 post-smoke difficulty tuning candidate)
+Last update: 2026-11-02 (M3 pre-merge wave correction candidate)
 
 What is true now. Rules: [reguly-projektu.txt](reguly-projektu.txt). Roadmap:
 [plan-realizacji.md](plan-realizacji.md). Source-of-truth order:
@@ -20,40 +20,32 @@ the values below.
 
 ## Checkpoint
 
-### M3 difficulty tuning — OWNER-SMOKE CANDIDATE
+### M3 pre-merge wave correction — owner smoke pending
 
-Branch `codex/m3-tune`, baseline main `eaae85a` (includes M3). Owner reports
-M3 Lights too fast and hard to hit. NORMAL now authors every-second-frame
-wide sweeps, every-fourth-frame calm tracking and dy1; EASY uses quarter-rate
-sweeps/calm holds; HARD preserves preceding motion. All six level2 paths are
-covered. The shared96-B payload has no runtime difficulty multiplier, so
-EASY/HARD use explicit authored build variants: choose matching OPTIONS
-settings. No new runtime code/state. Level1, Heavy WaveDefs, HP, shots,
-counts24/32, mirrored arrivals and four-Light ceiling stay intact. Only the
-opening/pilot sector rows grow with slower lifetimes so no final groups are cut.
+Branch `codex/m3-tune`, task start597e4e5, main baselineeaae85a. The owner
+accepted the previous tempo. The subsequent smoke found long vertical
+terminal columns. The data correction uses mirrored wide sweeps and a
+back1 loop with positive downward progress, with diagonal bottom retirement.
+Opening repeats one flight recipe three times; pilot repeats two recipes
+twice. Counts24/32, four slots, accepted cadence/HP and all Heavy definitions
+remain. NORMAL cut bounds1600/2040, EASY1536/2040, HARD896/1728.
 
-Separate optional correction extends player-shot vertical Light hit area by
-one raster line at each edge. Two immediate operands only:0 resident/state B,
-0 added instructions/cycles. Kernel1196/1213 B unchanged, packed+4 B;
-transport214 sectors, content1863/1920 B, window2437 B, L2 1457 B unchanged.
-No reserved address, segment or residency change.
+This is a partial data solution: brief same-X crossings and visible gaps
+remain. Literal zero alignment/continuous pressure is not claimed. The
+[wave report](diagnostics/m3-wave-fix/report.md) records actual linked gaps
+and prices admission spread, per-member offsets and overlap before any code
+implementation. No runtime state/ABI/address/segment change. The earlier
+one-line vertical shot-hit widening remains intact.
 
-Normal build/byte gates pass; release runtime evidence remains pending.
-Quick Spread NORMAL30465 and capital-960 NORMAL31156 both have0-cycle delta
-against fresh main. Four-Light path/volley E/N/H32224/32184/32033; worst is
-724 above31500 target,344 below32568 hard gate. Pilot E/N/H31951/31281/31132.
-No timing anomalies; each stress has864 four-Light frames and observed
-four-shot pulses. Linked no-fire/instant-kill checks preserve152-HPOS spans,
-all opening24/pilot32 admissions and next-legal-row handoffs.
+Normal gated build PASS; full test diff A11/B0/C1 (task1669/11/5).
+Quick Spread30465/capital-96031156; four-Light E/N/H32224/32184/32033,
+worst344 below32568; new pilot NORMAL31685. No VBI/DLI/miss events.
+Release evidence remains pending.
 
-Full suites raw main1662/15/5, task1665/15/5; audited **A11/B0/C1** after
-three baseline setup corrections and four stale expectations, with complete
-affected-file reruns. Existing11 unit and32 milestone debts remain. Details
-and exact first assertions: [task report](diagnostics/m3-tune/report.md).
-Only the owner records smoke acceptance. Seven play ATRs and bilingual launch
-checklists: `build/play/m3-tune/`. Rebuild with
-`node scripts/build-m3-tune-play.mjs`. **NEXT TASK: owner smoke; STOP.**
-No merge, push, release, tag or M4 work.
+Play ATRs and bilingual launch lines: `build/play/m3-tune/`; rebuild with
+`node scripts/build-m3-tune-play.mjs`. Validation and exact artifact hashes
+are in the wave report. Only the owner records smoke acceptance. **NEXT
+TASK: owner smoke and choice about residual gaps; STOP.** No merge/push/tag.
 
 ### Pre-v0.4.0 test debt triage — baseline merged in main4e84bc4
 

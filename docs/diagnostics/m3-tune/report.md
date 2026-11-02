@@ -171,3 +171,11 @@ npm cache, intermediate traces and all other generated build outputs were
 removed. No other task/worktree/cache was touched. Own emulator/test/build
 processes completed; no server/browser/listening port was started. `dist/`
 is clean. [Exact commands' measurements](cleanup.json).
+
+
+## Subsequent pre-merge wave fix
+
+Owner accepted tempo at597e4e5; smoke then found terminal columns. The
+[wave correction report](../m3-wave-fix/report.md) supersedes wave shapes,
+row bounds and play delivery below this checkpoint, while preserving its
+accepted tempo and hit-area change. The new wave design awaits owner smoke.

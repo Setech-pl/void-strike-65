@@ -1,0 +1,52 @@
+{
+  "content-module.bin": {
+    "main": {
+      "bytes": 1920,
+      "sha256": "15dec62361ce622097f46e277e5fca85fd1be25cf537a14283ac159ff99fd5a1"
+    },
+    "task": {
+      "bytes": 1920,
+      "sha256": "15dec62361ce622097f46e277e5fca85fd1be25cf537a14283ac159ff99fd5a1"
+    }
+  },
+  "l2.bin": {
+    "main": {
+      "bytes": 1792,
+      "sha256": "ca01b6d8215b2043733ffdccbf483c15c59ce902084f872c07e4effd9aac7f3a"
+    },
+    "task": {
+      "bytes": 1792,
+      "sha256": "ca01b6d8215b2043733ffdccbf483c15c59ce902084f872c07e4effd9aac7f3a"
+    }
+  },
+  "light-kernel.bin": {
+    "main": {
+      "bytes": 1196,
+      "sha256": "00af637c15b888bbe9847a602858fe1899cba8ef48424bdd011fcb5b92383e7a"
+    },
+    "task": {
+      "bytes": 1196,
+      "sha256": "a09d3ee96540a47e0eb936dbce01c8e53fd64b5ba94f7beac86f227dc5c99616"
+    }
+  },
+  "resident-window-runtime.bin": {
+    "main": {
+      "bytes": 244,
+      "sha256": "05ed53671e0cf4d8618100ea040aeea63a2a8d702aa1e73d73dc8e6bbd1b143e"
+    },
+    "task": {
+      "bytes": 244,
+      "sha256": "05ed53671e0cf4d8618100ea040aeea63a2a8d702aa1e73d73dc8e6bbd1b143e"
+    }
+  },
+  "integration-glue.bin": {
+    "main": {
+      "bytes": 250,
+      "sha256": "998d2ff2924cc1736360bc1fa5c880a681d612e7f5f60658f0b95817a99e621f"
+    },
+    "task": {
+      "bytes": 250,
+      "sha256": "998d2ff2924cc1736360bc1fa5c880a681d612e7f5f60658f0b95817a99e621f"
+    }
+  }
+}

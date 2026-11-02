@@ -19,3 +19,7 @@ fs.copyFileSync(path.join(root,'build/level-2-s0/void-strike-65.atr'),path.join(
 deliveries.push({file:'volley.atr',tempo:'unchanged every-frame stress paths',optionsDifficulty:'any; measure all three',buildArguments:['--level=2:sector=0','--m3-volley-review'],sourceDirectory:'build/level-2-s0'});
 for(const d of deliveries){const absolute=path.join(out,d.file),bytes=fs.readFileSync(absolute);Object.assign(d,{bytes:bytes.length,sha256:crypto.createHash('sha256').update(bytes).digest('hex'),launch:`atari800 -xl -nobasic -pal ${absolute}`});}
 fs.writeFileSync(path.join(out,'delivery.json'),JSON.stringify(deliveries,null,2)+'\n');
+for (const [file,title,note] of [
+ ['README.md','M3 wave fix — OWNER-SMOKE CANDIDATE','Choose the matching difficulty in OPTIONS. Check repeated wide sweeps, diagonal exits, brief crossings and remaining visible gaps. The shared volley ATR is a timing stress case. Tempo and HP are unchanged.'],
+ ['README.pl.md','M3 poprawka fal — OWNER-SMOKE CANDIDATE','W OPTIONS wybierz trudność zgodną z nazwą ATR. Sprawdź powtarzane szerokie przeloty, ukośne wyjścia, krótkie przecięcia i pozostałe widoczne przerwy. Wspólny ATR volley służy do obciążenia. Tempo i HP bez zmian.']
+]) fs.writeFileSync(path.join(out,file),`# ${title}\n\n${note}\n\n`+deliveries.map(d=>`## ${d.file}\n\nOPTIONS: ${d.optionsDifficulty}\n\nSHA-256: \`${d.sha256}\`\n\n\`\`\`sh\n${d.launch}\n\`\`\`\n`).join('\n'));

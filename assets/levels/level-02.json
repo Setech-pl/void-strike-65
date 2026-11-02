@@ -1,12 +1,11 @@
 {
   "_": [
-    "M3 owner smoke speed pass: NORMAL uses half-rate wide sweeps,",
-    "quarter-rate calm tracking and dy1. Segment lengths preserve travel spans.",
-    "Mirrored opposing entries, counts, zero-row chains and four Lights remain.",
-    "EASY/HARD use build-time authored variants; choose matching OPTIONS difficulty.",
-    "Heavy WaveDefs/holds/looks, archetype weapons/score and capital lifetime rules",
-    "are unchanged. Per-level hunter HP2/lancer HP4. This is authored data,",
-    "not a new difficulty multiplier. Final measured timeline is emitted at build."
+    "M3 smoke wave fix: mirrored diagonal arrivals, full-width returning sweeps,",
+    "bounded backward jumps with downward progress and diagonal bottom retirement.",
+    "Opening repeats one path three times; the pilot repeats two path groups twice.",
+    "Accepted per-difficulty lateral cadence and HP remain unchanged.",
+    "EASY/HARD use authored build variants; select matching OPTIONS difficulty.",
+    "All Heavy definitions and the four-Light ceiling are unchanged."
   ],
   "level": 2,
   "seed": 77,
@@ -126,58 +125,9 @@
     "paths": {
       "wide-west": [
         {
-          "dy": 1,
-          "frames": 24,
-          "flags": 0
-        },
-        {
-          "dy": 1,
-          "frames": 64,
-          "flags": 21
-        },
-        {
-          "dy": 1,
-          "frames": 64,
-          "flags": 25
-        },
-        {
-          "dy": 1,
-          "frames": 0,
-          "flags": 0
-        }
-      ],
-      "wide-east": [
-        {
-          "dy": 1,
-          "frames": 24,
-          "flags": 0
-        },
-        {
-          "dy": 1,
-          "frames": 64,
-          "flags": 25
-        },
-        {
-          "dy": 1,
-          "frames": 64,
-          "flags": 21
-        },
-        {
-          "dy": 1,
-          "frames": 0,
-          "flags": 0
-        }
-      ],
-      "wide-cross": [
-        {
           "dy": 0,
-          "frames": 40,
+          "frames": 38,
           "flags": 5
-        },
-        {
-          "dy": 1,
-          "frames": 24,
-          "flags": 0
         },
         {
           "dy": 1,
@@ -185,75 +135,124 @@
           "flags": 25
         },
         {
+          "dy": 0,
+          "frames": 76,
+          "flags": 53
+        },
+        {
           "dy": 1,
           "frames": 0,
-          "flags": 0
+          "flags": 9
+        }
+      ],
+      "wide-east": [
+        {
+          "dy": 0,
+          "frames": 38,
+          "flags": 5
+        },
+        {
+          "dy": 1,
+          "frames": 76,
+          "flags": 25
+        },
+        {
+          "dy": 0,
+          "frames": 76,
+          "flags": 53
+        },
+        {
+          "dy": 1,
+          "frames": 0,
+          "flags": 9
+        }
+      ],
+      "wide-cross": [
+        {
+          "dy": 0,
+          "frames": 38,
+          "flags": 5
+        },
+        {
+          "dy": 1,
+          "frames": 76,
+          "flags": 25
+        },
+        {
+          "dy": 0,
+          "frames": 76,
+          "flags": 53
+        },
+        {
+          "dy": 1,
+          "frames": 0,
+          "flags": 9
         }
       ],
       "wide-track": [
         {
-          "dy": 1,
-          "frames": 24,
-          "flags": 0
+          "dy": 0,
+          "frames": 76,
+          "flags": 7
         },
         {
           "dy": 1,
-          "frames": 80,
-          "flags": 31
+          "frames": 152,
+          "flags": 27
+        },
+        {
+          "dy": 0,
+          "frames": 152,
+          "flags": 55
         },
         {
           "dy": 1,
           "frames": 0,
-          "flags": 0
-        },
-        {
-          "dy": 1,
-          "frames": 0,
-          "flags": 0
+          "flags": 11
         }
       ],
       "wide-return": [
         {
-          "dy": 1,
-          "frames": 32,
-          "flags": 0
-        },
-        {
-          "dy": 1,
-          "frames": 64,
+          "dy": 0,
+          "frames": 38,
           "flags": 5
         },
         {
-          "dy": -1,
-          "frames": 32,
-          "flags": 9
+          "dy": 1,
+          "frames": 76,
+          "flags": 25
         },
         {
-          "dy": -1,
+          "dy": 0,
+          "frames": 76,
+          "flags": 53
+        },
+        {
+          "dy": 1,
           "frames": 0,
-          "flags": 0
+          "flags": 9
         }
       ],
       "tracking-dive": [
         {
-          "dy": 1,
-          "frames": 32,
-          "flags": 0
+          "dy": 0,
+          "frames": 76,
+          "flags": 7
         },
         {
           "dy": 1,
-          "frames": 96,
-          "flags": 31
+          "frames": 152,
+          "flags": 27
+        },
+        {
+          "dy": 0,
+          "frames": 152,
+          "flags": 55
         },
         {
           "dy": 1,
           "frames": 0,
-          "flags": 16
-        },
-        {
-          "dy": 1,
-          "frames": 0,
-          "flags": 16
+          "flags": 11
         }
       ]
     },
@@ -266,7 +265,7 @@
     {
       "kind": "space",
       "subtype": "swarm",
-      "rows": 896,
+      "rows": 1600,
       "archetypes": [
         "interceptor",
         "wingman"
@@ -286,9 +285,9 @@
           "archetype": "interceptor",
           "count": 8,
           "spacing": 16,
-          "entry": 52,
-          "path": "wide-west",
-          "mirror": false,
+          "entry": 124,
+          "path": "wide-cross",
+          "mirror": true,
           "fire": "normal"
         },
         {
@@ -296,9 +295,9 @@
           "archetype": "wingman",
           "count": 8,
           "spacing": 16,
-          "entry": 200,
-          "path": "wide-east",
-          "mirror": false,
+          "entry": 124,
+          "path": "wide-cross",
+          "mirror": true,
           "fire": "normal"
         },
         {
@@ -393,7 +392,7 @@
     {
       "kind": "space",
       "subtype": "swarm",
-      "rows": 1280,
+      "rows": 2040,
       "archetypes": [
         "interceptor"
       ],
@@ -524,7 +523,8 @@
           "entry": 124,
           "appearance": "lancer",
           "path": "tracking-dive",
-          "fire": "column"
+          "fire": "column",
+          "mirror": true
         },
         {
           "row": 480,
@@ -563,11 +563,12 @@
       {
         "row": 0,
         "count": 8,
-        "path": "wide-west",
-        "entry": 52,
+        "path": "wide-cross",
+        "entry": 124,
         "appearance": "hunter",
         "fire": "normal",
-        "spacing": 16
+        "spacing": 16,
+        "mirror": true
       },
       {
         "row": 0,
@@ -575,7 +576,7 @@
         "path": "wide-cross",
         "mirror": true,
         "appearance": "hunter",
-        "fire": "column",
+        "fire": "normal",
         "spacing": 16,
         "entry": 124
       },
@@ -586,16 +587,17 @@
         "appearance": "lancer",
         "fire": "volley-column",
         "spacing": 16,
-        "entry": 200
+        "entry": 124,
+        "mirror": true
       },
       {
         "row": 0,
         "count": 8,
-        "path": "wide-return",
+        "path": "wide-track",
         "appearance": "lancer",
-        "fire": "normal",
+        "fire": "volley-column",
         "spacing": 16,
-        "entry": 52,
+        "entry": 124,
         "mirror": true
       }
     ]

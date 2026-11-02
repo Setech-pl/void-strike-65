@@ -316,7 +316,7 @@ test('M3 denser pilot spans both sides and hands off at the next available row t
   const s={...m3TempoSource(pilot,tempo),sectors:[sector]},m=image(s),c=compile(s);
   m[L('DIFFICULTY_SETTING')]=difficulty;
   const expected=c.waves.reduce((n,w)=>n+w.count,0);let admitted=0,acc=0,previousCursor=1,cleared=null,lastFrame=0;
-  const gaps=[],xs=new Set(),columns=new Set(),visibleGaps=[];let lastVisible=null;
+  const gaps=[],xs=new Set(),columns=new Set(),visibleGaps=[];let lastVisible=null;let columnFrames=0,pairedColumnFrames=0;
   for(let frame=1;frame<=5000;frame++) {
    m[L('frame_counter')]=(m[L('frame_counter')]+1)&255;acc+=8+difficulty;
    if(acc>=20){acc-=20;run(m,'_director_c_world_row_tick');}
@@ -329,6 +329,9 @@ test('M3 denser pilot spans both sides and hands off at the next available row t
     if(m[L('light_y')+slot]>=visibleTop&&m[L('light_state')+slot]){xs.add(m[L('light_x')+slot]);columns.add(Math.floor((m[L('light_x')+slot]-48)/52));}
     if(quickKills){m[L('light_state')+slot]=0;m[L('light_screen_hi')+slot]=0;}
    }
+   const visibleXs=Array.from({length:4},(_,i)=>i).filter(i=>m[L('light_state')+i]===2&&m[L('light_y')+i]>=visibleTop).map(i=>m[L('light_x')+i]);
+   if(visibleXs.length>1&&new Set(visibleXs).size===1)columnFrames++;
+   if(visibleXs.length>new Set(visibleXs).size)pairedColumnFrames++;
    const visible=Array.from({length:4},(_,i)=>m[L('light_state')+i]===2&&m[L('light_y')+i]>=visibleTop&&m[L('light_y')+i]<232).some(Boolean);
    if(visible){if(lastVisible!==null&&frame-lastVisible>1)visibleGaps.push(frame-lastVisible-1);lastVisible=frame;}
    const empty=!m.slice(L('light_state'),L('light_state')+4).some(Boolean);
@@ -336,7 +339,7 @@ test('M3 denser pilot spans both sides and hands off at the next available row t
    if(!empty||m[L('_light_wave_remaining')]!==0)cleared=null;
    lastFrame=frame;if(admitted===expected&&empty)break;
   }
-  tuningResults.push({tempo,sector:sectorIndex+1,difficulty,quickKills,admitted,completionFrame:lastFrame,handoffGaps:gaps,visibleGaps,visibleWidth:xs.size?Math.max(...xs)-Math.min(...xs):0});
+  tuningResults.push({tempo,sector:sectorIndex+1,difficulty,quickKills,admitted,completionFrame:lastFrame,handoffGaps:gaps,visibleGaps,columnFrames,pairedColumnFrames,visibleWidth:xs.size?Math.max(...xs)-Math.min(...xs):0});
   assert.equal(admitted,expected,`sector${sectorIndex+1}/${difficulty}/${quickKills}: every group admitted`);
   assert.ok(lastFrame<5000);assert.equal(gaps.length,c.waves.length-1);
   assert.ok(gaps.every(n=>n>=1&&n<=4),`handoff ${gaps}: only the existing clear/row cadence`);
@@ -350,7 +353,7 @@ test('M3 mirrored centre fan descends from opposite sides before crossing',()=>{
  for(let f=0;f<140;f++){
   tick(m);for(let slot=0;slot<2;slot++)if(m[L('light_y')+slot]===visibleTop)entries.push(m[L('light_x')+slot]);
  }
- assert.deepEqual(entries,[200,48],'hidden fan precedes visible opposing-side entries at gameplay top24 at the slower authored cadence');
+ assert.deepEqual(entries,[152,96],'hidden fan feeds diagonal opposing arrivals at gameplay top24');
  assert.ok(m[L('light_x')]<124&&m[L('light_x')+1]>124,'both members cross the centre');
 });
 

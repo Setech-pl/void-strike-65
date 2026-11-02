@@ -1,0 +1,16 @@
+import fs from 'node:fs';
+import path from 'node:path';
+import assert from 'node:assert/strict';
+import {parseTestLog,reconcileTests} from '../../../scripts/reconcile-failures.mjs';
+const dir='docs/diagnostics/m3-wave-fix';
+const main=parseTestLog(fs.readFileSync(`${dir}/main-test.log`,'utf8'),{root:path.resolve('.cache/m3-wave-fix/main')});
+const task=parseTestLog(fs.readFileSync(`${dir}/task-test.log`,'utf8'),{root:process.cwd()});
+assert.ok(main.totals.tests&&task.totals.tests);
+const key=f=>`${f.file} > ${f.test}`,signature=f=>`${f.first_failing_assertion} > ${f.message}`;
+const a=new Map(main.failures.map(f=>[key(f),f])),b=new Map(task.failures.map(f=>[key(f),f]));
+const A=[],B=[],C=[];
+for(const [k,f] of b)if(a.has(k)&&signature(a.get(k))===signature(f))A.push(f);else B.push({task:f,main:a.get(k)??null});
+for(const [k,f] of a)if(!b.has(k))C.push(f);
+const reconciliation=reconcileTests(task.failures,JSON.parse(fs.readFileSync('docs/recorded-test-failures.json')).failures);
+const report={baseline:'eaae85a',method:'One full suite per revision; file + name + first assertion + first message. No filtered failures. Focused final files cover evolving wave-data/expectation edits and the additional authored-loop regression case added after the full suite started. No second full suite.',main,task,ABC:{A:A.length,B:B.length,C:C.length},A,B,C,reconciliation};
+fs.writeFileSync(`${dir}/tests-ab.json`,JSON.stringify(report,null,2)+'\n');console.log(report.ABC);assert.equal(B.length,0);assert.equal(reconciliation.added.length,0);assert.equal(reconciliation.moved.length,0);

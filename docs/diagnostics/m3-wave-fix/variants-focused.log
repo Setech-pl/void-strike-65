@@ -1,0 +1,12 @@
+✔ T8: --level=1:sector=2 writes build/level-1-s2/ and never touches dist/ (17432.761625ms)
+✔ T8: the default build has no debug code path, only an absent one (25.052375ms)
+✔ T8: a debug level or sector outside the campaign is refused by the build (16071.288833ms)
+✔ S4b: --laser-fixture=4 --level=1:sector=6 writes its own directory, never touches dist/ or the default build (14383.138792ms)
+ℹ tests 4
+ℹ suites 0
+ℹ pass 4
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 48166.909833

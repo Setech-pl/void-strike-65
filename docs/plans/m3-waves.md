@@ -783,3 +783,15 @@ EN/PL player docs, authoring, architecture, STATUS and memory map reflect the
 combined result. [Final audit/tests/resources/hashes](../diagnostics/m3/final/report.md).
 Play ATRs/checklists: `build/play/m3/final/`. M4/M7 work and all existing DEFERs
 remain out of scope. **STOP: owner smoke/merge review; no push or release.**
+
+
+## Pre-merge smoke wave correction — 2026-11-02 candidate
+
+The owner accepted the prior tempo, then rejected late single-column exits.
+The data follow-up loops full-width mirrored sweeps with downward progress,
+repeats the opening path three times and two pilot recipes twice. It keeps
+accepted difficulty cadence/HP and existing capacity/ABI. Literal zero
+alignment and continuous pressure are not achieved: brief crossings and
+11–104-frame visible gaps remain. Offset/overlap alternatives are priced,
+not implemented. [Current evidence and limits](../diagnostics/m3-wave-fix/report.md).
+Owner smoke is pending; no promotion to OWNER-ACCEPTED.

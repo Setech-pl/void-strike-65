@@ -1,0 +1,88 @@
+{
+  "emulator": "Atari800 7.1.2 PAL/XL",
+  "guest_instrumentation_bytes": 0,
+  "diagnostic_allowances": {
+    "release_evidence": false,
+    "reuse_existing_traces": false,
+    "host_lives_top_up": "4",
+    "forced_booster_fixture": 4,
+    "l2_exit_fixture": null,
+    "terminal_state_seed": false,
+    "l2_variant_alias": false
+  },
+  "artifact_sha256": {
+    "void-strike-65-boot.bin": {
+      "path": "dist/void-strike-65-boot.bin",
+      "bytes": 27392,
+      "sha256": "30b1508f862ad33339d9ffeec2895c9939c1b06522f4b9f24117384a177bb6dd"
+    },
+    "void-strike-65.atr": {
+      "path": "dist/void-strike-65.atr",
+      "bytes": 133136,
+      "sha256": "8b3a4be46c8fce2dddf33851d60f2d644182c2502f652cb090bb292776ea31f0"
+    },
+    "void-strike-65-manifest.json": {
+      "path": "dist/void-strike-65-manifest.json",
+      "bytes": 883561,
+      "sha256": "ed19c4fa13cc02480bec2cb2dad3e2880620b68d7f4a9102764232974138bf9c"
+    }
+  },
+  "sessions": [
+    {
+      "id": "campaign-1-spread-capital",
+      "kind": "spread-capital",
+      "medium": "ATR",
+      "difficulty": 1,
+      "policy": "l2-spread-capital",
+      "fire_delay": 0,
+      "registered_host_fixture": {
+        "forced_booster": 4,
+        "timer_bytes": 255,
+        "held_lives": 4,
+        "hp_or_invulnerability_seed": false,
+        "projectile_state_seed": false
+      },
+      "spread_capital": {
+        "peak": 30465,
+        "targetMargin": 1035,
+        "hardMargin": 2103,
+        "capitalFrames": 918
+      },
+      "measured_frames": 1800,
+      "maximum_wall_cycles": 30465,
+      "deadline_overrun_frames": 0,
+      "missed_frames": 0,
+      "hull_map_draws": 545,
+      "hull_map_stale_draws": 0,
+      "hull_map_dirty_reads": 0,
+      "hull_map_rebuilds_after_boss": 0,
+      "level_summary": {
+        "start_summaries": [
+          {
+            "entry": 660,
+            "display": 662,
+            "loaded": 752,
+            "ready": 863,
+            "accept": 868,
+            "reads": 53,
+            "shown_frames": 206,
+            "best": "BEST                  --"
+          }
+        ]
+      }
+    }
+  ],
+  "acceptance": {
+    "measured_frames": 1800,
+    "maximum_wall_cycles": 30465,
+    "wall_ceiling": 32568,
+    "physical_headroom": 5103,
+    "missed_frames": 0,
+    "extra_vbi_boundaries": 0,
+    "physical_overruns": 0,
+    "deadline_overruns": 0,
+    "dli_ordering_errors": 0,
+    "passed": true
+  },
+  "passed": true
+}

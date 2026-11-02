@@ -35,3 +35,15 @@ test('M3 EASY is slower than NORMAL laterally; NORMAL halves wide sweeps and use
  for(const s of [easy,normal])for(const path of Object.values(s.payload.paths))assert.ok(path.every(p=>Math.abs(p.dy)<=1));
  for(const name of ['wide-track','tracking-dive'])assert.ok(normal.payload.paths[name].filter(p=>p.flags&12).every(p=>(p.flags&3)===3));
 });
+test('M3 smoke fix repeats recipes and keeps every authored exit lateral with a progressing back-loop',()=>{
+ const s=source();
+ assert.equal(new Set(s.sectors[0].waves.map(w=>w.path)).size,1);
+ const steps=s.chains['teach-mirror-pressure-release'];
+ assert.deepEqual(steps[0],steps[1]);assert.deepEqual(steps[2],steps[3]);
+ for(const tempo of ['easy','normal','hard'])for(const segments of Object.values(m3TempoSource(s,tempo).payload.paths)) {
+  assert.ok(segments.every(p=>(p.flags&12)===4||(p.flags&12)===8),'directional flight throughout, including safety exit');
+  assert.equal((segments[2].flags>>5)&3,1,'bounded back-loop');
+  assert.ok(segments[1].dy*segments[1].frames+segments[2].dy*segments[2].frames>0,'downward progress');
+  assert.equal(segments[3].frames,0);assert.ok(segments[3].dy>0);
+ }
+});

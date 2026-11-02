@@ -688,3 +688,17 @@ in OPTIONS: the shared96-B payload is not switched by the menu.
 opening/pilot variants lengthen only those Light sectors to keep all groups
 before expiry. Counts, mirrored entries and clear-lock chains remain intact.
 See [speed measurements and limitations](diagnostics/m3-tune/report.md).
+
+### M3 wave smoke correction (2026-11-02 candidate)
+
+The current level2 pilot replaces vertical terminals with mirrored directional
+sweeps and relative back1 loops. Positive per-cycle descent guarantees bottom
+retirement. Opening repeats one path three times; the chain repeats two
+recipes twice each, still20 total WaveDefs and24/32 members. Authored tempo
+cadences and HP are unchanged. NORMAL opening/pilot bounds are1600/2040 rows;
+EASY1536/2040 and HARD896/1728. These supersede earlier row/lifetime examples.
+
+Clear-lock handoffs are2–4 frames; visible gaps remain11–104 depending on
+payload and refill. Brief same-X crossings also remain. This is not a promise
+of zero alignment or uninterrupted pressure. No overlap/offset code is
+authorized or implemented in this data pass. [Measurements and code prices](diagnostics/m3-wave-fix/report.md).

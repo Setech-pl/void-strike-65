@@ -1,0 +1,17 @@
+{
+  "before": {
+    "taskDirectory": "220M\t/Users/marcinkrzetowski/Projects/dark-fighter-m3-tune/.cache/m3-tune",
+    "worktreeCache": "220M\t/Users/marcinkrzetowski/Projects/dark-fighter-m3-tune/.cache",
+    "build": "63M\t/Users/marcinkrzetowski/Projects/dark-fighter-m3-tune/build",
+    "evidence": "980K\t/Users/marcinkrzetowski/Projects/dark-fighter-m3-tune/docs/diagnostics/m3-tune",
+    "disk": "Filesystem      Size    Used   Avail Capacity iused ifree %iused  Mounted on\n/dev/disk3s5   926Gi   527Gi   374Gi    59%    5.7M  3.9G    0%   /System/Volumes/Data"
+  },
+  "note": "Only task-owned cache/export/build outputs removed. Worktree node_modules retained. No external task cache used. All own native/build/test processes completed; no server, browser or listening port was started. Retained evidence under docs/diagnostics/m3-tune and seven play ATRs under build/play/m3-tune; no retained oversized artifact.",
+  "after": {
+    "taskDirectory": "4.0K\t/Users/marcinkrzetowski/Projects/dark-fighter-m3-tune/.cache/m3-tune",
+    "worktreeCache": "4.0K\t/Users/marcinkrzetowski/Projects/dark-fighter-m3-tune/.cache",
+    "build": "936K\t/Users/marcinkrzetowski/Projects/dark-fighter-m3-tune/build",
+    "evidence": "980K\t/Users/marcinkrzetowski/Projects/dark-fighter-m3-tune/docs/diagnostics/m3-tune",
+    "disk": "Filesystem      Size    Used   Avail Capacity iused ifree %iused  Mounted on\n/dev/disk3s5   926Gi   527Gi   374Gi    59%    5.7M  3.9G    0%   /System/Volumes/Data"
+  }
+}

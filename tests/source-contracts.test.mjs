@@ -238,7 +238,7 @@ test("documentation keeps the current Heavy/Light PMG contract", () => {
   // LIGHT_ACTIVE_MAX = 1 survives only in the superseded section, so assert
   // the new contract and that the old line is not still stated as current.
   assert.match(hybrid, /LIGHT_SLOT_COUNT = 4\b/);
-  assert.match(hybrid, /LIGHT_CEILING_SWARM = 3\b/);
+  assert.match(hybrid, /LIGHT_CEILING_SWARM = 4\b/);
   assert.match(hybrid, /LIGHT_CEILING_ELITE = 1\b/);
   assert.match(hybrid, /LIGHT_CEILING_CAPITAL = 0\b/);
   assert.match(hybrid, /#### Superseded: capacity before roadmap 4\.6/);

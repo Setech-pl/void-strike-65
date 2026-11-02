@@ -1,6 +1,6 @@
 # VOID STRIKE 65 — CURRENT STATUS
 
-Last update: 2026-11-01 (M3 final tuning + checkpoint5, merge-ready candidate)
+Last update: 2026-11-02 (M3 endings-only smoke repair candidate)
 
 What is true now. Rules: [reguly-projektu.txt](reguly-projektu.txt). Roadmap:
 [plan-realizacji.md](plan-realizacji.md). Source-of-truth order:
@@ -20,54 +20,34 @@ the values below.
 
 ## Checkpoint
 
-### M3 final +checkpoint5 — merge-ready OWNER-SMOKE CANDIDATE
+### M3 varied endings — OWNER-SMOKE CANDIDATE
 
-Owner checkpoint4 mechanics OK; sparse/narrow tuning rejected. Data tuning
-9f3735d widens entries/sweeps/crossings, removes authored row waits and raises
-counts. Separate1f299a5 grants4 free Lights through existing storage/renderer;
-opening24 and pilot32 admissions. Level1/all12 Heavy WaveDefs unchanged.
-Current main8da7c66 merged at a0fb7d5; conflicts preserve accepted test-debt
-fixes and M3's resource pins. No new owner acceptance of the tuning is inferred.
+Owner smoke **REJECTED463cdbb**: all paths became wide zigzags. Branch
+`codex/m3-tune` now restores597e4e5's distinct body segments and accepted
+E/N/H tempo, counts24/32, HP and fire modes. Only endings change: diagonal
+side exits, upward arcs/return and mirrored tracking fan-out. The named chain
+has four shape families and no adjacent repeated shape. Original row bounds
+NORMAL896/1280, EASY1280/1792, HARD480/768 are restored.
 
-All Q5A modes retained through guarded131-B L2 volley prep. C-skin stays36 B
-L2 +16 window +3 extension, selected because content free57<64. Invalid
-pair/phase uses normal fire/base HP before any home read. Hunter2/lancer4,
-other looks inherit. Wave chains remain host-expanded; no guest queue/overlap.
+Authorised C admission spread: slot*4 HPOS, bounded to48..200;43 content B,
+0 new state/L2/window B, at most59 linked instruction cycles once/frame.
+Content1906/1920 (14 free), window2437/2811, L2 1457/1536 plus256 protected.
+No per-tick policy or scan; no-path/escort/boss behaviour remains unchanged.
+All pre-terminal data bytes match597e4e5. Focused48/48 passes, including
+same-state no-path comparison with main and exhaustive start-column pricing.
+Actual clear/arm gaps2–4 frames; hidden entry/refill can still leave visible
+gaps13–106, and tracking/crossings can coincide. No perpetual-disorder claim.
 
-| Home | Final used /usable ceiling B | Free B | Tuning delta |
-| --- | ---: | ---: | ---: |
-| Content | 1863 /1920 | 57 | 0 |
-| Window | 2437 /2811 | 374 | 0 |
-| L2 | 1457 /1536 | 79 (+256 protected) | 0 |
+Normal gated build and generated map PASS; full suites audited A11/B0/C1
+(task1671/11/6 after one stale whole-content size pin repair). Quick Spread
+30465/capital-96031156; four-Light E/N/H32224/32184/32033 (zero peak increase,
+344 hard margin worst); pilot NORMAL31260. Native pilot admits32, gaps2/3/3.
+No VBI/DLI/miss events. Runtime release evidence remains pending.
 
-Arena830/832, Director high324, extension878/tail21, initial12865 unchanged;
-11 records/214 transport sectors. Total M3 window growth135≤300. Overlap's
-scan-free decision probe alone88+1 B would make content1952/1920 (32 over),
-also larger than L2's usable tail before glue. No new scan/relocation/reserve
-spend. Arm gaps2–3 frames; actual renderer Y24 entry cues up to34, explicitly
-retained. [Pricing and alternatives](diagnostics/m3/final/tuning/report.md).
-
-Native PAL worst32224 (target+724, hard margin344), four-shot pulses/864
-four-Light frames per difficulty; no timing anomaly. E/N/H authored pilot
-32079/31239/32095, all32 admissions and quiet release complete. Quick Spread
-30465/capital-96031156 unchanged; boss entry325. Bomber approach/capital32089,
-Heavy cleared beforehand; registered boss pause and RESET31327 both pass,
-next-game hull rebuild once and no stale reads. Linked guards/lifetime,
-departure, rendering, compiler/chains/HP and no-path/main comparisons pass.
-
-Normal computed gates PASS, release evidence pending. Fresh full main
-1632 PASS/11 FAIL/4 SKIP; task raw1664/13/5. Two stale3-Light expectations
-corrected; complete affected files pass. Audited **A11/B0/C0**, exact first
-assertion/message match; existing11 unit and32 milestone-trace debts retained.
-[One combined report, resources, logs and hashes](diagnostics/m3/final/report.md).
-
-Final play ATRs/checklists: `build/play/m3/final/` (campaign, level2, pilot,
-volley, approach, boss). EN/PL player docs and the
-[denser regional recipe sheet](plans/m3-regional-recipes.md) are current.
-M4 inherits57/374/79 usable home B, reader24 (old estimate10 short), full1792-B
-summary and1 payload-tail byte. B-shot, hues, Bomber skins/shot re-skin,
-terminal overlap and later levels remain DEFER. **NEXT: owner smoke/merge;
-STOP. No M4 implementation, push, tag or release.**
+[Current report and validation](diagnostics/m3-endings/report.md). Play ATRs:
+`build/play/m3-tune/`; rebuild `node scripts/build-m3-tune-play.mjs`.
+Only the owner records smoke acceptance. **NEXT TASK: owner smoke; STOP.**
+No merge, push, release, tag or next roadmap task.
 
 ### Pre-v0.4.0 test debt triage — baseline merged in main4e84bc4
 

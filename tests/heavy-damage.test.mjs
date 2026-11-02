@@ -318,7 +318,9 @@ test('H14 recovery stays within the owner window budget and preserves full segme
   assert.ok(L('_enemy_c_heavy_departure_notice')>=0xae00&&L('_enemy_c_heavy_departure_notice')<0xae00+manifest.residentCapacity.basicWindow.usedBytes);
   assert.equal(manifest.residentCapacity.arena.usedBytes,830);
   assert.equal(manifest.directorRuntime.bytes,324);assert.equal(manifest.l2.usedBytes,1457);
-  assert.equal(manifest.contentModule.usedBytes,1123+740,'H12/H13/departure plus accepted M3 checked-home policy');
+  // Owner permits <=48 B for the endings-only admission spread; linked43 B.
+  // Heavy code, its window budget and every fixed entry below are unchanged.
+  assert.equal(manifest.contentModule.usedBytes,1123+740+43,'H12/H13/departure plus M3 policy and authorised43-B admission spread');
   assert.equal(manifest.directorCodeRuntimes.find(r=>r.name==='extension').bytes,878,'C-skin adds the3-B guarded admission call in the shared extension');
   assert.equal(L('_enemy_c_apply_pending_damage'),0x8d67);
   assert.equal(L('_enemy_c_recycle')-L('_enemy_c_apply_pending_damage'),105,'later extension addresses moved');

@@ -783,3 +783,20 @@ EN/PL player docs, authoring, architecture, STATUS and memory map reflect the
 combined result. [Final audit/tests/resources/hashes](../diagnostics/m3/final/report.md).
 Play ATRs/checklists: `build/play/m3/final/`. M4/M7 work and all existing DEFERs
 remain out of scope. **STOP: owner smoke/merge review; no push or release.**
+
+
+## Pre-merge endings-only smoke repair — 2026-11-02 candidate
+
+Owner smoke **REJECTED463cdbb**: its repeated broad zigzags erased variety.
+The replacement restores597e4e5's body segments, counts, looks, weapons,
+minimum rows and accepted tempo. Only terminal records change: opposite
+side/down exits, upward arcs, continued return and tracking fan-out. The
+named pilot chain has four different families with no consecutive duplicate.
+
+The owner authorised the cheapest admission spread only inside48 B and
++100 worst-frame cycles, with PAL still<=32568. Implemented C spread adds
+43 content B,0 state/L2/window B and at most59 linked instruction cycles per
+admission. No per-tick policy, new scan, overlap helper or PMG change. Existing
+tracking can converge and crossings can coincide; body shape is preserved.
+[Current measured gates and smoke artifacts](../diagnostics/m3-endings/report.md).
+Owner smoke is pending; no promotion to OWNER-ACCEPTED.

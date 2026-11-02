@@ -1,0 +1,61 @@
+
+> void-strike-65@0.1.1 failures:reconcile
+> node scripts/reconcile-failures.mjs --tests docs/diagnostics/m3-endings/main-test.log --trace docs/runtime-wall-trace.json
+
+npm test log docs/diagnostics/m3-endings/main-test.log
+  totals: tests 1682, pass 1665, fail 12, skipped 5, todo 0, cancelled 0
+  matched (name and first assertion): 0
+  NEW: 1
+    - tests/source-contracts.test.mjs > documentation keeps the current Heavy/Light PMG contract @ .cache/m3-endings/main/tests/source-contracts.test.mjs:241: The input did not match the regular expression /LIGHT_CEILING_SWARM = 3\b/. Input:
+  MOVED: 11
+    - tests/boss-order-scale.test.mjs > the curve evidence was measured on this data, three replays a cell, every fight finished: recorded tests/boss-order-scale.test.mjs:70 "the curve is stale: the boss data or the bossDef changed since", now .cache/m3-endings/main/tests/boss-order-scale.test.mjs:70 "the curve is stale: the boss data or the bossDef changed since"
+    - tests/broadside-fire.test.mjs > capital/player collision agrees with independently reconstructed final raster Y: recorded tests/broadside-fire.test.mjs:468 "owner 0, slot 0, ring 0: lower third; PMG 93..107, screen $8320 glyph 105..110, cache 113", now .cache/m3-endings/main/tests/broadside-fire.test.mjs:468 "owner 0, slot 0, ring 0: lower third; PMG 93..107, screen $8320 glyph 105..110, cache 113"
+    - tests/gameplay-music-placement.test.mjs > the ATR START GAME read grows by the planned five plus three plus five sectors and no more: recorded tests/gameplay-music-placement.test.mjs:184 "Expected values to be strictly equal:", now .cache/m3-endings/main/tests/gameplay-music-placement.test.mjs:184 "Expected values to be strictly equal:"
+    - tests/github-showcase.test.mjs > showcase manifest binds every image to the current packed release: recorded tests/github-showcase.test.mjs:37 "Expected values to be strictly equal:", now .cache/m3-endings/main/tests/github-showcase.test.mjs:37 "Expected values to be strictly equal:"
+    - tests/github-showcase.test.mjs > showcase and asset sheets regenerate without ignored capture files: recorded tests/github-showcase.test.mjs:76 "Error: Runtime wall trace does not match the current release ATR", now .cache/m3-endings/main/scripts/github-showcase.mjs:21 "Error: Runtime wall trace does not match the current release ATR"
+    - tests/github-showcase.test.mjs > gameplay GIF is bound to the current ATR and stays within budget: recorded tests/github-showcase.test.mjs:194 "the GIF predates the current ATR; rerun npm run showcase:gif", now .cache/m3-endings/main/tests/github-showcase.test.mjs:194 "the GIF predates the current ATR; rerun npm run showcase:gif"
+    - tests/level-one-waves.test.mjs > sector flow: with no kills the swarm's three waves arm and drain, (a) opens within its ceiling, (b)'s Raiders arrive: recorded tests/level-one-waves.test.mjs:223 "difficulty 0: (b)'s Raiders never arrived with no kills", now .cache/m3-endings/main/tests/level-one-waves.test.mjs:223 "difficulty 0: (b)'s Raiders never arrived with no kills"
+    - tests/menu-raster.test.mjs > native menu raster is exact for the ATR and four cold RAM fills: recorded tests/menu-raster.test.mjs:41 "atr-00 evidence must describe the current artifact", now .cache/m3-endings/main/tests/menu-raster.test.mjs:41 "atr-00 evidence must describe the current artifact"
+    - tests/package-release.test.mjs > M5-05: the release zip carries LICENSE, LICENSE-ASSETS and THIRD_PARTY_NOTICES.md: recorded tests/package-release.test.mjs:44 "Error: Runtime wall trace binding mismatch for void-strike-65-boot.bin", now .cache/m3-endings/main/scripts/runtime-evidence.mjs:105 "Error: Runtime wall trace binding mismatch for void-strike-65-boot.bin"
+    - tests/preview.test.mjs > preview consumes the canonical charset, screen, PMG, and palette source: recorded tests/preview.test.mjs:164 "the gameplay preview must change when player_shape changes", now .cache/m3-endings/main/tests/preview.test.mjs:164 "the gameplay preview must change when player_shape changes"
+    - tests/sio-patch-policy.test.mjs > the committed evidence: real-SIO boot smoke with stage 2 clean, pinned patch-on replays and menu raster: recorded tests/sio-patch-policy.test.mjs:98 "atr-a5 stage-2 SIOV reads", now .cache/m3-endings/main/tests/sio-patch-policy.test.mjs:98 "atr-a5 stage-2 SIOV reads"
+  disappeared: 0
+trace report docs/runtime-wall-trace.json
+  gate: timing_and_dli_passed true, clause failures 0
+  matched (session and message): 0
+  NEW: 0
+  MOVED: 0
+  disappeared: 32
+    - director-complete-0-natural-sweep-fire0: director-complete-0-natural-sweep-fire0 reached the summary from a boss whose core never fell
+    - director-complete-1-natural-sweep-fire0: director-complete-1-natural-sweep-fire0 reached the summary from a boss whose core never fell
+    - director-complete-2-natural-sweep-fire0: director-complete-2-natural-sweep-fire0 reached the summary from a boss whose core never fell
+    - director-complete-2-write-protected: director-complete-2-write-protected reached the summary from a boss whose core never fell
+    - weapon-pickup-overlap-2-hunt-fire5: weapon-pickup-overlap-2-hunt-fire5 final raster contains a cut capsule or stale post-collection footprint (COLPM3 $1c in x 56-72: 216, 216, 216, 216, 216, 216, 216, 216, 216, 188, 156, 132, 108, 84, 60, 28, 0, 0, 0, 0, 0, 0)
+    - capital-contact-allied-medium: capital-contact-allied-medium did not capture 16 consecutive contact rasters
+    - lower-playfield-laser-contact-atr-hard: lower-playfield-laser-contact-atr-hard: band frames saw 0 to 2 row switches (one count a region)
+    - lower-playfield-allied-contact-atr-hard: lower-playfield-allied-contact-atr-hard did not enter the capital damage pipeline exactly once
+    - weapon-pickup-sequence-2-hunt-fire3: Expected one complete smooth final-raster capsule sequence in COLPM3 $1c at x 56-72, found 0/11 (largest silhouette 144 px)
+    - weapon-pickup-traversal-2-observe-fire8: Native pickup did not remain one logical slot and one whole 16-row capsule
+    - weapon-pickup-traversal-2-observe-fire8: Native pickup slot was not released cleanly at the lower boundary
+    - lower-playfield-atr-hard: Lower-playfield replay is missing a selected native raster
+    - aggregate/director-completion-evidence: Director completion trace measured 15927 frames and 0/3 level-end summaries
+    - director-complete-0-natural-sweep-fire0: director-complete-0-natural-sweep-fire0 did not execute LAST-SECTOR ROW CLOCK -> DRAINED BOSS ENTRY -> FIGHT -> CHAIN -> HOLD (entered 3532, entry 3613, engaged 3614, chain undefined, hold undefined, states 1)
+    - director-complete-1-natural-sweep-fire0: director-complete-1-natural-sweep-fire0 did not execute LAST-SECTOR ROW CLOCK -> DRAINED BOSS ENTRY -> FIGHT -> CHAIN -> HOLD (entered 2913, entry 2981, engaged 2982, chain undefined, hold undefined, states 1)
+    - director-complete-2-natural-sweep-fire0: director-complete-2-natural-sweep-fire0 did not execute LAST-SECTOR ROW CLOCK -> DRAINED BOSS ENTRY -> FIGHT -> CHAIN -> HOLD (entered 2747, entry 2776, engaged 2777, chain undefined, hold undefined, states 1)
+    - engine-atr-a5-0-immediate: engine-atr-a5-0-immediate did not save all 150 consecutive Atari800 screenshots
+    - engine-atr-a5-0-delayed: engine-atr-a5-0-delayed did not save all 150 consecutive Atari800 screenshots
+    - engine-atr-a5-1-immediate: engine-atr-a5-1-immediate did not save all 150 consecutive Atari800 screenshots
+    - engine-atr-a5-1-delayed: engine-atr-a5-1-delayed did not save all 150 consecutive Atari800 screenshots
+    - engine-atr-a5-2-immediate: engine-atr-a5-2-immediate did not save all 150 consecutive Atari800 screenshots
+    - engine-atr-a5-2-delayed: engine-atr-a5-2-delayed did not save all 150 consecutive Atari800 screenshots
+    - engine-atr-5a-0-immediate: engine-atr-5a-0-immediate did not save all 150 consecutive Atari800 screenshots
+    - engine-atr-5a-0-delayed: engine-atr-5a-0-delayed did not save all 150 consecutive Atari800 screenshots
+    - engine-atr-5a-1-immediate: engine-atr-5a-1-immediate did not save all 150 consecutive Atari800 screenshots
+    - engine-atr-5a-1-delayed: engine-atr-5a-1-delayed did not save all 150 consecutive Atari800 screenshots
+    - engine-atr-5a-2-immediate: engine-atr-5a-2-immediate did not save all 150 consecutive Atari800 screenshots
+    - engine-atr-5a-2-delayed: engine-atr-5a-2-delayed did not save all 150 consecutive Atari800 screenshots
+    - engine-restart-atr-a5: engine-restart-atr-a5 did not reach a second game after GAME OVER
+    - engine-restart-atr-a5: engine-restart-atr-a5 did not execute 150 frames of the restarted game
+    - aggregate/dli-order: DLI phase/order violations observed: 92
+    - aggregate/booster-rotation: Atari800 granted booster cycle was 3→3→4→5→3→4→4→5→3→4→3→4→3→4→3→4→0→5→3→4→3→4→5→0→3→4, expected a rotation of Rapid/Spread/Shield with no capsule repeating the previous one
+Reconciliation: FAIL

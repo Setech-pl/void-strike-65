@@ -1,0 +1,50 @@
+✔ M3-H encodes Raider kind in bit 5 and holds in existing motion bytes, without changing level-1 flags (5.944875ms)
+✔ M3-H validator rejects incompatible kinds and invalid or unrepresentable holds (2.552417ms)
+✔ T1: the validator rejects every §5 case and warns on a cap above the subtype table (4.408625ms)
+✔ the authored level 1 compiles clean and reads back as the level it says (0.990542ms)
+✔ T2: build/level-1.bin is 16 sectors with the LevelDef and island pages where the plan puts them (0.998208ms)
+✔ T2: the geometry page uses a 960-row coordinate and carries today's two module sequences (0.996667ms)
+✔ the pages the plan marks unchanged are byte-identical to the image that shipped before (0.955792ms)
+✔ levels:check runs the validator alone and the build compiles the authored file (0.8275ms)
+✔ step 2: the Director's schedule is the level image, and the geometry page still waits (1.337458ms)
+✔ T12: level-02.json compiles and differs from level 1 in sector count, waves and masks (212.97925ms)
+✔ step 3: --level=2 builds level 2 into build/level-2-s0/ and never touches dist/ (22382.699583ms)
+✔ step 3: the Director reads level 2 - six sectors, the capital by authored row 1,536, four Lights in a swarm sector, complete after sector 6 (7314.381208ms)
+✔ step 3: --level=2:sector=M enters each of level 2's six sectors (91058.4245ms)
+✔ step 3: plan §7's npm script level:play is the debug route (0.465125ms)
+✔ M3 tempo variants preserve all groups, mirrored entries, Heavy definitions and four-slot ceiling (14409.761667ms)
+✔ M3 EASY is slower than NORMAL laterally; NORMAL halves wide sweeps and uses single-line vertical motion (0.650292ms)
+✔ M3 compiler packs a named path into the existing payload, deduplicating identical records (14645.72175ms)
+✔ M3 compiler rejects malformed, Heavy, boss, looping-archetype and nonterminating paths (2.738209ms)
+✔ M3 straight policy descends once per tick and retires without kill credit or fragments (242.335792ms)
+✔ M3 finite segments advance on exact durations and a terminal flag retires immediately (104.303833ms)
+✔ M3 invalid/disarmed home is never executed and shared wave publication still works (57.684458ms)
+﹣ M3 no-path Wingman and Interceptor retain main positions, cadence and loop decisions (0.073666ms) # SKIP
+✔ M3 no-path and orphan escort use resident movement, no inherited segment (108.493541ms)
+✔ M3 boss escort skips poisoned path state and orphan falls back without home reads (117.2425ms)
+✔ M3 mirror alternates successful admissions, including a recycled slot after refusal (19.342375ms)
+✔ M3 tracking quantizes and clamps player column without overshoot (260.348709ms)
+✔ M3 vocabulary has repeatable shallow, snake and arc landmarks (343.436375ms)
+✔ M3 three-Light simultaneous segment transitions stay independent and bounded (134.119583ms)
+✔ M3 upward return retires before negative wrap; side exit clamps before terminal retirement (145.031375ms)
+✔ M3 relative loop stays within its record, progresses vertically and eventually retires (172.004167ms)
+✔ M3 compiler refuses zero-progress loops, invalid relative ends, cadence2 and ninth distinct path (4.056791ms)
+✔ M3 contextual fire bits preserve no-path and escort loops and reject invalid modes (2.193208ms)
+✔ M3 one volley opportunity emits only ready members using one token, without backlog (195.194958ms)
+✔ M3 token-denied volley does not retry until the next opening or advance reloads (231.657667ms)
+✔ M3 column is inclusive one cell and combined volley filters its snapshot (424.253167ms)
+✔ M3 segment hold-fire and late/reused admissions cannot join a prepared volley (315.732625ms)
+✔ M3 invalid L2/phase returns ordinary fallback without reading poisoned L2 or content (328.852042ms)
+✔ M3 invalid checked pair falls back to ordinary per-member token/fire policy (21.202042ms)
+✔ M3 volley guard overhead is measured against its identical direct helper (138.768208ms)
+✔ M3 denser pilot spans both sides and hands off at the next available row tick (18875.255084ms)
+✔ M3 mirrored centre fan descends from opposite sides before crossing (62.611125ms)
+✔ M3 four admitted path Lights share one glyph pair and one volley token (123.182584ms)
+ℹ tests 42
+ℹ suites 0
+ℹ pass 41
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 1
+ℹ todo 0
+ℹ duration_ms 135064.540042

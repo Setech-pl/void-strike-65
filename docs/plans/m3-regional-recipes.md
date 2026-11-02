@@ -52,3 +52,10 @@ frame scan, resident fighter policy relocation, new reserve use or mixed-wave
 volley semantics were added. [Pricing and alternatives](../diagnostics/m3/final/tuning/report.md).
 B-shot, independent hues, Bomber skins/shot re-skin, independent per-wave HP
 and later campaign files remain deferred to their explicitly scoped tasks.
+
+M3 post-smoke tempo candidate (2026-11-01): level2 keeps these compositions,
+counts and152-HPOS coverage but NORMAL now uses half-rate sweeps, quarter-rate
+calm tracking and dy1. EASY/HARD are authored build-time overrides; HARD keeps
+the preceding motion. Opening/pilot duration grows with slower lifetimes so
+no final group is cut. This is awaiting owner smoke, not accepted regional
+tempo. [Measurements and ATR rebuild](../diagnostics/m3-tune/report.md).

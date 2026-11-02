@@ -1,0 +1,104 @@
+[
+  {
+    "claimedSession": "m3-four-easy",
+    "discarded": true,
+    "reason": "Not the delivered diagnostic volley ATR: a concurrent level-two test rebuilt the shared route directory; no four-shot-rise subject. Not accepted timing/volley evidence.",
+    "actualArtifact": {
+      "void-strike-65-boot.bin": {
+        "path": "build/level-2-s0/void-strike-65-boot.bin",
+        "bytes": 27392,
+        "sha256": "3b896a0c4e85caf568a1d1666cb5b1531ed4eb6a8fa77db308a13f699ca88a5e"
+      },
+      "void-strike-65.atr": {
+        "path": "build/level-2-s0/void-strike-65.atr",
+        "bytes": 133136,
+        "sha256": "31fc6e5d4b0e56e4a950d59b7c14432874118ce632b4447ad8af76a572ff5b47"
+      },
+      "void-strike-65-manifest.json": {
+        "path": "build/level-2-s0/void-strike-65-manifest.json",
+        "bytes": 81290,
+        "sha256": "8c8cb9e509b751cab137082c85ba8c7fecf5722064e0e1e17b1b3411847fc9bc"
+      }
+    },
+    "acceptance": {
+      "measured_frames": 2200,
+      "maximum_wall_cycles": 31386,
+      "wall_ceiling": 32568,
+      "physical_headroom": 4182,
+      "missed_frames": 0,
+      "extra_vbi_boundaries": 0,
+      "physical_overruns": 0,
+      "deadline_overruns": 0,
+      "dli_ordering_errors": 0,
+      "passed": true
+    }
+  },
+  {
+    "claimedSession": "m3-four-normal",
+    "discarded": true,
+    "reason": "Not the delivered diagnostic volley ATR: a concurrent level-two test rebuilt the shared route directory; no four-shot-rise subject. Not accepted timing/volley evidence.",
+    "actualArtifact": {
+      "void-strike-65-boot.bin": {
+        "path": "build/level-2-s0/void-strike-65-boot.bin",
+        "bytes": 27392,
+        "sha256": "3b896a0c4e85caf568a1d1666cb5b1531ed4eb6a8fa77db308a13f699ca88a5e"
+      },
+      "void-strike-65.atr": {
+        "path": "build/level-2-s0/void-strike-65.atr",
+        "bytes": 133136,
+        "sha256": "31fc6e5d4b0e56e4a950d59b7c14432874118ce632b4447ad8af76a572ff5b47"
+      },
+      "void-strike-65-manifest.json": {
+        "path": "build/level-2-s0/void-strike-65-manifest.json",
+        "bytes": 81290,
+        "sha256": "8c8cb9e509b751cab137082c85ba8c7fecf5722064e0e1e17b1b3411847fc9bc"
+      }
+    },
+    "acceptance": {
+      "measured_frames": 2200,
+      "maximum_wall_cycles": 31412,
+      "wall_ceiling": 32568,
+      "physical_headroom": 4156,
+      "missed_frames": 0,
+      "extra_vbi_boundaries": 0,
+      "physical_overruns": 0,
+      "deadline_overruns": 0,
+      "dli_ordering_errors": 0,
+      "passed": true
+    }
+  },
+  {
+    "claimedSession": "m3-four-hard",
+    "discarded": true,
+    "reason": "Not the delivered diagnostic volley ATR: a concurrent level-two test rebuilt the shared route directory; no four-shot-rise subject. Not accepted timing/volley evidence.",
+    "actualArtifact": {
+      "void-strike-65-boot.bin": {
+        "path": "build/level-2-s0/void-strike-65-boot.bin",
+        "bytes": 27392,
+        "sha256": "3b896a0c4e85caf568a1d1666cb5b1531ed4eb6a8fa77db308a13f699ca88a5e"
+      },
+      "void-strike-65.atr": {
+        "path": "build/level-2-s0/void-strike-65.atr",
+        "bytes": 133136,
+        "sha256": "31fc6e5d4b0e56e4a950d59b7c14432874118ce632b4447ad8af76a572ff5b47"
+      },
+      "void-strike-65-manifest.json": {
+        "path": "build/level-2-s0/void-strike-65-manifest.json",
+        "bytes": 81290,
+        "sha256": "8c8cb9e509b751cab137082c85ba8c7fecf5722064e0e1e17b1b3411847fc9bc"
+      }
+    },
+    "acceptance": {
+      "measured_frames": 2200,
+      "maximum_wall_cycles": 31416,
+      "wall_ceiling": 32568,
+      "physical_headroom": 4152,
+      "missed_frames": 0,
+      "extra_vbi_boundaries": 0,
+      "physical_overruns": 0,
+      "deadline_overruns": 0,
+      "dli_ordering_errors": 0,
+      "passed": true
+    }
+  }
+]

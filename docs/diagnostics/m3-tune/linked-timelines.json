@@ -1,0 +1,599 @@
+[
+  {
+    "tempo": "easy",
+    "sector": 1,
+    "difficulty": 0,
+    "quickKills": false,
+    "admitted": 24,
+    "completionFrame": 2219,
+    "handoffGaps": [
+      2,
+      2
+    ],
+    "visibleGaps": [
+      25,
+      105,
+      53
+    ],
+    "visibleWidth": 152
+  },
+  {
+    "tempo": "easy",
+    "sector": 1,
+    "difficulty": 0,
+    "quickKills": true,
+    "admitted": 24,
+    "completionFrame": 364,
+    "handoffGaps": [
+      3,
+      3
+    ],
+    "visibleGaps": [],
+    "visibleWidth": 0
+  },
+  {
+    "tempo": "easy",
+    "sector": 1,
+    "difficulty": 1,
+    "quickKills": false,
+    "admitted": 24,
+    "completionFrame": 2221,
+    "handoffGaps": [
+      3,
+      3
+    ],
+    "visibleGaps": [
+      26,
+      106,
+      53
+    ],
+    "visibleWidth": 152
+  },
+  {
+    "tempo": "easy",
+    "sector": 1,
+    "difficulty": 1,
+    "quickKills": true,
+    "admitted": 24,
+    "completionFrame": 364,
+    "handoffGaps": [
+      3,
+      3
+    ],
+    "visibleGaps": [],
+    "visibleWidth": 0
+  },
+  {
+    "tempo": "easy",
+    "sector": 1,
+    "difficulty": 2,
+    "quickKills": false,
+    "admitted": 24,
+    "completionFrame": 2220,
+    "handoffGaps": [
+      3,
+      2
+    ],
+    "visibleGaps": [
+      26,
+      105,
+      53
+    ],
+    "visibleWidth": 152
+  },
+  {
+    "tempo": "easy",
+    "sector": 1,
+    "difficulty": 2,
+    "quickKills": true,
+    "admitted": 24,
+    "completionFrame": 363,
+    "handoffGaps": [
+      2,
+      3
+    ],
+    "visibleGaps": [],
+    "visibleWidth": 0
+  },
+  {
+    "tempo": "easy",
+    "sector": 4,
+    "difficulty": 0,
+    "quickKills": false,
+    "admitted": 32,
+    "completionFrame": 2900,
+    "handoffGaps": [
+      2,
+      3,
+      4
+    ],
+    "visibleGaps": [
+      105,
+      53,
+      26,
+      27
+    ],
+    "visibleWidth": 152
+  },
+  {
+    "tempo": "easy",
+    "sector": 4,
+    "difficulty": 0,
+    "quickKills": true,
+    "admitted": 32,
+    "completionFrame": 487,
+    "handoffGaps": [
+      3,
+      3,
+      4
+    ],
+    "visibleGaps": [],
+    "visibleWidth": 0
+  },
+  {
+    "tempo": "easy",
+    "sector": 4,
+    "difficulty": 1,
+    "quickKills": false,
+    "admitted": 32,
+    "completionFrame": 2901,
+    "handoffGaps": [
+      3,
+      4,
+      3
+    ],
+    "visibleGaps": [
+      106,
+      53,
+      27,
+      26
+    ],
+    "visibleWidth": 152
+  },
+  {
+    "tempo": "easy",
+    "sector": 4,
+    "difficulty": 1,
+    "quickKills": true,
+    "admitted": 32,
+    "completionFrame": 486,
+    "handoffGaps": [
+      3,
+      3,
+      3
+    ],
+    "visibleGaps": [],
+    "visibleWidth": 0
+  },
+  {
+    "tempo": "easy",
+    "sector": 4,
+    "difficulty": 2,
+    "quickKills": false,
+    "admitted": 32,
+    "completionFrame": 2898,
+    "handoffGaps": [
+      3,
+      2,
+      2
+    ],
+    "visibleGaps": [
+      106,
+      53,
+      25,
+      25
+    ],
+    "visibleWidth": 152
+  },
+  {
+    "tempo": "easy",
+    "sector": 4,
+    "difficulty": 2,
+    "quickKills": true,
+    "admitted": 32,
+    "completionFrame": 485,
+    "handoffGaps": [
+      2,
+      3,
+      3
+    ],
+    "visibleGaps": [],
+    "visibleWidth": 0
+  },
+  {
+    "tempo": "normal",
+    "sector": 1,
+    "difficulty": 0,
+    "quickKills": false,
+    "admitted": 24,
+    "completionFrame": 1629,
+    "handoffGaps": [
+      3,
+      3
+    ],
+    "visibleGaps": [
+      26,
+      66,
+      13
+    ],
+    "visibleWidth": 152
+  },
+  {
+    "tempo": "normal",
+    "sector": 1,
+    "difficulty": 0,
+    "quickKills": true,
+    "admitted": 24,
+    "completionFrame": 364,
+    "handoffGaps": [
+      3,
+      3
+    ],
+    "visibleGaps": [],
+    "visibleWidth": 0
+  },
+  {
+    "tempo": "normal",
+    "sector": 1,
+    "difficulty": 1,
+    "quickKills": false,
+    "admitted": 24,
+    "completionFrame": 1628,
+    "handoffGaps": [
+      3,
+      2
+    ],
+    "visibleGaps": [
+      26,
+      65,
+      13
+    ],
+    "visibleWidth": 152
+  },
+  {
+    "tempo": "normal",
+    "sector": 1,
+    "difficulty": 1,
+    "quickKills": true,
+    "admitted": 24,
+    "completionFrame": 364,
+    "handoffGaps": [
+      3,
+      3
+    ],
+    "visibleGaps": [],
+    "visibleWidth": 0
+  },
+  {
+    "tempo": "normal",
+    "sector": 1,
+    "difficulty": 2,
+    "quickKills": false,
+    "admitted": 24,
+    "completionFrame": 1628,
+    "handoffGaps": [
+      3,
+      2
+    ],
+    "visibleGaps": [
+      26,
+      65,
+      13
+    ],
+    "visibleWidth": 152
+  },
+  {
+    "tempo": "normal",
+    "sector": 1,
+    "difficulty": 2,
+    "quickKills": true,
+    "admitted": 24,
+    "completionFrame": 363,
+    "handoffGaps": [
+      2,
+      3
+    ],
+    "visibleGaps": [],
+    "visibleWidth": 0
+  },
+  {
+    "tempo": "normal",
+    "sector": 4,
+    "difficulty": 0,
+    "quickKills": false,
+    "admitted": 32,
+    "completionFrame": 2069,
+    "handoffGaps": [
+      3,
+      3,
+      4
+    ],
+    "visibleGaps": [
+      66,
+      13,
+      26,
+      27
+    ],
+    "visibleWidth": 152
+  },
+  {
+    "tempo": "normal",
+    "sector": 4,
+    "difficulty": 0,
+    "quickKills": true,
+    "admitted": 32,
+    "completionFrame": 487,
+    "handoffGaps": [
+      3,
+      3,
+      4
+    ],
+    "visibleGaps": [],
+    "visibleWidth": 0
+  },
+  {
+    "tempo": "normal",
+    "sector": 4,
+    "difficulty": 1,
+    "quickKills": false,
+    "admitted": 32,
+    "completionFrame": 2068,
+    "handoffGaps": [
+      3,
+      2,
+      4
+    ],
+    "visibleGaps": [
+      66,
+      13,
+      25,
+      27
+    ],
+    "visibleWidth": 152
+  },
+  {
+    "tempo": "normal",
+    "sector": 4,
+    "difficulty": 1,
+    "quickKills": true,
+    "admitted": 32,
+    "completionFrame": 486,
+    "handoffGaps": [
+      3,
+      3,
+      3
+    ],
+    "visibleGaps": [],
+    "visibleWidth": 0
+  },
+  {
+    "tempo": "normal",
+    "sector": 4,
+    "difficulty": 2,
+    "quickKills": false,
+    "admitted": 32,
+    "completionFrame": 2066,
+    "handoffGaps": [
+      3,
+      2,
+      2
+    ],
+    "visibleGaps": [
+      66,
+      13,
+      25,
+      25
+    ],
+    "visibleWidth": 152
+  },
+  {
+    "tempo": "normal",
+    "sector": 4,
+    "difficulty": 2,
+    "quickKills": true,
+    "admitted": 32,
+    "completionFrame": 485,
+    "handoffGaps": [
+      2,
+      3,
+      3
+    ],
+    "visibleGaps": [],
+    "visibleWidth": 0
+  },
+  {
+    "tempo": "hard",
+    "sector": 1,
+    "difficulty": 0,
+    "quickKills": false,
+    "admitted": 24,
+    "completionFrame": 892,
+    "handoffGaps": [
+      2,
+      3
+    ],
+    "visibleGaps": [
+      13,
+      34
+    ],
+    "visibleWidth": 152
+  },
+  {
+    "tempo": "hard",
+    "sector": 1,
+    "difficulty": 0,
+    "quickKills": true,
+    "admitted": 24,
+    "completionFrame": 364,
+    "handoffGaps": [
+      3,
+      3
+    ],
+    "visibleGaps": [],
+    "visibleWidth": 0
+  },
+  {
+    "tempo": "hard",
+    "sector": 1,
+    "difficulty": 1,
+    "quickKills": false,
+    "admitted": 24,
+    "completionFrame": 891,
+    "handoffGaps": [
+      2,
+      2
+    ],
+    "visibleGaps": [
+      13,
+      33
+    ],
+    "visibleWidth": 152
+  },
+  {
+    "tempo": "hard",
+    "sector": 1,
+    "difficulty": 1,
+    "quickKills": true,
+    "admitted": 24,
+    "completionFrame": 364,
+    "handoffGaps": [
+      3,
+      3
+    ],
+    "visibleGaps": [],
+    "visibleWidth": 0
+  },
+  {
+    "tempo": "hard",
+    "sector": 1,
+    "difficulty": 2,
+    "quickKills": false,
+    "admitted": 24,
+    "completionFrame": 892,
+    "handoffGaps": [
+      3,
+      2
+    ],
+    "visibleGaps": [
+      14,
+      33
+    ],
+    "visibleWidth": 152
+  },
+  {
+    "tempo": "hard",
+    "sector": 1,
+    "difficulty": 2,
+    "quickKills": true,
+    "admitted": 24,
+    "completionFrame": 363,
+    "handoffGaps": [
+      2,
+      3
+    ],
+    "visibleGaps": [],
+    "visibleWidth": 0
+  },
+  {
+    "tempo": "hard",
+    "sector": 4,
+    "difficulty": 0,
+    "quickKills": false,
+    "admitted": 32,
+    "completionFrame": 1163,
+    "handoffGaps": [
+      2,
+      3,
+      3
+    ],
+    "visibleGaps": [
+      33,
+      14,
+      14
+    ],
+    "visibleWidth": 152
+  },
+  {
+    "tempo": "hard",
+    "sector": 4,
+    "difficulty": 0,
+    "quickKills": true,
+    "admitted": 32,
+    "completionFrame": 487,
+    "handoffGaps": [
+      3,
+      3,
+      4
+    ],
+    "visibleGaps": [],
+    "visibleWidth": 0
+  },
+  {
+    "tempo": "hard",
+    "sector": 4,
+    "difficulty": 1,
+    "quickKills": false,
+    "admitted": 32,
+    "completionFrame": 1162,
+    "handoffGaps": [
+      2,
+      2,
+      3
+    ],
+    "visibleGaps": [
+      33,
+      13,
+      14
+    ],
+    "visibleWidth": 152
+  },
+  {
+    "tempo": "hard",
+    "sector": 4,
+    "difficulty": 1,
+    "quickKills": true,
+    "admitted": 32,
+    "completionFrame": 486,
+    "handoffGaps": [
+      3,
+      3,
+      3
+    ],
+    "visibleGaps": [],
+    "visibleWidth": 0
+  },
+  {
+    "tempo": "hard",
+    "sector": 4,
+    "difficulty": 2,
+    "quickKills": false,
+    "admitted": 32,
+    "completionFrame": 1162,
+    "handoffGaps": [
+      3,
+      2,
+      2
+    ],
+    "visibleGaps": [
+      34,
+      13,
+      13
+    ],
+    "visibleWidth": 152
+  },
+  {
+    "tempo": "hard",
+    "sector": 4,
+    "difficulty": 2,
+    "quickKills": true,
+    "admitted": 32,
+    "completionFrame": 485,
+    "handoffGaps": [
+      2,
+      3,
+      3
+    ],
+    "visibleGaps": [],
+    "visibleWidth": 0
+  }
+]

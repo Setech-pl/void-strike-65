@@ -1,0 +1,284 @@
+{
+  "normal": {
+    "wide-west": [
+      {
+        "dy": 1,
+        "frames": 24,
+        "flags": 0
+      },
+      {
+        "dy": 1,
+        "frames": 64,
+        "flags": 21
+      },
+      {
+        "dy": 1,
+        "frames": 64,
+        "flags": 25
+      }
+    ],
+    "wide-east": [
+      {
+        "dy": 1,
+        "frames": 24,
+        "flags": 0
+      },
+      {
+        "dy": 1,
+        "frames": 64,
+        "flags": 25
+      },
+      {
+        "dy": 1,
+        "frames": 64,
+        "flags": 21
+      }
+    ],
+    "wide-cross": [
+      {
+        "dy": 0,
+        "frames": 40,
+        "flags": 5
+      },
+      {
+        "dy": 1,
+        "frames": 24,
+        "flags": 0
+      },
+      {
+        "dy": 1,
+        "frames": 76,
+        "flags": 25
+      }
+    ],
+    "wide-track": [
+      {
+        "dy": 1,
+        "frames": 24,
+        "flags": 0
+      },
+      {
+        "dy": 1,
+        "frames": 80,
+        "flags": 31
+      }
+    ],
+    "wide-return": [
+      {
+        "dy": 1,
+        "frames": 32,
+        "flags": 0
+      },
+      {
+        "dy": 1,
+        "frames": 64,
+        "flags": 5
+      },
+      {
+        "dy": -1,
+        "frames": 32,
+        "flags": 9
+      }
+    ],
+    "tracking-dive": [
+      {
+        "dy": 1,
+        "frames": 32,
+        "flags": 0
+      },
+      {
+        "dy": 1,
+        "frames": 96,
+        "flags": 31
+      }
+    ]
+  },
+  "easy": {
+    "wide-west": [
+      {
+        "dy": 1,
+        "frames": 24,
+        "flags": 0
+      },
+      {
+        "dy": 0,
+        "frames": 128,
+        "flags": 23
+      },
+      {
+        "dy": 1,
+        "frames": 128,
+        "flags": 27
+      }
+    ],
+    "wide-east": [
+      {
+        "dy": 1,
+        "frames": 24,
+        "flags": 0
+      },
+      {
+        "dy": 0,
+        "frames": 128,
+        "flags": 27
+      },
+      {
+        "dy": 1,
+        "frames": 128,
+        "flags": 23
+      }
+    ],
+    "wide-cross": [
+      {
+        "dy": 0,
+        "frames": 80,
+        "flags": 7
+      },
+      {
+        "dy": 1,
+        "frames": 24,
+        "flags": 0
+      },
+      {
+        "dy": 1,
+        "frames": 152,
+        "flags": 27
+      }
+    ],
+    "wide-track": [
+      {
+        "dy": 1,
+        "frames": 24,
+        "flags": 0
+      },
+      {
+        "dy": 0,
+        "frames": 120,
+        "flags": 31
+      }
+    ],
+    "wide-return": [
+      {
+        "dy": 1,
+        "frames": 32,
+        "flags": 0
+      },
+      {
+        "dy": 1,
+        "frames": 128,
+        "flags": 7
+      },
+      {
+        "dy": -1,
+        "frames": 64,
+        "flags": 11
+      }
+    ],
+    "tracking-dive": [
+      {
+        "dy": 1,
+        "frames": 32,
+        "flags": 0
+      },
+      {
+        "dy": 0,
+        "frames": 128,
+        "flags": 31
+      }
+    ]
+  },
+  "hard": {
+    "wide-west": [
+      {
+        "dy": 2,
+        "frames": 12,
+        "flags": 0
+      },
+      {
+        "dy": 2,
+        "frames": 32,
+        "flags": 20
+      },
+      {
+        "dy": 2,
+        "frames": 32,
+        "flags": 24
+      }
+    ],
+    "wide-east": [
+      {
+        "dy": 2,
+        "frames": 12,
+        "flags": 0
+      },
+      {
+        "dy": 2,
+        "frames": 32,
+        "flags": 24
+      },
+      {
+        "dy": 2,
+        "frames": 32,
+        "flags": 20
+      }
+    ],
+    "wide-cross": [
+      {
+        "dy": 0,
+        "frames": 20,
+        "flags": 4
+      },
+      {
+        "dy": 2,
+        "frames": 8,
+        "flags": 0
+      },
+      {
+        "dy": 2,
+        "frames": 38,
+        "flags": 24
+      }
+    ],
+    "wide-track": [
+      {
+        "dy": 2,
+        "frames": 12,
+        "flags": 0
+      },
+      {
+        "dy": 1,
+        "frames": 40,
+        "flags": 29
+      }
+    ],
+    "wide-return": [
+      {
+        "dy": 2,
+        "frames": 16,
+        "flags": 0
+      },
+      {
+        "dy": 1,
+        "frames": 32,
+        "flags": 4
+      },
+      {
+        "dy": -1,
+        "frames": 16,
+        "flags": 8
+      }
+    ],
+    "tracking-dive": [
+      {
+        "dy": 1,
+        "frames": 32,
+        "flags": 0
+      },
+      {
+        "dy": 1,
+        "frames": 64,
+        "flags": 29
+      }
+    ]
+  }
+}

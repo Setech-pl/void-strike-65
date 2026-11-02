@@ -1,0 +1,10 @@
+m3-pilot-normal: 3200 frames, max 31281 wall cycles
+  PAL timing audit  m3-pilot-normal                               frames 3200  misses   0  preWait  20054  margin   5255  maxWall  31281  >target    0  >hard    0  shifted    0  [unreliable: missed 0 extraVBI 0 DLIerr 0]  PASS
+PAL timing audit: line-238 fence, distinct miss events (missed_frames / extra_vbi_boundaries cannot see an overrun: they are derived from Atari800_nframes, and an overrunning frame simply waits for the same VCOUNT one frame later).
+PAL timing audit: 0 distinct miss events across 1 replays (PASS)
+Boss-entry debris clause: subject 0 boss entries, 0 with debris live
+Boss-entry HUD clause: subject 0 boss entries, 0 with a HUD cell changed
+Window tail write clause: 1 replays watched, subject 0 lance run reads, 0 lance-state writes, 0 foreign writers
+Slot F write clause: 1 replays watched, subject 0 block reads, 0 field-state writes, 0 foreign writers
+Behavioural clauses: 1 session(s) ran to completion
+Focused report: build/m3-tempo-normal-level-2-s3/runtime-wall-trace/m3-pilot-normal-focused-run.json

@@ -675,3 +675,38 @@ at gameplay Y24; actual linked visible gaps can reach34 frames, while state
 clear/arm gaps are2–3. Do not substitute one measure for the other. Bounded
 terminal overlap was priced and deferred: its straightforward scan-free helper
 alone adds89 content B (32 over the available home), before integration.
+
+### M3 owner-smoke tempo variants (2026-11-01 candidate)
+
+Level2's source now authors NORMAL half-rate wide sweeps, quarter-rate calm
+tracking and single-line vertical motion. `assets/levels/m3-tempo.json` owns
+EASY/HARD overrides; `--level=2[:sector=N] --m3-tempo=easy|normal|hard` selects
+one at build time without adding guest code or state. Each variant owns its
+`build/m3-tempo-<tempo>-level-2-sN/` directory. Choose the matching difficulty
+in OPTIONS: the shared96-B payload is not switched by the menu.
+`node scripts/build-m3-tune-play.mjs` rebuilds the owner-smoke set. Slower
+opening/pilot variants lengthen only those Light sectors to keep all groups
+before expiry. Counts, mirrored entries and clear-lock chains remain intact.
+See [speed measurements and limitations](diagnostics/m3-tune/report.md).
+
+### M3 varied endings (2026-11-02 candidate)
+
+Owner smoke rejected463cdbb's repeated wide zigzags. The repaired level2 data
+restores597e4e5's body segments byte-for-byte on all three authored tempos,
+changing only reachable terminal and unreachable safety records. West/east
+leave diagonally toward opposite sides; cross/track arc upward; return keeps
+its upward bend to a side; tracking-dive fans diagonally down. Tracking paths
+now mirror their exits; their body ignores the mirror bit. No new loop.
+
+The named chain again uses four families: snake, crossing arc, tracking and
+dive-return, with no adjacent repeated shape. Counts24/32 and minimum row0,
+spacing16 remain. NORMAL bounds896/1280, EASY1280/1792, HARD480/768 restore
+the accepted tempo data. No Heavy, HP or per-tick movement-policy change.
+
+A successful path admission subtracts4 HPOS per physical slot index, wrapping
+below48 by16. This keeps four distinct starts inside48..200 with0 new state
+and no per-frame scan. Measured addition43 content B, at most59 instruction
+cycles/admission, one admission/frame. No-path/escort/boss starts are unchanged.
+State handoffs remain2–4 frames; visible gaps13–106 remain at hidden entries
+and slot refill. Intentional tracking/crossings may still share X; no claim
+of perpetually separated members. [Proof and smoke handoff](diagnostics/m3-endings/report.md).

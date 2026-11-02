@@ -1,0 +1,531 @@
+{
+  "method": "MEASURED normal gated links; baseline is identical endings data before admission spread (content raw proof); sizes are occupied bytes, not padded binary lengths",
+  "baseline": {
+    "content": {
+      "address": 4480,
+      "endExclusive": 6400,
+      "capacityBytes": 1920,
+      "usedBytes": 1863,
+      "runIndex": 12,
+      "validAddress": 34483,
+      "phase": "checked fighter/capital content; disarmed before boss"
+    },
+    "l2": {
+      "address": 6400,
+      "endExclusive": 8192,
+      "capacityBytes": 1792,
+      "usedBytes": 1457,
+      "freeBytes": 335,
+      "postOneReserveBytes": 256,
+      "runIndex": 11,
+      "phase": "fighter/capital; overwritten by boss"
+    },
+    "window": {
+      "name": "hybrid-window",
+      "file": "encounter-director-code-hybrid-window.bin",
+      "runAddress": 44544,
+      "transportAddress": 44544,
+      "endExclusive": 46981,
+      "bytes": 2437,
+      "packedBytes": 1987,
+      "externalChunk": {
+        "startSector": 175,
+        "sectors": 16,
+        "transportBytes": 2048,
+        "crc16": 37921
+      }
+    },
+    "transport": {
+      "format": "DFMC-v1 multi-chunk",
+      "initialBootBytes": 12928,
+      "initialBootContentBytes": 12865,
+      "initialBootEnvelopeBytes": 63,
+      "initialBootSectors": 101,
+      "extensionBytes": 14464,
+      "extensionSectors": 113,
+      "totalTransportBytes": 27392,
+      "totalTransportSectors": 214,
+      "remainingAtrSectors": 506,
+      "remainingAtrTransportBytes": 64768,
+      "architecturalAdditionalCapacityBytes": 0,
+      "maximumExtensionChunkBytes": 6400,
+      "maximumChunkCount": 11,
+      "maximumNewSimultaneousResidencyBytes": 7993,
+      "remainingSafeResidencyBytes": 1926,
+      "bootOnlyStaging": {
+        "address": 33024,
+        "bytes": 6484
+      },
+      "loaderResidentBytes": 0,
+      "stage2": {
+        "runAddress": 8641,
+        "loadAddress": 31232,
+        "bytes": 1446,
+        "overwrittenByResidentSuffix": true
+      },
+      "bootSplash": {
+        "runAddress": 1280,
+        "loadAddress": 32678,
+        "transportAddress": 20541,
+        "bytes": 512,
+        "codeBytes": 510,
+        "immutableAddress": 1301,
+        "immutableBytes": 491,
+        "sha256": "720e1bce3596e8628aba589490381e41907c00b8b50c04f39a3965df57436073",
+        "source": "assets/audio/boot-splash.json",
+        "sourceSha256": "a6895ae5251009719ae6cdee6403abb9d83c128e50bc095108e1ebb4dfba11a3",
+        "holdFrames": 250,
+        "fadeStartFrame": 176,
+        "segments": [
+          {
+            "type": "SILENCE",
+            "frames": 5
+          },
+          {
+            "type": "LEADER",
+            "frames": 60
+          },
+          {
+            "type": "DATA",
+            "frames": 55
+          },
+          {
+            "type": "SILENCE",
+            "frames": 10
+          },
+          {
+            "type": "DATA_LOW",
+            "frames": 50
+          },
+          {
+            "type": "SILENCE",
+            "frames": 10
+          },
+          {
+            "type": "DATA",
+            "frames": 60
+          }
+        ]
+      },
+      "manifest": {
+        "address": 9897,
+        "bytes": 190,
+        "crc16": 20267,
+        "parsed": {
+          "version": 1,
+          "totalOccupiedSectors": 214,
+          "manifestBytes": 190,
+          "crc16": 20267,
+          "records": [
+            {
+              "startSector": 102,
+              "sectorCount": 44,
+              "packedLength": 5592,
+              "rawLength": 6653,
+              "finalDestination": 24080,
+              "crc16": 48594,
+              "type": 1,
+              "stagingId": 1,
+              "destination": 33024
+            },
+            {
+              "startSector": 146,
+              "sectorCount": 10,
+              "packedLength": 1185,
+              "rawLength": 1185,
+              "finalDestination": 35968,
+              "crc16": 11617,
+              "type": 0,
+              "stagingId": 2,
+              "destination": 33024
+            },
+            {
+              "startSector": 156,
+              "sectorCount": 1,
+              "packedLength": 105,
+              "rawLength": 106,
+              "finalDestination": 32792,
+              "crc16": 3938,
+              "type": 1,
+              "stagingId": 2,
+              "destination": 33024
+            },
+            {
+              "startSector": 157,
+              "sectorCount": 4,
+              "packedLength": 444,
+              "rawLength": 498,
+              "finalDestination": 39744,
+              "crc16": 48295,
+              "type": 1,
+              "stagingId": 2,
+              "destination": 33024
+            },
+            {
+              "startSector": 161,
+              "sectorCount": 7,
+              "packedLength": 753,
+              "rawLength": 753,
+              "finalDestination": 30736,
+              "crc16": 17067,
+              "type": 0,
+              "stagingId": 2,
+              "destination": 33024
+            },
+            {
+              "startSector": 168,
+              "sectorCount": 1,
+              "packedLength": 23,
+              "rawLength": 21,
+              "finalDestination": 40286,
+              "crc16": 34598,
+              "type": 1,
+              "stagingId": 2,
+              "destination": 33024
+            },
+            {
+              "startSector": 169,
+              "sectorCount": 6,
+              "packedLength": 702,
+              "rawLength": 830,
+              "finalDestination": 31696,
+              "crc16": 44702,
+              "type": 1,
+              "stagingId": 2,
+              "destination": 33024
+            },
+            {
+              "startSector": 175,
+              "sectorCount": 16,
+              "packedLength": 1987,
+              "rawLength": 2437,
+              "finalDestination": 44544,
+              "crc16": 37921,
+              "type": 1,
+              "stagingId": 2,
+              "destination": 33024
+            },
+            {
+              "startSector": 191,
+              "sectorCount": 9,
+              "packedLength": 1036,
+              "rawLength": 1196,
+              "finalDestination": 13891,
+              "crc16": 17062,
+              "type": 1,
+              "stagingId": 2,
+              "destination": 33024
+            },
+            {
+              "startSector": 200,
+              "sectorCount": 12,
+              "packedLength": 1512,
+              "rawLength": 1512,
+              "finalDestination": 40960,
+              "crc16": 48894,
+              "type": 0,
+              "stagingId": 2,
+              "destination": 33024
+            },
+            {
+              "startSector": 212,
+              "sectorCount": 3,
+              "packedLength": 289,
+              "rawLength": 324,
+              "finalDestination": 40309,
+              "crc16": 42743,
+              "type": 1,
+              "stagingId": 2,
+              "destination": 33024
+            }
+          ]
+        }
+      }
+    }
+  },
+  "current": {
+    "content": {
+      "address": 4480,
+      "endExclusive": 6400,
+      "capacityBytes": 1920,
+      "usedBytes": 1906,
+      "runIndex": 12,
+      "validAddress": 34483,
+      "phase": "checked fighter/capital content; disarmed before boss"
+    },
+    "l2": {
+      "address": 6400,
+      "endExclusive": 8192,
+      "capacityBytes": 1792,
+      "usedBytes": 1457,
+      "freeBytes": 335,
+      "postOneReserveBytes": 256,
+      "runIndex": 11,
+      "phase": "fighter/capital; overwritten by boss"
+    },
+    "window": {
+      "name": "hybrid-window",
+      "file": "encounter-director-code-hybrid-window.bin",
+      "runAddress": 44544,
+      "transportAddress": 44544,
+      "endExclusive": 46981,
+      "bytes": 2437,
+      "packedBytes": 1987,
+      "externalChunk": {
+        "startSector": 175,
+        "sectors": 16,
+        "transportBytes": 2048,
+        "crc16": 1595
+      }
+    },
+    "transport": {
+      "format": "DFMC-v1 multi-chunk",
+      "initialBootBytes": 12928,
+      "initialBootContentBytes": 12865,
+      "initialBootEnvelopeBytes": 63,
+      "initialBootSectors": 101,
+      "extensionBytes": 14464,
+      "extensionSectors": 113,
+      "totalTransportBytes": 27392,
+      "totalTransportSectors": 214,
+      "remainingAtrSectors": 506,
+      "remainingAtrTransportBytes": 64768,
+      "architecturalAdditionalCapacityBytes": 0,
+      "maximumExtensionChunkBytes": 6400,
+      "maximumChunkCount": 11,
+      "maximumNewSimultaneousResidencyBytes": 7993,
+      "remainingSafeResidencyBytes": 1926,
+      "bootOnlyStaging": {
+        "address": 33024,
+        "bytes": 6484
+      },
+      "loaderResidentBytes": 0,
+      "stage2": {
+        "runAddress": 8641,
+        "loadAddress": 31232,
+        "bytes": 1446,
+        "overwrittenByResidentSuffix": true
+      },
+      "bootSplash": {
+        "runAddress": 1280,
+        "loadAddress": 32678,
+        "transportAddress": 20541,
+        "bytes": 512,
+        "codeBytes": 510,
+        "immutableAddress": 1301,
+        "immutableBytes": 491,
+        "sha256": "720e1bce3596e8628aba589490381e41907c00b8b50c04f39a3965df57436073",
+        "source": "assets/audio/boot-splash.json",
+        "sourceSha256": "a6895ae5251009719ae6cdee6403abb9d83c128e50bc095108e1ebb4dfba11a3",
+        "holdFrames": 250,
+        "fadeStartFrame": 176,
+        "segments": [
+          {
+            "type": "SILENCE",
+            "frames": 5
+          },
+          {
+            "type": "LEADER",
+            "frames": 60
+          },
+          {
+            "type": "DATA",
+            "frames": 55
+          },
+          {
+            "type": "SILENCE",
+            "frames": 10
+          },
+          {
+            "type": "DATA_LOW",
+            "frames": 50
+          },
+          {
+            "type": "SILENCE",
+            "frames": 10
+          },
+          {
+            "type": "DATA",
+            "frames": 60
+          }
+        ]
+      },
+      "manifest": {
+        "address": 9897,
+        "bytes": 190,
+        "crc16": 47288,
+        "parsed": {
+          "version": 1,
+          "totalOccupiedSectors": 214,
+          "manifestBytes": 190,
+          "crc16": 47288,
+          "records": [
+            {
+              "startSector": 102,
+              "sectorCount": 44,
+              "packedLength": 5592,
+              "rawLength": 6653,
+              "finalDestination": 24080,
+              "crc16": 48594,
+              "type": 1,
+              "stagingId": 1,
+              "destination": 33024
+            },
+            {
+              "startSector": 146,
+              "sectorCount": 10,
+              "packedLength": 1185,
+              "rawLength": 1185,
+              "finalDestination": 35968,
+              "crc16": 11617,
+              "type": 0,
+              "stagingId": 2,
+              "destination": 33024
+            },
+            {
+              "startSector": 156,
+              "sectorCount": 1,
+              "packedLength": 105,
+              "rawLength": 106,
+              "finalDestination": 32792,
+              "crc16": 3938,
+              "type": 1,
+              "stagingId": 2,
+              "destination": 33024
+            },
+            {
+              "startSector": 157,
+              "sectorCount": 4,
+              "packedLength": 444,
+              "rawLength": 498,
+              "finalDestination": 39744,
+              "crc16": 48295,
+              "type": 1,
+              "stagingId": 2,
+              "destination": 33024
+            },
+            {
+              "startSector": 161,
+              "sectorCount": 7,
+              "packedLength": 753,
+              "rawLength": 753,
+              "finalDestination": 30736,
+              "crc16": 17067,
+              "type": 0,
+              "stagingId": 2,
+              "destination": 33024
+            },
+            {
+              "startSector": 168,
+              "sectorCount": 1,
+              "packedLength": 23,
+              "rawLength": 21,
+              "finalDestination": 40286,
+              "crc16": 34598,
+              "type": 1,
+              "stagingId": 2,
+              "destination": 33024
+            },
+            {
+              "startSector": 169,
+              "sectorCount": 6,
+              "packedLength": 702,
+              "rawLength": 830,
+              "finalDestination": 31696,
+              "crc16": 44702,
+              "type": 1,
+              "stagingId": 2,
+              "destination": 33024
+            },
+            {
+              "startSector": 175,
+              "sectorCount": 16,
+              "packedLength": 1987,
+              "rawLength": 2437,
+              "finalDestination": 44544,
+              "crc16": 1595,
+              "type": 1,
+              "stagingId": 2,
+              "destination": 33024
+            },
+            {
+              "startSector": 191,
+              "sectorCount": 9,
+              "packedLength": 1036,
+              "rawLength": 1196,
+              "finalDestination": 13891,
+              "crc16": 17062,
+              "type": 1,
+              "stagingId": 2,
+              "destination": 33024
+            },
+            {
+              "startSector": 200,
+              "sectorCount": 12,
+              "packedLength": 1512,
+              "rawLength": 1512,
+              "finalDestination": 40960,
+              "crc16": 44216,
+              "type": 0,
+              "stagingId": 2,
+              "destination": 33024
+            },
+            {
+              "startSector": 212,
+              "sectorCount": 3,
+              "packedLength": 289,
+              "rawLength": 324,
+              "finalDestination": 40309,
+              "crc16": 42743,
+              "type": 1,
+              "stagingId": 2,
+              "destination": 33024
+            }
+          ]
+        }
+      }
+    }
+  },
+  "binaries": {
+    "content-module.bin": {
+      "baseline": {
+        "bytes": 1920,
+        "sha256": "15dec62361ce622097f46e277e5fca85fd1be25cf537a14283ac159ff99fd5a1"
+      },
+      "current": {
+        "bytes": 1920,
+        "sha256": "51123c399706065ea6c2d067a73b195b2168d486613dafcad8ab6e0fcaa79c47"
+      }
+    },
+    "l2.bin": {
+      "baseline": {
+        "bytes": 1792,
+        "sha256": "ca01b6d8215b2043733ffdccbf483c15c59ce902084f872c07e4effd9aac7f3a"
+      },
+      "current": {
+        "bytes": 1792,
+        "sha256": "bc10ff31923d909e18fbede32b57caca5ef616ffbd9c80cb223da8cb7abf1387"
+      }
+    },
+    "resident-window-runtime.bin": {
+      "baseline": {
+        "bytes": 244,
+        "sha256": "05ed53671e0cf4d8618100ea040aeea63a2a8d702aa1e73d73dc8e6bbd1b143e"
+      },
+      "current": {
+        "bytes": 244,
+        "sha256": "05ed53671e0cf4d8618100ea040aeea63a2a8d702aa1e73d73dc8e6bbd1b143e"
+      }
+    },
+    "light-kernel.bin": {
+      "baseline": {
+        "bytes": 1196,
+        "sha256": "a09d3ee96540a47e0eb936dbce01c8e53fd64b5ba94f7beac86f227dc5c99616"
+      },
+      "current": {
+        "bytes": 1196,
+        "sha256": "a09d3ee96540a47e0eb936dbce01c8e53fd64b5ba94f7beac86f227dc5c99616"
+      }
+    }
+  }
+}

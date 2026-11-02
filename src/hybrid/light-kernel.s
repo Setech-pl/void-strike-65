@@ -154,9 +154,10 @@ light_shot:
     ldx LIGHT_SLOT_SAVE
     lda FIGHTER_PROJECTILE_Y,x
     sbc LIGHT_SCRATCH            ; C=1
-    cmp #LIGHT_HEIGHT_SCANLINES
+    ; Owner M3 tuning: one extra raster line at each vertical edge.
+    cmp #(LIGHT_HEIGHT_SCANLINES+1)
     bcc @vertical
-    cmp #(256-(PLAYER_FIGHTER_PROJECTILE_SPEED+PLAYER_FIGHTER_PROJECTILE_HEIGHT-1))
+    cmp #(256-(PLAYER_FIGHTER_PROJECTILE_SPEED+PLAYER_FIGHTER_PROJECTILE_HEIGHT))
     bcc @next
 @vertical:
     ldy LIGHT_SLOT

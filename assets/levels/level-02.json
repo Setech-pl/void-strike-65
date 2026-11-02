@@ -1,12 +1,9 @@
 {
   "_": [
-    "M3 final pilot tuning, owner2026-11-01: denser back-to-back groups using",
-    "existing WaveDefs/path records only. Left/right/centre entries and wide",
-    "every-frame crossing sweeps; mirrored members fan to opposite sides.",
-    "All wave rows are minimum0, so the existing clear lock is the only chain gate.",
-    "Heavy WaveDefs/holds/looks, archetype weapons/score and capital lifetime rules",
-    "are unchanged. Per-level hunter HP2/lancer HP4. This is authored data,",
-    "not a new difficulty multiplier. Final measured timeline is emitted at build."
+    "M3 endings-only repair: preserve 597e4e5 body segments and accepted tempo.",
+    "Only terminal records fan down, arc upward or return to a side.",
+    "Tracking exit alternates mirror; tracking body ignores the mirror bit.",
+    "HP, counts, minimum-row chains and Heavy waves remain unchanged."
   ],
   "level": 2,
   "seed": 77,
@@ -126,112 +123,134 @@
     "paths": {
       "wide-west": [
         {
-          "dy": 2,
-          "frames": 12,
+          "dy": 1,
+          "frames": 24,
           "flags": 0
         },
         {
-          "dy": 2,
-          "frames": 32,
-          "flags": 20
+          "dy": 1,
+          "frames": 64,
+          "flags": 21
         },
         {
-          "dy": 2,
-          "frames": 32,
-          "flags": 24
+          "dy": 1,
+          "frames": 64,
+          "flags": 25
         },
         {
-          "dy": 2,
-          "frames": 0,
-          "flags": 0
+          "dy": 1,
+          "frames": 76,
+          "flags": 133
         }
       ],
       "wide-east": [
         {
-          "dy": 2,
-          "frames": 12,
+          "dy": 1,
+          "frames": 24,
           "flags": 0
         },
         {
-          "dy": 2,
-          "frames": 32,
-          "flags": 24
+          "dy": 1,
+          "frames": 64,
+          "flags": 25
         },
         {
-          "dy": 2,
-          "frames": 32,
-          "flags": 20
+          "dy": 1,
+          "frames": 64,
+          "flags": 21
         },
         {
-          "dy": 2,
-          "frames": 0,
-          "flags": 0
+          "dy": 1,
+          "frames": 76,
+          "flags": 137
         }
       ],
       "wide-cross": [
         {
           "dy": 0,
-          "frames": 20,
-          "flags": 4
+          "frames": 40,
+          "flags": 5
         },
         {
-          "dy": 2,
-          "frames": 8,
+          "dy": 1,
+          "frames": 24,
           "flags": 0
         },
         {
-          "dy": 2,
-          "frames": 38,
-          "flags": 24
+          "dy": 1,
+          "frames": 76,
+          "flags": 25
         },
         {
-          "dy": 2,
-          "frames": 0,
-          "flags": 0
+          "dy": -1,
+          "frames": 76,
+          "flags": 133
         }
       ],
       "wide-track": [
         {
-          "dy": 2,
-          "frames": 12,
+          "dy": 1,
+          "frames": 24,
           "flags": 0
         },
         {
           "dy": 1,
-          "frames": 40,
-          "flags": 29
+          "frames": 80,
+          "flags": 31
         },
         {
-          "dy": 2,
-          "frames": 0,
-          "flags": 0
+          "dy": -1,
+          "frames": 76,
+          "flags": 135
         },
         {
-          "dy": 2,
+          "dy": 1,
           "frames": 0,
-          "flags": 0
+          "flags": 7
         }
       ],
       "wide-return": [
         {
-          "dy": 2,
-          "frames": 16,
+          "dy": 1,
+          "frames": 32,
           "flags": 0
         },
         {
           "dy": 1,
-          "frames": 32,
-          "flags": 4
+          "frames": 64,
+          "flags": 5
         },
         {
           "dy": -1,
-          "frames": 16,
-          "flags": 8
+          "frames": 32,
+          "flags": 9
         },
         {
-          "dy": -2,
-          "frames": 0,
+          "dy": -1,
+          "frames": 42,
+          "flags": 133
+        }
+      ],
+      "tracking-dive": [
+        {
+          "dy": 1,
+          "frames": 32,
           "flags": 0
+        },
+        {
+          "dy": 1,
+          "frames": 96,
+          "flags": 31
+        },
+        {
+          "dy": 1,
+          "frames": 76,
+          "flags": 151
+        },
+        {
+          "dy": 1,
+          "frames": 0,
+          "flags": 23
         }
       ]
     },
@@ -244,7 +263,7 @@
     {
       "kind": "space",
       "subtype": "swarm",
-      "rows": 480,
+      "rows": 896,
       "archetypes": [
         "interceptor",
         "wingman"
@@ -371,7 +390,7 @@
     {
       "kind": "space",
       "subtype": "swarm",
-      "rows": 768,
+      "rows": 1280,
       "archetypes": [
         "interceptor"
       ],
@@ -502,7 +521,8 @@
           "entry": 124,
           "appearance": "lancer",
           "path": "tracking-dive",
-          "fire": "column"
+          "fire": "column",
+          "mirror": true
         },
         {
           "row": 480,
@@ -564,7 +584,8 @@
         "appearance": "lancer",
         "fire": "volley-column",
         "spacing": 16,
-        "entry": 200
+        "entry": 200,
+        "mirror": true
       },
       {
         "row": 0,

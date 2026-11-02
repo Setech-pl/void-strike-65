@@ -1,0 +1,77 @@
+{
+  "emulator": "Atari800 7.1.2 PAL/XL",
+  "guest_instrumentation_bytes": 0,
+  "diagnostic_allowances": {
+    "release_evidence": false,
+    "reuse_existing_traces": false,
+    "host_lives_top_up": "3",
+    "forced_booster_fixture": null,
+    "l2_exit_fixture": null,
+    "terminal_state_seed": false,
+    "l2_variant_alias": false
+  },
+  "artifact_sha256": {
+    "void-strike-65-boot.bin": {
+      "path": "build/m3-tempo-normal-level-2-s3/void-strike-65-boot.bin",
+      "bytes": 27392,
+      "sha256": "98c4f6a245d39794dffd7c35dd32e2c15eb32a2e4d4d5a22d2ce72c737e53b88"
+    },
+    "void-strike-65.atr": {
+      "path": "build/m3-tempo-normal-level-2-s3/void-strike-65.atr",
+      "bytes": 133136,
+      "sha256": "525e600b57ae175531cdeb76e8219220b0a9de09cea72fb02a33b15b83917ce1"
+    },
+    "void-strike-65-manifest.json": {
+      "path": "build/m3-tempo-normal-level-2-s3/void-strike-65-manifest.json",
+      "bytes": 81328,
+      "sha256": "f31093ef6fe6beed18d5e09461d3f775c51a650114357965803b2f8bde57b0eb"
+    }
+  },
+  "variant": "m3-tempo-normal-level-2-s3",
+  "diagnostic_only": true,
+  "sessions": [
+    {
+      "id": "m3-pilot-normal",
+      "kind": "observer-smoke",
+      "medium": "ATR",
+      "difficulty": 1,
+      "policy": "park-176",
+      "fire_delay": 10000,
+      "measured_frames": 3200,
+      "maximum_wall_cycles": 31281,
+      "deadline_overrun_frames": 0,
+      "missed_frames": 0,
+      "hull_map_draws": 0,
+      "hull_map_stale_draws": 0,
+      "hull_map_dirty_reads": 0,
+      "hull_map_rebuilds_after_boss": 0,
+      "level_summary": {
+        "start_summaries": [
+          {
+            "entry": 660,
+            "display": 662,
+            "loaded": 752,
+            "ready": 863,
+            "accept": 868,
+            "reads": 53,
+            "shown_frames": 206,
+            "best": "BEST                  --"
+          }
+        ]
+      }
+    }
+  ],
+  "acceptance": {
+    "measured_frames": 3200,
+    "maximum_wall_cycles": 31281,
+    "wall_ceiling": 32568,
+    "physical_headroom": 4287,
+    "missed_frames": 0,
+    "extra_vbi_boundaries": 0,
+    "physical_overruns": 0,
+    "deadline_overruns": 0,
+    "dli_ordering_errors": 0,
+    "passed": true
+  },
+  "passed": true
+}

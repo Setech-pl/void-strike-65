@@ -1,0 +1,13 @@
+{
+  "before": {
+    "task": "152M\t.cache/m3-endings",
+    "worktreeCache": "152M\t.cache",
+    "disk": "Filesystem      Size    Used   Avail Capacity iused ifree %iused  Mounted on\n/dev/disk3s5   926Gi   572Gi   330Gi    64%    6.0M  3.5G    0%   /System/Volumes/Data"
+  },
+  "after": {
+    "task": "0B\t.cache/m3-endings",
+    "worktreeCache": "4.0K\t.cache",
+    "disk": "Filesystem      Size    Used   Avail Capacity iused ifree %iused  Mounted on\n/dev/disk3s5   926Gi   571Gi   330Gi    64%    6.0M  3.5G    0%   /System/Volumes/Data"
+  },
+  "scope": "Removed only .cache/m3-endings: main git-archive export/build, dependency symlink, before-code binary copy, Atari800 package/source/executable and intermediate logs/traces. Worktree node_modules and other task caches remain. All own test/build/emulator processes exited; no server/browser/Worker/workerd or listening port was started."
+}

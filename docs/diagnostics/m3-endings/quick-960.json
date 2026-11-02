@@ -1,0 +1,77 @@
+{
+  "emulator": "Atari800 7.1.2 PAL/XL",
+  "guest_instrumentation_bytes": 0,
+  "diagnostic_allowances": {
+    "release_evidence": false,
+    "reuse_existing_traces": false,
+    "host_lives_top_up": "3",
+    "forced_booster_fixture": null,
+    "l2_exit_fixture": null,
+    "terminal_state_seed": false,
+    "l2_variant_alias": true
+  },
+  "artifact_sha256": {
+    "void-strike-65-boot.bin": {
+      "path": "build/l2-capital-960/void-strike-65-boot.bin",
+      "bytes": 27392,
+      "sha256": "854fdeaec9593d557fb9a655b20d5ce978fbbbfcef75b54095ecc30bffdbcadf"
+    },
+    "void-strike-65.atr": {
+      "path": "build/l2-capital-960/void-strike-65.atr",
+      "bytes": 133136,
+      "sha256": "3e7485fd8764f00348c00545242da1ece25b03ddeca494d73f650b3b8bb3f2c9"
+    },
+    "void-strike-65-manifest.json": {
+      "path": "build/l2-capital-960/void-strike-65-manifest.json",
+      "bytes": 81291,
+      "sha256": "ab5c8f30bc8b1c7542f6a49838c1e55d6ffab95c08e1a6ff4b53ff271d856c39"
+    }
+  },
+  "variant": "l2-capital-960",
+  "diagnostic_only": true,
+  "sessions": [
+    {
+      "id": "l2-960-1-flight",
+      "kind": "observer-smoke",
+      "medium": "ATR",
+      "difficulty": 1,
+      "policy": "l2-matrix",
+      "fire_delay": 0,
+      "measured_frames": 3967,
+      "maximum_wall_cycles": 31156,
+      "deadline_overrun_frames": 0,
+      "missed_frames": 0,
+      "hull_map_draws": 1132,
+      "hull_map_stale_draws": 0,
+      "hull_map_dirty_reads": 0,
+      "hull_map_rebuilds_after_boss": 0,
+      "level_summary": {
+        "start_summaries": [
+          {
+            "entry": 659,
+            "display": 661,
+            "loaded": 751,
+            "ready": 862,
+            "accept": 868,
+            "reads": 53,
+            "shown_frames": 207,
+            "best": "BEST                  --"
+          }
+        ]
+      }
+    }
+  ],
+  "acceptance": {
+    "measured_frames": 3967,
+    "maximum_wall_cycles": 31156,
+    "wall_ceiling": 32568,
+    "physical_headroom": 4412,
+    "missed_frames": 0,
+    "extra_vbi_boundaries": 0,
+    "physical_overruns": 0,
+    "deadline_overruns": 0,
+    "dli_ordering_errors": 0,
+    "passed": true
+  },
+  "passed": true
+}

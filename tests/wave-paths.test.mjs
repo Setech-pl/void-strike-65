@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
+import {m3TempoSource} from '../scripts/m3-tempo.mjs';
 import {Nmos6502} from '../scripts/nmos6502.mjs';
 import {installRuntimeSegments} from '../scripts/runtime-image.mjs';
 import {compileLevel,defaultHullAsset,LEVEL_CORE_ADDRESS,LEVEL_PAYLOAD_ADDRESS,
@@ -310,13 +311,13 @@ test('M3 volley guard overhead is measured against its identical direct helper',
 // Owner's final pilot: test actual linked decisions, not just authored row pins.
 test('M3 denser pilot spans both sides and hands off at the next available row tick',()=>{
  const pilot=JSON.parse(fs.readFileSync(`${root}/assets/levels/level-02.json`));
- for(const sectorIndex of [0,3])for(const difficulty of [0,1,2])for(const quickKills of [false,true]) {
-  const sector=structuredClone(pilot.sectors[sectorIndex]);
-  const s={...pilot,sectors:[sector]},m=image(s),c=compile(s);
+ for(const tempo of ['easy','normal','hard'])for(const sectorIndex of [0,3])for(const difficulty of [0,1,2])for(const quickKills of [false,true]) {
+  const sector=structuredClone(m3TempoSource(pilot,tempo).sectors[sectorIndex]);
+  const s={...m3TempoSource(pilot,tempo),sectors:[sector]},m=image(s),c=compile(s);
   m[L('DIFFICULTY_SETTING')]=difficulty;
   const expected=c.waves.reduce((n,w)=>n+w.count,0);let admitted=0,acc=0,previousCursor=1,cleared=null,lastFrame=0;
-  const gaps=[],xs=new Set(),columns=new Set(),visibleGaps=[];let lastVisible=null;
-  for(let frame=1;frame<=3000;frame++) {
+  const gaps=[],xs=new Set(),columns=new Set(),visibleGaps=[];let lastVisible=null;let columnFrames=0,pairedColumnFrames=0;
+  for(let frame=1;frame<=5000;frame++) {
    m[L('frame_counter')]=(m[L('frame_counter')]+1)&255;acc+=8+difficulty;
    if(acc>=20){acc-=20;run(m,'_director_c_world_row_tick');}
    const cursor=m[0x80f7];
@@ -328,6 +329,9 @@ test('M3 denser pilot spans both sides and hands off at the next available row t
     if(m[L('light_y')+slot]>=visibleTop&&m[L('light_state')+slot]){xs.add(m[L('light_x')+slot]);columns.add(Math.floor((m[L('light_x')+slot]-48)/52));}
     if(quickKills){m[L('light_state')+slot]=0;m[L('light_screen_hi')+slot]=0;}
    }
+   const visibleXs=Array.from({length:4},(_,i)=>i).filter(i=>m[L('light_state')+i]===2&&m[L('light_y')+i]>=visibleTop).map(i=>m[L('light_x')+i]);
+   if(visibleXs.length>1&&new Set(visibleXs).size===1)columnFrames++;
+   if(visibleXs.length>new Set(visibleXs).size)pairedColumnFrames++;
    const visible=Array.from({length:4},(_,i)=>m[L('light_state')+i]===2&&m[L('light_y')+i]>=visibleTop&&m[L('light_y')+i]<232).some(Boolean);
    if(visible){if(lastVisible!==null&&frame-lastVisible>1)visibleGaps.push(frame-lastVisible-1);lastVisible=frame;}
    const empty=!m.slice(L('light_state'),L('light_state')+4).some(Boolean);
@@ -335,9 +339,9 @@ test('M3 denser pilot spans both sides and hands off at the next available row t
    if(!empty||m[L('_light_wave_remaining')]!==0)cleared=null;
    lastFrame=frame;if(admitted===expected&&empty)break;
   }
-  tuningResults.push({sector:sectorIndex+1,difficulty,quickKills,admitted,completionFrame:lastFrame,handoffGaps:gaps,visibleGaps,visibleWidth:xs.size?Math.max(...xs)-Math.min(...xs):0});
+  tuningResults.push({tempo,sector:sectorIndex+1,difficulty,quickKills,admitted,completionFrame:lastFrame,handoffGaps:gaps,visibleGaps,columnFrames,pairedColumnFrames,visibleWidth:xs.size?Math.max(...xs)-Math.min(...xs):0});
   assert.equal(admitted,expected,`sector${sectorIndex+1}/${difficulty}/${quickKills}: every group admitted`);
-  assert.ok(lastFrame<3000);assert.equal(gaps.length,c.waves.length-1);
+  assert.ok(lastFrame<5000);assert.equal(gaps.length,c.waves.length-1);
   assert.ok(gaps.every(n=>n>=1&&n<=4),`handoff ${gaps}: only the existing clear/row cadence`);
   if(!quickKills){assert.ok(Math.max(...xs)-Math.min(...xs)>=140);assert.ok(columns.has(0)&&columns.has(1)&&columns.has(2),'left, centre and right used');}
  }
@@ -346,10 +350,10 @@ test('M3 mirrored centre fan descends from opposite sides before crossing',()=>{
  const pilot=JSON.parse(fs.readFileSync(`${root}/assets/levels/level-02.json`));
  const s={...pilot,sectors:[{kind:'space',subtype:'swarm',rows:480,lights:3,archetypes:['interceptor'],waves:[
   {row:0,archetype:'interceptor',count:2,spacing:16,entry:124,path:'wide-cross',mirror:true}]}]},m=image(s),entries=[];
- for(let f=0;f<70;f++){
+ for(let f=0;f<140;f++){
   tick(m);for(let slot=0;slot<2;slot++)if(m[L('light_y')+slot]===visibleTop)entries.push(m[L('light_x')+slot]);
  }
- assert.deepEqual(entries,[184,64],'hidden fan precedes visible opposing-side entries at gameplay top24');
+ assert.deepEqual(entries,[200,48],'original opposite-side arrivals at gameplay top24 remain intact');
  assert.ok(m[L('light_x')]<124&&m[L('light_x')+1]>124,'both members cross the centre');
 });
 
@@ -366,4 +370,42 @@ test('M3 four admitted path Lights share one glyph pair and one volley token',()
  for(let i=0;i<4;i++){m[L('light_slot')]=i;actions.push(run(m,'_enemy_c_light_tick').a);}
  assert.deepEqual(actions,[1,1,1,1]);assert.equal(m[L('_light_token')],0);
  for(let i=0;i<4;i++){m[L('light_slot')]=i;assert.equal(run(m,'_enemy_c_light_tick').a,0,'no duplicate pulse');}
+});
+
+test('M3 admission spreads path starts within four-HPOS bounds; no-path starts stay exact',()=>{
+ for(let x=48;x<=200;x+=4)for(let slot=0;slot<4;slot++)for(const armed of [0,255]) {
+  const m=new Uint8Array(65536);m.set(fs.readFileSync(`${root}/build/content-module.bin`),0x1180);
+  m[L('_m3_armed_path')]=armed;m[L('light_slot')]=slot;m[L('light_x')+slot]=x;
+  run(m,'_m3_admit');
+  const expected=x-slot*4<48?x-slot*4+16:x-slot*4;
+  assert.equal(m[L('light_x')+slot],armed===255?x:expected);
+  assert.ok(m[L('light_x')+slot]>=48&&m[L('light_x')+slot]<=200);
+  assert.equal(m[L('light_x')+slot]%4,0);
+ }
+ for(const x of [52,124,200]) {
+  const starts=Array.from({length:4},(_,i)=>x-i*4<48?x-i*4+16:x-i*4);
+  assert.equal(new Set(starts).size,4);
+ }
+});
+test('M3 admission spread fits the owner byte and instruction-cycle allowance',
+ {skip:!process.env.VS65_M3_ADMISSION_BASELINE},()=>{
+ const base=process.env.VS65_M3_ADMISSION_BASELINE,bl=new Map();
+ for(const file of ['void-strike-65','encounter-director','integration-glue','light-kernel'])
+  for(const m of fs.readFileSync(`${base}/build/${file}.lbl`,'utf8').matchAll(/^al\s+([\da-f]+)\s+\.?(\S+)$/gim))if(!bl.has(m[2]))bl.set(m[2],parseInt(m[1],16));
+ const rows=[];
+ for(let x=48;x<=200;x+=4)for(let slot=0;slot<4;slot++)for(const armed of [0,255]) {
+  const calls=[];
+  for(const [dir,lab] of [[base,bl],[root,labels]]) {
+   const m=new Uint8Array(65536);m.set(fs.readFileSync(`${dir}/build/content-module.bin`),0x1180);
+   m[lab.get('_m3_armed_path')]=armed;m[lab.get('light_slot')]=slot;m[lab.get('light_x')+slot]=x;
+   const cpu=new Nmos6502(m),stop=0x7fff;cpu.push((stop-1)>>8);cpu.push((stop-1)&255);cpu.pc=lab.get('_m3_admit');
+   for(let i=0;i<10000&&cpu.pc!==stop;i++)cpu.step();assert.equal(cpu.pc,stop);
+   calls.push(cpu.cycles);
+  }
+  rows.push({entry:x,slot,path:armed!==255,before:calls[0],after:calls[1],delta:calls[1]-calls[0]});
+ }
+ const before=JSON.parse(fs.readFileSync(`${base}/build/manifest.json`)),after=JSON.parse(fs.readFileSync(`${root}/build/manifest.json`));
+ const bytes=after.contentModule.usedBytes-before.contentModule.usedBytes;
+ const maximum=Math.max(...rows.map(r=>r.delta));assert.ok(bytes<=48);assert.ok(maximum<=100);
+ if(process.env.VS65_M3_ADMISSION_COST_REPORT)fs.writeFileSync(process.env.VS65_M3_ADMISSION_COST_REPORT,JSON.stringify({method:'MEASURED direct linked NMOS C admission through RTS, no caller/DMA; all39 columns, four slots, path/no-path',contentBytes:bytes,additionalStateBytes:0,maximumAddedInstructionCycles:maximum,rows},null,2)+'\n');
 });

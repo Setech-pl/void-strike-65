@@ -1,0 +1,16 @@
+✔ M3 tempo variants preserve all groups, mirrored entries, Heavy definitions and four-slot ceiling (8658.592ms)
+✔ M3 EASY is slower than NORMAL laterally; NORMAL halves wide sweeps and uses single-line vertical motion (0.653792ms)
+✔ M3 smoke fix repeats recipes and keeps every authored exit lateral with a progressing back-loop (8.048792ms)
+✔ M3 chains compile byte-identically to explicit waves without mutating source (8797.686666ms)
+✔ M3 chain expansion never truncates limit overflow and rejects nested/unknown/malformed recipes (1.036833ms)
+✔ M3 timeline exposes late no-fire completion and distinguishes unmodeled Heavy lifetime (2.18225ms)
+✔ M3 path lifetimes include upward exit, terminal and progressing loops (0.142417ms)
+✔ M3 pilot preserves every decoded Heavy WaveDef from accepted checkpoint3 (3.059916ms)
+ℹ tests 8
+ℹ suites 0
+ℹ pass 8
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 8954.767459

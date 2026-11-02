@@ -1,0 +1,99 @@
+[
+  {
+    "file": "pilot-easy.atr",
+    "tempo": "easy",
+    "optionsDifficulty": "EASY",
+    "buildArguments": [
+      "--level=2:sector=3",
+      "--m3-tempo=easy",
+      "--quiet"
+    ],
+    "sourceDirectory": "build/m3-tempo-easy-level-2-s3",
+    "bytes": 133136,
+    "sha256": "86342dc95810dc898e5d55ef18bffea713060768882d8fa7087254e27eb79710",
+    "launch": "atari800 -xl -nobasic -pal /Users/marcinkrzetowski/Projects/dark-fighter-m3-tune/build/play/m3-tune/pilot-easy.atr"
+  },
+  {
+    "file": "level-2-easy.atr",
+    "tempo": "easy",
+    "optionsDifficulty": "EASY",
+    "buildArguments": [
+      "--level=2:sector=0",
+      "--m3-tempo=easy",
+      "--quiet"
+    ],
+    "sourceDirectory": "build/m3-tempo-easy-level-2-s0",
+    "bytes": 133136,
+    "sha256": "0ed075139f691c08a3b4e3ad8fb150b8e0a52efc4ca7724d8bff01a57c7d3ecc",
+    "launch": "atari800 -xl -nobasic -pal /Users/marcinkrzetowski/Projects/dark-fighter-m3-tune/build/play/m3-tune/level-2-easy.atr"
+  },
+  {
+    "file": "pilot-normal.atr",
+    "tempo": "normal",
+    "optionsDifficulty": "NORMAL (MEDIUM internally)",
+    "buildArguments": [
+      "--level=2:sector=3",
+      "--m3-tempo=normal",
+      "--quiet"
+    ],
+    "sourceDirectory": "build/m3-tempo-normal-level-2-s3",
+    "bytes": 133136,
+    "sha256": "eeb96dcc1b53ca39a30602449245974fb8439bdd5e39204cdb17049e360c36d3",
+    "launch": "atari800 -xl -nobasic -pal /Users/marcinkrzetowski/Projects/dark-fighter-m3-tune/build/play/m3-tune/pilot-normal.atr"
+  },
+  {
+    "file": "level-2-normal.atr",
+    "tempo": "normal",
+    "optionsDifficulty": "NORMAL (MEDIUM internally)",
+    "buildArguments": [
+      "--level=2:sector=0",
+      "--m3-tempo=normal",
+      "--quiet"
+    ],
+    "sourceDirectory": "build/m3-tempo-normal-level-2-s0",
+    "bytes": 133136,
+    "sha256": "5d3e2b29316cade068c654a45853773ba06cde2a0bbc281cd702d64a8d2826d0",
+    "launch": "atari800 -xl -nobasic -pal /Users/marcinkrzetowski/Projects/dark-fighter-m3-tune/build/play/m3-tune/level-2-normal.atr"
+  },
+  {
+    "file": "pilot-hard.atr",
+    "tempo": "hard",
+    "optionsDifficulty": "HARD",
+    "buildArguments": [
+      "--level=2:sector=3",
+      "--m3-tempo=hard",
+      "--quiet"
+    ],
+    "sourceDirectory": "build/m3-tempo-hard-level-2-s3",
+    "bytes": 133136,
+    "sha256": "fb0f604f3a1a0ebec59b2407898abed731e55bb39498ef1024b70ce76ed2a2ef",
+    "launch": "atari800 -xl -nobasic -pal /Users/marcinkrzetowski/Projects/dark-fighter-m3-tune/build/play/m3-tune/pilot-hard.atr"
+  },
+  {
+    "file": "level-2-hard.atr",
+    "tempo": "hard",
+    "optionsDifficulty": "HARD",
+    "buildArguments": [
+      "--level=2:sector=0",
+      "--m3-tempo=hard",
+      "--quiet"
+    ],
+    "sourceDirectory": "build/m3-tempo-hard-level-2-s0",
+    "bytes": 133136,
+    "sha256": "7841b8d91eb01c4d80502f14eaf8cea9837bb0c4a09a1a5045c2cf0820591e6e",
+    "launch": "atari800 -xl -nobasic -pal /Users/marcinkrzetowski/Projects/dark-fighter-m3-tune/build/play/m3-tune/level-2-hard.atr"
+  },
+  {
+    "file": "volley.atr",
+    "tempo": "unchanged every-frame stress paths",
+    "optionsDifficulty": "any; measure all three",
+    "buildArguments": [
+      "--level=2:sector=0",
+      "--m3-volley-review"
+    ],
+    "sourceDirectory": "build/level-2-s0",
+    "bytes": 133136,
+    "sha256": "a8f3c9f11ae72f1dd18f306c0e0a4605fbd864709bcd059425250506fdc2e48c",
+    "launch": "atari800 -xl -nobasic -pal /Users/marcinkrzetowski/Projects/dark-fighter-m3-tune/build/play/m3-tune/volley.atr"
+  }
+]

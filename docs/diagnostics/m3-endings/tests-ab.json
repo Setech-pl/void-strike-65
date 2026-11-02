@@ -1,0 +1,412 @@
+{
+  "baseline": "eaae85a",
+  "method": "One fresh full suite per revision; file+name+first assertion+first message. One stale whole-content size pin corrected for the explicitly authorised43-B admission addition; full Heavy file18 PASS/1 optional SKIP. No other failures filtered; no second full suite.",
+  "main": {
+    "totals": {
+      "tests": 1682,
+      "suites": 0,
+      "pass": 1665,
+      "fail": 12,
+      "cancelled": 0,
+      "skipped": 5,
+      "todo": 0,
+      "duration_ms": 1200052.942917
+    },
+    "failures": [
+      {
+        "file": "tests/boss-order-scale.test.mjs",
+        "declared_at": "tests/boss-order-scale.test.mjs:67",
+        "test": "the curve evidence was measured on this data, three replays a cell, every fight finished",
+        "message": "the curve is stale: the boss data or the bossDef changed since",
+        "first_failing_assertion": "tests/boss-order-scale.test.mjs:70"
+      },
+      {
+        "file": "tests/broadside-fire.test.mjs",
+        "declared_at": "tests/broadside-fire.test.mjs:443",
+        "test": "capital/player collision agrees with independently reconstructed final raster Y",
+        "message": "owner 0, slot 0, ring 0: lower third; PMG 93..107, screen $8320 glyph 105..110, cache 113",
+        "first_failing_assertion": "tests/broadside-fire.test.mjs:468"
+      },
+      {
+        "file": "tests/gameplay-music-placement.test.mjs",
+        "declared_at": "tests/gameplay-music-placement.test.mjs:165",
+        "test": "the ATR START GAME read grows by the planned five plus three plus five sectors and no more",
+        "message": "Expected values to be strictly equal:",
+        "first_failing_assertion": "tests/gameplay-music-placement.test.mjs:184"
+      },
+      {
+        "file": "tests/github-showcase.test.mjs",
+        "declared_at": "tests/github-showcase.test.mjs:34",
+        "test": "showcase manifest binds every image to the current packed release",
+        "message": "Expected values to be strictly equal:",
+        "first_failing_assertion": "tests/github-showcase.test.mjs:37"
+      },
+      {
+        "file": "tests/github-showcase.test.mjs",
+        "declared_at": "tests/github-showcase.test.mjs:74",
+        "test": "showcase and asset sheets regenerate without ignored capture files",
+        "message": "Error: Runtime wall trace does not match the current release ATR",
+        "first_failing_assertion": "tests/github-showcase.test.mjs:76"
+      },
+      {
+        "file": "tests/github-showcase.test.mjs",
+        "declared_at": "tests/github-showcase.test.mjs:189",
+        "test": "gameplay GIF is bound to the current ATR and stays within budget",
+        "message": "the GIF predates the current ATR; rerun npm run showcase:gif",
+        "first_failing_assertion": "tests/github-showcase.test.mjs:194"
+      },
+      {
+        "file": "tests/level-one-waves.test.mjs",
+        "declared_at": "tests/level-one-waves.test.mjs:200",
+        "test": "sector flow: with no kills the swarm's three waves arm and drain, (a) opens within its ceiling, (b)'s Raiders arrive",
+        "message": "difficulty 0: (b)'s Raiders never arrived with no kills",
+        "first_failing_assertion": "tests/level-one-waves.test.mjs:223"
+      },
+      {
+        "file": "tests/menu-raster.test.mjs",
+        "declared_at": "tests/menu-raster.test.mjs:24",
+        "test": "native menu raster is exact for the ATR and four cold RAM fills",
+        "message": "atr-00 evidence must describe the current artifact",
+        "first_failing_assertion": "tests/menu-raster.test.mjs:41"
+      },
+      {
+        "file": "tests/package-release.test.mjs",
+        "declared_at": "tests/package-release.test.mjs:38",
+        "test": "M5-05: the release zip carries LICENSE, LICENSE-ASSETS and THIRD_PARTY_NOTICES.md",
+        "message": "Error: Runtime wall trace binding mismatch for void-strike-65-boot.bin",
+        "first_failing_assertion": "tests/package-release.test.mjs:44"
+      },
+      {
+        "file": "tests/preview.test.mjs",
+        "declared_at": "tests/preview.test.mjs:121",
+        "test": "preview consumes the canonical charset, screen, PMG, and palette source",
+        "message": "the gameplay preview must change when player_shape changes",
+        "first_failing_assertion": "tests/preview.test.mjs:164"
+      },
+      {
+        "file": "tests/sio-patch-policy.test.mjs",
+        "declared_at": "tests/sio-patch-policy.test.mjs:79",
+        "test": "the committed evidence: real-SIO boot smoke with stage 2 clean, pinned patch-on replays and menu raster",
+        "message": "atr-a5 stage-2 SIOV reads",
+        "first_failing_assertion": "tests/sio-patch-policy.test.mjs:98"
+      },
+      {
+        "file": "tests/source-contracts.test.mjs",
+        "declared_at": "tests/source-contracts.test.mjs:222",
+        "test": "documentation keeps the current Heavy/Light PMG contract",
+        "message": "The input did not match the regular expression /LIGHT_CEILING_SWARM = 3\\b/. Input:",
+        "first_failing_assertion": "tests/source-contracts.test.mjs:241"
+      }
+    ],
+    "hasFailingSection": true
+  },
+  "task": {
+    "totals": {
+      "tests": 1688,
+      "suites": 0,
+      "pass": 1670,
+      "fail": 12,
+      "cancelled": 0,
+      "skipped": 6,
+      "todo": 0,
+      "duration_ms": 1138653.349625
+    },
+    "failures": [
+      {
+        "file": "tests/boss-order-scale.test.mjs",
+        "declared_at": "tests/boss-order-scale.test.mjs:67",
+        "test": "the curve evidence was measured on this data, three replays a cell, every fight finished",
+        "message": "the curve is stale: the boss data or the bossDef changed since",
+        "first_failing_assertion": "tests/boss-order-scale.test.mjs:70"
+      },
+      {
+        "file": "tests/broadside-fire.test.mjs",
+        "declared_at": "tests/broadside-fire.test.mjs:443",
+        "test": "capital/player collision agrees with independently reconstructed final raster Y",
+        "message": "owner 0, slot 0, ring 0: lower third; PMG 93..107, screen $8320 glyph 105..110, cache 113",
+        "first_failing_assertion": "tests/broadside-fire.test.mjs:468"
+      },
+      {
+        "file": "tests/gameplay-music-placement.test.mjs",
+        "declared_at": "tests/gameplay-music-placement.test.mjs:165",
+        "test": "the ATR START GAME read grows by the planned five plus three plus five sectors and no more",
+        "message": "Expected values to be strictly equal:",
+        "first_failing_assertion": "tests/gameplay-music-placement.test.mjs:184"
+      },
+      {
+        "file": "tests/github-showcase.test.mjs",
+        "declared_at": "tests/github-showcase.test.mjs:34",
+        "test": "showcase manifest binds every image to the current packed release",
+        "message": "Expected values to be strictly equal:",
+        "first_failing_assertion": "tests/github-showcase.test.mjs:37"
+      },
+      {
+        "file": "tests/github-showcase.test.mjs",
+        "declared_at": "tests/github-showcase.test.mjs:74",
+        "test": "showcase and asset sheets regenerate without ignored capture files",
+        "message": "Error: Runtime wall trace does not match the current release ATR",
+        "first_failing_assertion": "tests/github-showcase.test.mjs:76"
+      },
+      {
+        "file": "tests/github-showcase.test.mjs",
+        "declared_at": "tests/github-showcase.test.mjs:189",
+        "test": "gameplay GIF is bound to the current ATR and stays within budget",
+        "message": "the GIF predates the current ATR; rerun npm run showcase:gif",
+        "first_failing_assertion": "tests/github-showcase.test.mjs:194"
+      },
+      {
+        "file": "tests/heavy-damage.test.mjs",
+        "declared_at": "tests/heavy-damage.test.mjs:313",
+        "test": "H14 recovery stays within the owner window budget and preserves full segment sizes",
+        "message": "H12/H13/departure plus accepted M3 checked-home policy",
+        "first_failing_assertion": "tests/heavy-damage.test.mjs:321"
+      },
+      {
+        "file": "tests/level-one-waves.test.mjs",
+        "declared_at": "tests/level-one-waves.test.mjs:200",
+        "test": "sector flow: with no kills the swarm's three waves arm and drain, (a) opens within its ceiling, (b)'s Raiders arrive",
+        "message": "difficulty 0: (b)'s Raiders never arrived with no kills",
+        "first_failing_assertion": "tests/level-one-waves.test.mjs:223"
+      },
+      {
+        "file": "tests/menu-raster.test.mjs",
+        "declared_at": "tests/menu-raster.test.mjs:24",
+        "test": "native menu raster is exact for the ATR and four cold RAM fills",
+        "message": "atr-00 evidence must describe the current artifact",
+        "first_failing_assertion": "tests/menu-raster.test.mjs:41"
+      },
+      {
+        "file": "tests/package-release.test.mjs",
+        "declared_at": "tests/package-release.test.mjs:38",
+        "test": "M5-05: the release zip carries LICENSE, LICENSE-ASSETS and THIRD_PARTY_NOTICES.md",
+        "message": "Error: Runtime wall trace binding mismatch for void-strike-65-boot.bin",
+        "first_failing_assertion": "tests/package-release.test.mjs:44"
+      },
+      {
+        "file": "tests/preview.test.mjs",
+        "declared_at": "tests/preview.test.mjs:121",
+        "test": "preview consumes the canonical charset, screen, PMG, and palette source",
+        "message": "the gameplay preview must change when player_shape changes",
+        "first_failing_assertion": "tests/preview.test.mjs:164"
+      },
+      {
+        "file": "tests/sio-patch-policy.test.mjs",
+        "declared_at": "tests/sio-patch-policy.test.mjs:79",
+        "test": "the committed evidence: real-SIO boot smoke with stage 2 clean, pinned patch-on replays and menu raster",
+        "message": "atr-a5 stage-2 SIOV reads",
+        "first_failing_assertion": "tests/sio-patch-policy.test.mjs:98"
+      }
+    ],
+    "hasFailingSection": true
+  },
+  "correction": {
+    "raw": [
+      {
+        "file": "tests/heavy-damage.test.mjs",
+        "declared_at": "tests/heavy-damage.test.mjs:313",
+        "test": "H14 recovery stays within the owner window budget and preserves full segment sizes",
+        "message": "H12/H13/departure plus accepted M3 checked-home policy",
+        "first_failing_assertion": "tests/heavy-damage.test.mjs:321"
+      }
+    ],
+    "focused": {
+      "tests": 19,
+      "suites": 0,
+      "pass": 18,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 1,
+      "todo": 0,
+      "duration_ms": 1317.512458
+    },
+    "justification": "The owner authorised <=48 B; measured admission addition is43 B. Content size1863 becomes1906, while every Heavy/window/extension/fixed-entry assertion remains unchanged."
+  },
+  "auditedTaskTotals": {
+    "tests": 1688,
+    "suites": 0,
+    "pass": 1671,
+    "fail": 11,
+    "cancelled": 0,
+    "skipped": 6,
+    "todo": 0,
+    "duration_ms": 1138653.349625
+  },
+  "ABC": {
+    "A": 11,
+    "B": 0,
+    "C": 1
+  },
+  "A": [
+    {
+      "file": "tests/boss-order-scale.test.mjs",
+      "declared_at": "tests/boss-order-scale.test.mjs:67",
+      "test": "the curve evidence was measured on this data, three replays a cell, every fight finished",
+      "message": "the curve is stale: the boss data or the bossDef changed since",
+      "first_failing_assertion": "tests/boss-order-scale.test.mjs:70"
+    },
+    {
+      "file": "tests/broadside-fire.test.mjs",
+      "declared_at": "tests/broadside-fire.test.mjs:443",
+      "test": "capital/player collision agrees with independently reconstructed final raster Y",
+      "message": "owner 0, slot 0, ring 0: lower third; PMG 93..107, screen $8320 glyph 105..110, cache 113",
+      "first_failing_assertion": "tests/broadside-fire.test.mjs:468"
+    },
+    {
+      "file": "tests/gameplay-music-placement.test.mjs",
+      "declared_at": "tests/gameplay-music-placement.test.mjs:165",
+      "test": "the ATR START GAME read grows by the planned five plus three plus five sectors and no more",
+      "message": "Expected values to be strictly equal:",
+      "first_failing_assertion": "tests/gameplay-music-placement.test.mjs:184"
+    },
+    {
+      "file": "tests/github-showcase.test.mjs",
+      "declared_at": "tests/github-showcase.test.mjs:34",
+      "test": "showcase manifest binds every image to the current packed release",
+      "message": "Expected values to be strictly equal:",
+      "first_failing_assertion": "tests/github-showcase.test.mjs:37"
+    },
+    {
+      "file": "tests/github-showcase.test.mjs",
+      "declared_at": "tests/github-showcase.test.mjs:74",
+      "test": "showcase and asset sheets regenerate without ignored capture files",
+      "message": "Error: Runtime wall trace does not match the current release ATR",
+      "first_failing_assertion": "tests/github-showcase.test.mjs:76"
+    },
+    {
+      "file": "tests/github-showcase.test.mjs",
+      "declared_at": "tests/github-showcase.test.mjs:189",
+      "test": "gameplay GIF is bound to the current ATR and stays within budget",
+      "message": "the GIF predates the current ATR; rerun npm run showcase:gif",
+      "first_failing_assertion": "tests/github-showcase.test.mjs:194"
+    },
+    {
+      "file": "tests/level-one-waves.test.mjs",
+      "declared_at": "tests/level-one-waves.test.mjs:200",
+      "test": "sector flow: with no kills the swarm's three waves arm and drain, (a) opens within its ceiling, (b)'s Raiders arrive",
+      "message": "difficulty 0: (b)'s Raiders never arrived with no kills",
+      "first_failing_assertion": "tests/level-one-waves.test.mjs:223"
+    },
+    {
+      "file": "tests/menu-raster.test.mjs",
+      "declared_at": "tests/menu-raster.test.mjs:24",
+      "test": "native menu raster is exact for the ATR and four cold RAM fills",
+      "message": "atr-00 evidence must describe the current artifact",
+      "first_failing_assertion": "tests/menu-raster.test.mjs:41"
+    },
+    {
+      "file": "tests/package-release.test.mjs",
+      "declared_at": "tests/package-release.test.mjs:38",
+      "test": "M5-05: the release zip carries LICENSE, LICENSE-ASSETS and THIRD_PARTY_NOTICES.md",
+      "message": "Error: Runtime wall trace binding mismatch for void-strike-65-boot.bin",
+      "first_failing_assertion": "tests/package-release.test.mjs:44"
+    },
+    {
+      "file": "tests/preview.test.mjs",
+      "declared_at": "tests/preview.test.mjs:121",
+      "test": "preview consumes the canonical charset, screen, PMG, and palette source",
+      "message": "the gameplay preview must change when player_shape changes",
+      "first_failing_assertion": "tests/preview.test.mjs:164"
+    },
+    {
+      "file": "tests/sio-patch-policy.test.mjs",
+      "declared_at": "tests/sio-patch-policy.test.mjs:79",
+      "test": "the committed evidence: real-SIO boot smoke with stage 2 clean, pinned patch-on replays and menu raster",
+      "message": "atr-a5 stage-2 SIOV reads",
+      "first_failing_assertion": "tests/sio-patch-policy.test.mjs:98"
+    }
+  ],
+  "B": [],
+  "C": [
+    {
+      "file": "tests/source-contracts.test.mjs",
+      "declared_at": "tests/source-contracts.test.mjs:222",
+      "test": "documentation keeps the current Heavy/Light PMG contract",
+      "message": "The input did not match the regular expression /LIGHT_CEILING_SWARM = 3\\b/. Input:",
+      "first_failing_assertion": "tests/source-contracts.test.mjs:241"
+    }
+  ],
+  "reconciliation": {
+    "added": [],
+    "moved": [],
+    "disappeared": [],
+    "matched": [
+      {
+        "file": "tests/boss-order-scale.test.mjs",
+        "declared_at": "tests/boss-order-scale.test.mjs:67",
+        "test": "the curve evidence was measured on this data, three replays a cell, every fight finished",
+        "message": "the curve is stale: the boss data or the bossDef changed since",
+        "first_failing_assertion": "tests/boss-order-scale.test.mjs:70"
+      },
+      {
+        "file": "tests/broadside-fire.test.mjs",
+        "declared_at": "tests/broadside-fire.test.mjs:443",
+        "test": "capital/player collision agrees with independently reconstructed final raster Y",
+        "message": "owner 0, slot 0, ring 0: lower third; PMG 93..107, screen $8320 glyph 105..110, cache 113",
+        "first_failing_assertion": "tests/broadside-fire.test.mjs:468"
+      },
+      {
+        "file": "tests/gameplay-music-placement.test.mjs",
+        "declared_at": "tests/gameplay-music-placement.test.mjs:165",
+        "test": "the ATR START GAME read grows by the planned five plus three plus five sectors and no more",
+        "message": "Expected values to be strictly equal:",
+        "first_failing_assertion": "tests/gameplay-music-placement.test.mjs:184"
+      },
+      {
+        "file": "tests/github-showcase.test.mjs",
+        "declared_at": "tests/github-showcase.test.mjs:34",
+        "test": "showcase manifest binds every image to the current packed release",
+        "message": "Expected values to be strictly equal:",
+        "first_failing_assertion": "tests/github-showcase.test.mjs:37"
+      },
+      {
+        "file": "tests/github-showcase.test.mjs",
+        "declared_at": "tests/github-showcase.test.mjs:74",
+        "test": "showcase and asset sheets regenerate without ignored capture files",
+        "message": "Error: Runtime wall trace does not match the current release ATR",
+        "first_failing_assertion": "tests/github-showcase.test.mjs:76"
+      },
+      {
+        "file": "tests/github-showcase.test.mjs",
+        "declared_at": "tests/github-showcase.test.mjs:189",
+        "test": "gameplay GIF is bound to the current ATR and stays within budget",
+        "message": "the GIF predates the current ATR; rerun npm run showcase:gif",
+        "first_failing_assertion": "tests/github-showcase.test.mjs:194"
+      },
+      {
+        "file": "tests/level-one-waves.test.mjs",
+        "declared_at": "tests/level-one-waves.test.mjs:200",
+        "test": "sector flow: with no kills the swarm's three waves arm and drain, (a) opens within its ceiling, (b)'s Raiders arrive",
+        "message": "difficulty 0: (b)'s Raiders never arrived with no kills",
+        "first_failing_assertion": "tests/level-one-waves.test.mjs:223"
+      },
+      {
+        "file": "tests/menu-raster.test.mjs",
+        "declared_at": "tests/menu-raster.test.mjs:24",
+        "test": "native menu raster is exact for the ATR and four cold RAM fills",
+        "message": "atr-00 evidence must describe the current artifact",
+        "first_failing_assertion": "tests/menu-raster.test.mjs:41"
+      },
+      {
+        "file": "tests/package-release.test.mjs",
+        "declared_at": "tests/package-release.test.mjs:38",
+        "test": "M5-05: the release zip carries LICENSE, LICENSE-ASSETS and THIRD_PARTY_NOTICES.md",
+        "message": "Error: Runtime wall trace binding mismatch for void-strike-65-boot.bin",
+        "first_failing_assertion": "tests/package-release.test.mjs:44"
+      },
+      {
+        "file": "tests/preview.test.mjs",
+        "declared_at": "tests/preview.test.mjs:121",
+        "test": "preview consumes the canonical charset, screen, PMG, and palette source",
+        "message": "the gameplay preview must change when player_shape changes",
+        "first_failing_assertion": "tests/preview.test.mjs:164"
+      },
+      {
+        "file": "tests/sio-patch-policy.test.mjs",
+        "declared_at": "tests/sio-patch-policy.test.mjs:79",
+        "test": "the committed evidence: real-SIO boot smoke with stage 2 clean, pinned patch-on replays and menu raster",
+        "message": "atr-a5 stage-2 SIOV reads",
+        "first_failing_assertion": "tests/sio-patch-policy.test.mjs:98"
+      }
+    ]
+  }
+}

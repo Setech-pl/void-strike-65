@@ -1,0 +1,13 @@
+{
+  "before": {
+    "task": "149M\t.cache/m3-wave-fix",
+    "worktreeCache": "149M\t.cache",
+    "disk": "Filesystem      Size    Used   Avail Capacity iused ifree %iused  Mounted on\n/dev/disk3s5   926Gi   568Gi   333Gi    64%    6.1M  3.5G    0%   /System/Volumes/Data"
+  },
+  "after": {
+    "task": "0B\t.cache/m3-wave-fix",
+    "worktreeCache": "4.0K\t.cache",
+    "disk": "Filesystem      Size    Used   Avail Capacity iused ifree %iused  Mounted on\n/dev/disk3s5   926Gi   568Gi   333Gi    64%    6.1M  3.5G    0%   /System/Volumes/Data"
+  },
+  "scope": "Only .cache/m3-wave-fix removed: main archive and build, node_modules symlink (worktree dependency tree retained), Atari800 source/executable, intermediate logs/traces and downloaded package. Other task caches unchanged. All own build/test/emulator sessions completed; no server or listening port started."
+}

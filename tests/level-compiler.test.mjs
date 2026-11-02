@@ -520,7 +520,7 @@ test("levels:check runs the validator alone and the build compiles the authored 
   // this same authored source; ordinary builds compile the selected file.
   assert.match(buildSource, /: levelSourcePath\(levelSourceIdForRun\(run\.id\)\)\);/,
     "the build must compile the authored JSON, not carry the bytes");
-  assert.match(buildSource, /: compileLevelFile\(file,\{hullAsset:capitalHullsAsset\}\)/);
+  assert.match(buildSource, /: compileLevel\(m3TempoSource\(loadLevelSource\(file\),m3Tempo\?\?"normal"\),\{file,hullAsset:capitalHullsAsset\}\)/);
   assert.match(buildSource, /const levelSourceIdForRun = \(id\) => \(bossRegionValue !== null \? 1 : id\);/);
 });
 
@@ -642,11 +642,12 @@ test("T12: level-02.json compiles and differs from level 1 in sector count, wave
     assert.deepEqual(two.sectors.map((sector) => sector.debris), [1, 1, 0, 1, 1, 1]);
 
     // Owner decision, 2026-09-30: everything else as drafted - the capital on
-    // authored row 1,120 (level 1: 272) and sector 6 at 1,152 rows.
-    assert.equal(two.sectors[0].rows + two.sectors[1].rows, 1120);
+    // post-smoke NORMAL opening grows to896 rows to preserve all slower groups;
+    // the Heavy sector stays640 and sector6 stays1152.
+    assert.equal(two.sectors[0].rows + two.sectors[1].rows, 1536);
     assert.equal(one.sectors[0].rows, 272);
     assert.equal(two.sectors[5].rows, 1152);
-    assert.deepEqual(two.sectors.map((sector) => sector.rows), [480, 640, 0, 768, 800, 1152]);
+    assert.deepEqual(two.sectors.map((sector) => sector.rows), [896, 640, 0, 1280, 800, 1152]);
     // RE-PINNED at roadmap 4.6 step 4 (plan §8 step 4, owner 2026-09-30):
     // level 2 flies a 352-row hull, level 1 keeps 480 (T7,
     // tests/hull-length.test.mjs).

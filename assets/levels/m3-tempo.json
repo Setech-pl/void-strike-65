@@ -1,0 +1,281 @@
+{
+  "_": "Build-time authored tempo variants. No runtime multiplier. Select matching difficulty in OPTIONS. HARD preserves pre-tune motion.",
+  "easy": {
+    "wide-west": [
+      {
+        "dy": 1,
+        "frames": 24,
+        "flags": 0
+      },
+      {
+        "dy": 0,
+        "frames": 128,
+        "flags": 23
+      },
+      {
+        "dy": 1,
+        "frames": 128,
+        "flags": 27
+      },
+      {
+        "dy": 1,
+        "frames": 152,
+        "flags": 135
+      }
+    ],
+    "wide-east": [
+      {
+        "dy": 1,
+        "frames": 24,
+        "flags": 0
+      },
+      {
+        "dy": 0,
+        "frames": 128,
+        "flags": 27
+      },
+      {
+        "dy": 1,
+        "frames": 128,
+        "flags": 23
+      },
+      {
+        "dy": 1,
+        "frames": 152,
+        "flags": 139
+      }
+    ],
+    "wide-cross": [
+      {
+        "dy": 0,
+        "frames": 80,
+        "flags": 7
+      },
+      {
+        "dy": 1,
+        "frames": 24,
+        "flags": 0
+      },
+      {
+        "dy": 1,
+        "frames": 152,
+        "flags": 27
+      },
+      {
+        "dy": -1,
+        "frames": 152,
+        "flags": 135
+      }
+    ],
+    "wide-track": [
+      {
+        "dy": 1,
+        "frames": 24,
+        "flags": 0
+      },
+      {
+        "dy": 0,
+        "frames": 120,
+        "flags": 31
+      },
+      {
+        "dy": -1,
+        "frames": 76,
+        "flags": 135
+      },
+      {
+        "dy": 1,
+        "frames": 0,
+        "flags": 7
+      }
+    ],
+    "wide-return": [
+      {
+        "dy": 1,
+        "frames": 32,
+        "flags": 0
+      },
+      {
+        "dy": 1,
+        "frames": 128,
+        "flags": 7
+      },
+      {
+        "dy": -1,
+        "frames": 64,
+        "flags": 11
+      },
+      {
+        "dy": -1,
+        "frames": 84,
+        "flags": 135
+      }
+    ],
+    "tracking-dive": [
+      {
+        "dy": 1,
+        "frames": 32,
+        "flags": 0
+      },
+      {
+        "dy": 0,
+        "frames": 128,
+        "flags": 31
+      },
+      {
+        "dy": 1,
+        "frames": 76,
+        "flags": 151
+      },
+      {
+        "dy": 1,
+        "frames": 0,
+        "flags": 23
+      }
+    ]
+  },
+  "hard": {
+    "wide-west": [
+      {
+        "dy": 2,
+        "frames": 12,
+        "flags": 0
+      },
+      {
+        "dy": 2,
+        "frames": 32,
+        "flags": 20
+      },
+      {
+        "dy": 2,
+        "frames": 32,
+        "flags": 24
+      },
+      {
+        "dy": 2,
+        "frames": 38,
+        "flags": 132
+      }
+    ],
+    "wide-east": [
+      {
+        "dy": 2,
+        "frames": 12,
+        "flags": 0
+      },
+      {
+        "dy": 2,
+        "frames": 32,
+        "flags": 24
+      },
+      {
+        "dy": 2,
+        "frames": 32,
+        "flags": 20
+      },
+      {
+        "dy": 2,
+        "frames": 38,
+        "flags": 136
+      }
+    ],
+    "wide-cross": [
+      {
+        "dy": 0,
+        "frames": 20,
+        "flags": 4
+      },
+      {
+        "dy": 2,
+        "frames": 8,
+        "flags": 0
+      },
+      {
+        "dy": 2,
+        "frames": 38,
+        "flags": 24
+      },
+      {
+        "dy": -2,
+        "frames": 38,
+        "flags": 132
+      }
+    ],
+    "wide-track": [
+      {
+        "dy": 2,
+        "frames": 12,
+        "flags": 0
+      },
+      {
+        "dy": 1,
+        "frames": 40,
+        "flags": 29
+      },
+      {
+        "dy": -2,
+        "frames": 38,
+        "flags": 133
+      },
+      {
+        "dy": 2,
+        "frames": 0,
+        "flags": 5
+      }
+    ],
+    "wide-return": [
+      {
+        "dy": 2,
+        "frames": 16,
+        "flags": 0
+      },
+      {
+        "dy": 1,
+        "frames": 32,
+        "flags": 4
+      },
+      {
+        "dy": -1,
+        "frames": 16,
+        "flags": 8
+      },
+      {
+        "dy": -2,
+        "frames": 21,
+        "flags": 132
+      }
+    ],
+    "tracking-dive": [
+      {
+        "dy": 1,
+        "frames": 32,
+        "flags": 0
+      },
+      {
+        "dy": 1,
+        "frames": 64,
+        "flags": 29
+      },
+      {
+        "dy": 2,
+        "frames": 38,
+        "flags": 149
+      },
+      {
+        "dy": 1,
+        "frames": 0,
+        "flags": 21
+      }
+    ]
+  },
+  "sectorRows": {
+    "easy": {
+      "0": 1280,
+      "3": 1792
+    },
+    "hard": {
+      "0": 480,
+      "3": 768
+    }
+  }
+}
